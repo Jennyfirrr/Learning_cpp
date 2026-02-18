@@ -24,7 +24,8 @@ int isBad(int search_space) {
                       // O(log n) complexity
     }
   }
-  return left;
+  return left; // returns left because at the end of the search, left will be
+               // the bad version, once right and left meet
 }
 
 int main() {
