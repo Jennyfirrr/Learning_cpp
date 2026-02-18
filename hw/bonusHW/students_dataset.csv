@@ -1,0 +1,51 @@
+﻿StudentID,Name,Department,Email,Phone,Address,Major,Year,GPA,GraduationYear,AcademicAdvisor
+1001,John Doe,Computer Science,john.doe@example.com,555-1234,123 Main St,CS,Senior,3.5,2024,Dr. King
+1002,Jane Smith,History,jane.smith@example.com,555-2345,456 Elm St,History,Junior,3.7,2025,Dr. Green
+1003,Alice Johnson,Computer Science,alice.j@example.com,555-3456,789 Oak St,CS,Sophomore,3.2,2026,Dr. White
+1004,Bob Brown,Mathematics,bob.b@example.com,555-4567,321 Maple St,Math,Senior,3.8,2024,Dr. Walker
+1005,Mary Davis,Biology,mary.d@example.com,555-5678,654 Pine St,Biology,Freshman,3.4,2027,Dr. Clark
+1006,James White,History,james.w@example.com,555-6789,987 Cedar St,History,Senior,3.6,2024,Dr. Brown
+1007,Patricia Green,Computer Science,patricia.g@example.com,555-7890,123 Birch St,CS,Junior,3.9,2025,Dr. Young
+1008,Michael Black,Physics,michael.b@example.com,555-8901,456 Walnut St,Physics,Sophomore,3.1,2026,Dr. Brown
+1009,Linda Williams,Mathematics,linda.w@example.com,555-9012,789 Chestnut St,Math,Senior,3.7,2024,Dr. Harris
+1010,David Miller,Computer Science,david.m@example.com,555-0123,321 Spruce St,CS,Junior,3.8,2025,Dr. Lewis
+1011,Susan Harris,History,susan.h@example.com,555-1122,654 Willow St,History,Senior,3.4,2024,Dr. Young
+1012,Robert Clark,Mathematics,robert.c@example.com,555-2233,987 Aspen St,Math,Junior,3.6,2025,Dr. Brown
+1013,Karen Wright,Physics,karen.w@example.com,555-3344,123 Redwood St,Physics,Sophomore,3.2,2026,Dr. Harris
+1014,Charles Walker,Computer Science,charles.w@example.com,555-4455,456 Dogwood St,CS,Freshman,3.5,2027,Dr. Lewis
+1015,Nancy Lee,Biology,nancy.l@example.com,555-5566,789 Fir St,Biology,Junior,3.3,2025,Dr. Lee
+1016,George Hall,Mathematics,george.h@example.com,555-6677,321 Beech St,Math,Senior,3.8,2024,Dr. Hall
+1017,Dorothy Adams,History,dorothy.a@example.com,555-7788,654 Cherry St,History,Sophomore,3.5,2026,Dr. Walker
+1018,Paul Baker,Physics,paul.b@example.com,555-8899,987 Palm St,Physics,Junior,3.4,2025,Dr. Lee
+1019,Betty Harris,Biology,betty.h@example.com,555-9900,123 Juniper St,Biology,Sophomore,3.6,2026,Dr. Baker
+1020,Larry King,Computer Science,larry.k@example.com,555-1010,456 Holly St,CS,Senior,3.9,2024,Dr. Lewis
+1021,Barbara Moore,Mathematics,barbara.m@example.com,555-2020,789 Magnolia St,Math,Junior,3.2,2025,Dr. Taylor
+1022,Ronald Evans,Physics,ronald.e@example.com,555-3030,321 Cedarwood St,Physics,Sophomore,3.3,2026,Dr. Adams
+1023,Cynthia Turner,Biology,cynthia.t@example.com,555-4040,654 Sycamore St,Biology,Freshman,3.7,2027,Dr. Brown
+1024,Donald Scott,Computer Science,donald.s@example.com,555-5050,987 Olive St,CS,Junior,3.8,2025,Dr. Clark
+1025,Sandra Parker,History,sandra.p@example.com,555-6060,123 Alder St,History,Senior,3.4,2024,Dr. Brown
+1026,Mark Sanchez,Mathematics,mark.s@example.com,555-7070,456 Poplar St,Math,Junior,3.6,2025,Dr. Hall
+1027,Jessica Cooper,Physics,jessica.c@example.com,555-8080,789 Ash St,Physics,Sophomore,3.1,2026,Dr. Wright
+1028,Steven Ramirez,Biology,steven.r@example.com,555-9090,321 Chestnut St,Biology,Senior,3.5,2024,Dr. Hall
+1029,Margaret Peterson,Computer Science,margaret.p@example.com,555-1111,654 Dogwood St,CS,Freshman,3.4,2027,Dr. Adams
+1030,Brian Richardson,Mathematics,brian.r@example.com,555-2222,987 Pinecone St,Math,Sophomore,3.7,2026,Dr. Roberts
+1031,Shirley Reed,History,shirley.r@example.com,555-3333,123 Blossom St,History,Senior,3.6,2024,Dr. Adams
+1032,Patrick Cox,Computer Science,patrick.c@example.com,555-4444,456 Orchid St,CS,Junior,3.9,2025,Dr. Harris
+1033,Diane Brooks,Mathematics,diane.b@example.com,555-5555,789 Rose St,Math,Freshman,3.5,2027,Dr. Wright
+1034,Christopher Hughes,Physics,christopher.h@example.com,555-6666,321 Daisy St,Physics,Sophomore,3.3,2026,Dr. Adams
+1035,Maria Jenkins,Biology,maria.j@example.com,555-7777,654 Ivy St,Biology,Junior,3.4,2025,Dr. Young
+1036,Gary Simmons,Computer Science,gary.s@example.com,555-8888,987 Cedarwood St,CS,Senior,3.8,2024,Dr. Lewis
+1037,Linda Price,Mathematics,linda.p@example.com,555-9999,123 Olive St,Math,Junior,3.2,2025,Dr. Lee
+1038,Daniel Edwards,Physics,daniel.e@example.com,555-0000,456 Magnolia St,Physics,Senior,3.1,2024,Dr. Roberts
+1039,Jennifer Foster,Biology,jennifer.f@example.com,555-1011,789 Oak St,Biology,Sophomore,3.5,2026,Dr. Baker
+1040,Edward Barnes,Computer Science,edward.b@example.com,555-2022,321 Spruce St,CS,Freshman,3.7,2027,Dr. Clark
+1041,Deborah Bailey,Mathematics,deborah.b@example.com,555-3033,654 Elm St,Math,Senior,3.8,2024,Dr. White
+1042,William Kelly,History,william.k@example.com,555-4044,987 Palm St,History,Junior,3.5,2025,Dr. White
+1043,Emily Torres,Physics,emily.t@example.com,555-5055,123 Redwood St,Physics,Senior,3.2,2024,Dr. Perez
+1044,Joseph Patterson,Biology,joseph.p@example.com,555-6066,456 Beech St,Biology,Freshman,3.4,2027,Dr. Taylor
+1045,Carol Morgan,Computer Science,carol.m@example.com,555-7077,789 Fir St,CS,Sophomore,3.5,2026,Dr. Perez
+1046,Kevin Powell,Mathematics,kevin.p@example.com,555-8088,321 Maple St,Math,Junior,3.6,2025,Dr. King
+1047,Karen Long,History,karen.l@example.com,555-9099,654 Holly St,History,Senior,3.4,2024,Dr. Green
+1048,Timothy Peterson,Computer Science,timothy.p@example.com,555-1012,987 Sycamore St,CS,Freshman,3.7,2027,Dr. White
+1049,Sharon Ward,Mathematics,sharon.w@example.com,555-2023,123 Birch St,Math,Sophomore,3.2,2026,Dr. Green
+1050,Laura Sanders,Biology,laura.s@example.com,555-3034,456 Walnut St,Biology,Junior,3.6,2025,Dr. White
