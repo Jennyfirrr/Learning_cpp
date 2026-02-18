@@ -4,6 +4,8 @@
 
 using namespace std;
 
+// ncurses is a pain to use, i wouldnt reccomend it lol
+
 double sphereVol(double r) { return (4.0 / 3.0) * M_PI * r * r * r; }
 
 int main() {
