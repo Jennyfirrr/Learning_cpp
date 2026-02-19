@@ -32,6 +32,9 @@ int main() {
               .end()); // reverses it becuase its top down, instead of bottom up
 
   for (int i = 0; i < (int)conversion.size(); i++) {
+    if (i % 7 == 0) {
+      cout << " " << conversion[i];
+    }
     cout << conversion[i];
   }
 
