@@ -36,7 +36,13 @@ int evalRPN(vector<string> &tokens) {
     } else {
       nums.push(stoi(
           tokens[i])); // this just converts everything from a string to int, i
-                       // cant remember exactly why, but its important
+                       // cant remember exactly why, but its important, right
+                       // its because if the value of tokens[i] isnt an
+                       // operator, then you need to convert the string that
+                       // contains the number to an integer, because the
+                       // problems wants you to return an integer, and its
+                       // faster to return nums.top(), instead of storing
+                       // everything in an uneeded intialized int
     }
 
     i++; // this just updates the int i at the top, to make the while loop
