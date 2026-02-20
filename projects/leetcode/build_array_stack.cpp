@@ -3,6 +3,9 @@
 
 using namespace std;
 
+// i first thought i needed a nested for loop, but then realized i just needed a
+// counter instead before i submitted
+
 vector<string> buildArray(vector<int> &target, int n) {
   vector<string> operations;
   int j = 0; // counter to match the vector index and updating it when a match
