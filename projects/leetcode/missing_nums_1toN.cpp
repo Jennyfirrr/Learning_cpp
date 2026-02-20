@@ -23,3 +23,18 @@ vector<int> findDisappearedNumbers(vector<int> &nums) {
   }
   return ans;
 }
+
+// optimal solution
+//
+vector<int> findDisappearedNumbers(vector<int> &nums) {
+  vector<int> presence(nums.size());
+  for (int num : nums) // probably faster because it doesnt have to initialize
+                       // the .size() operator twice
+    presence[num - 1] = 1;
+  vector<int> ans;
+  for (int i = 0; i < presence.size(); ++i) {
+    if (presence[i] == 0)
+      ans.push_back(i + 1);
+  }
+  return ans;
+}
