@@ -8,8 +8,9 @@ using namespace std;
 
 vector<string> buildArray(vector<int> &target, int n) {
   vector<string> operations;
-  int j = 0; // counter to match the vector index and updating it when a match
-             // is found
+  int j = 0; // counter to match the size of target, so like, when a match is
+             // found at i + 1, it updates, and when i thits the size of the
+             // vector target, the loops breaks
 
   for (int i = 0; i < n; i++) {
     if (i + 1 == target[j]) {
