@@ -12,8 +12,6 @@ vector<int> findDisappearedNumbers(vector<int> &nums) {
   for (int i = 0; i < n; i++) {
     missing[nums[i] - 1]++; // updates a count at index nums[i] - 1
   }
-  int m = missing.size();
-  vector<int> ans;
 
   for (int i = 0; i < m; i++) {
     if (missing[i] == 0) {
