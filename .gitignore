@@ -1,2 +1,7 @@
 *.pdf
 *.docx
+
+#exlucding compiled binaries
+
+*.o
+*.out

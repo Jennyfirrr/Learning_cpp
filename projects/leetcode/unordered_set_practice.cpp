@@ -5,7 +5,8 @@
 using namespace std;
 
 bool matrix_check(const vector<vector<int>> &matrix) {
-  unordered_set<int> rows[100];
+  unordered_set<int>
+      rows[100]; // easy to check for multiples using the count() functions
   unordered_set<int> cols[100];
 
   for (int i = 0; i < (int)matrix.size();
