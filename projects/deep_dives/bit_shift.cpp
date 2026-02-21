@@ -20,7 +20,8 @@ using namespace std;
 // binary number to store a true or false value, and instead of sequentially
 // reading them 1 by 1, you can just return the actual number it is, to figure
 // out which are true and false in a single read cycle, because every number up
-// to 255 has a unique binary ID.
+// to 255 has a unique binary ID. LOL you can store 32 t/f values in the space
+// of a single integer.
 
 int bitShift(vector<int> &nums, int shift) {
 
