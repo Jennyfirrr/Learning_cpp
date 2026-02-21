@@ -1,4 +1,4 @@
 #include <iostream>
 #include <vector>
 
-// im gonna fill this out about branchless programming today
+// were expanding on bitwise operators with branchless programming today
