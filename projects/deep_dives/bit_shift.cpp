@@ -15,6 +15,12 @@ using namespace std;
 // to access data in HFT systems, or exeuction engines. This is beneficial for
 // the L1 cahcing though, because it created far smaller data structures, which
 // allows more to be stored using less, in a faster section of memory.
+//
+// I learned about bitfields while doing this, where you use each index in a
+// binary number to store a true or false value, and instead of sequentially
+// reading them 1 by 1, you can just return the actual number it is, to figure
+// out which are true and false in a single read cycle, because every number up
+// to 255 has a unique binary ID.
 
 int bitShift(vector<int> &nums, int shift) {
 
