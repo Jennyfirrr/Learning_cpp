@@ -37,7 +37,7 @@ int clamp(int x) {
 
 int clamp_branchless(int x) {
   x &= ~(x >> 31);         // if x is negative, x >> 31 is all 1's, ~ is all 0's
-  std::cout << x << " < "; // therefore x & 0 is 0.
+  std::cout << x << " , "; // therefore x & 0 is 0.
   x -= 255;
   std::cout << x << " , "; // shifting the range
   x &= (x >> 31);
