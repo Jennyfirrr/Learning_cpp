@@ -5,6 +5,9 @@ using namespace std;
 
 int bitShift(vector<int> &nums, int shift) {
 
+  // shifts like for example, 1000 is 8, shifting right by 1 makes 0100, which
+  // is 4, and again 0010, which is 2
+
   cout << "Bits shifted right: " << shift << endl;
   // every shift right is dividing by 2^n, where n is the shift right, so 1
   // shift is x/2, 2 shift is x/4,etc
@@ -18,6 +21,8 @@ int bitShift(vector<int> &nums, int shift) {
 }
 
 int bitShiftLeft(vector<int> &nums, int shift) {
+
+  // opposite of the above, 1000 is 8, so left by 1 is 10000 which is 16
 
   cout << "Bits shifted left: " << shift << endl;
   // every shift left is dividing by 2^n, where n is the shift left, so 1
