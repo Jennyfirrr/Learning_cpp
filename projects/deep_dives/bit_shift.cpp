@@ -29,7 +29,9 @@ int bitShift(vector<int> &nums, int shift) {
     int result2 = n & (n - 1); // neat trick to find powers of 2, because if it
                                // ends in a 0, its a power of 2
     // class even/odd trick is just n & 1 apparently, because if the last number
-    // is odd, the last index is a 1
+    // is odd, the last index is a 1, the & operator essentially acts as a true
+    // false gate for the number in binary, where it only lets n through, if
+    // both numbers have identical bits in the same index
     cout << "Right shift: [" << n << " -> " << result << "] , ";
     cout << "[" << n << " -> " << result2 << "]" << "\n";
   }
