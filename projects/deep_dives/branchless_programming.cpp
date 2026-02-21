@@ -46,6 +46,12 @@ int clamp_branchless(int x) {
   x += 255;
   std::cout << x << "\n"; // shift back
   return x;
+} // to avoid magic numbers, you could use the parameters passed to the function
+  // as the example below
+
+int math_clamp_branchless_i32(int value, int low, int hi) {
+  // rest of function, this prevents magic numbers and its more readable and
+  // more geared towards a maintainable codebase
 }
 
 // Visual representation of how this works
@@ -63,6 +69,26 @@ int clamp_branchless(int x) {
 // need for if statements, actually W I L D, ill probably come back and add a
 // better description, but i added a main function to see how it actually works
 // step by step, i gotta let it M A R I N A T E some in mah brain
+//
+// More indepth explanation without using hexcode: This basically works because
+// of Two's complement, and sign extension in a 32-bit system, a positive 5 is
+// represented as 00000000_00000000_00000000_00000101, to get the negative
+// value, your cpu uses the two's complement, which inverts the bits, then adds
+// 1 to the end, so you end up with 11111111_11111111_11111111_11111010, then it
+// adds one so you get 11111111_11111111_11111111_11111011 which represents -5,
+// Now the reason this reads as a negative number, is because the very first bit
+// is the sign bit, and because its a 1, the number is negative. So when you
+// tell the computer to perform the x >> 31, if the number is positive, the new
+// empty slots on the left fill with 0's, and if it is negative, the fill with
+// 1's, so in the example where I use -5, the computer essentially pushes all
+// the bits to the right, and the "fall off", and because the origianl bit on
+// the left, was a 1, it fills all the empty bit slots with 1's. so after
+// shifting 31 times, you end up with 11111111_11111111_11111111_11111111 which
+// is 0xFFFFFFFF, as seen above, I just wanted to add an explanation that
+// actually shows the binary representation of why this works, so because of the
+// way this works, for any SIGNED integer, it will essentially take the sign bit
+// and smear it across the entire register, leading to the clamping behavior
+// seen in the function above.
 
 int main() {
   int num;
