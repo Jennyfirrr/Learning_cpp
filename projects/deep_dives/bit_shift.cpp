@@ -45,7 +45,8 @@ using namespace std;
 // rubric or syllabus im following, this just makes my brain happy going down
 // these rabbit holes. You could probably even encode numbers as blocks of sell
 // orders, like 8 (00001000) could indicate sell x shares, or sell y block, or
-// buy n number of something, you could literally do so much with this lol, wtf
+// buy n number of something, you could literally do so much with this lol, wtf,
+// this is way more interesting than java(doo doo), sorry not sorry.
 //
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
