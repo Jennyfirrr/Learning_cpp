@@ -46,7 +46,14 @@ using namespace std;
 // these rabbit holes. You could probably even encode numbers as blocks of sell
 // orders, like 8 (00001000) could indicate sell x shares, or sell y block, or
 // buy n number of something, you could literally do so much with this lol, wtf,
-// this is way more interesting than java(doo doo), sorry not sorry.
+// this is way more interesting than java(doo doo), sorry not sorry. The
+// encoding mechanism would probably be far more complex than just using simple
+// case switching, or if else statements, but this would be magnitudes faster,
+// and use far less memory for the actual execution side of things. its like
+// using Fixed point math for ensuring floating point operations are actually
+// what the number is by converting them to ints first, or only using ints for
+// math, but for representing operations and function calls by using a single
+// bit.
 //
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
