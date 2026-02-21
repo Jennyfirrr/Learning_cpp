@@ -11,7 +11,7 @@ int bitShift(vector<int> &nums, int shift) {
 
   for (int n : nums) {
     int result = n >> shift;
-    cout << n << " : " << result << "\n";
+    cout << "[" << n << " : " << result << "]" << "\n";
   }
 
   return 0;
@@ -25,7 +25,7 @@ int bitShiftLeft(vector<int> &nums, int shift) {
 
   for (int n : nums) {
     int result = n << shift;
-    cout << n << " : " << result << "\n";
+    cout << "[" << n << " : " << result << "]" << "\n";
   }
 
   return 0;
