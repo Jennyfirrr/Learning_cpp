@@ -33,7 +33,11 @@ using namespace std;
 // bit integers, and 64 conditions in unsigned 64 bit ints, unisnged is
 // prefereed bceause i read that signed ints have some weird interactions in
 // some cases, and for low latency systems, mitigating any chance of risk is
-// highly desireable.
+// highly desireable. This could probably be further expanded to work by using
+// integer addition or something or the & operator to set matching conditions
+// for what action happens when using whole integers in a cas switch format,
+// maybe just cutting out the entire case switching thing, and just adding the &
+// operator to compare numbers, im not sure.
 //
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
