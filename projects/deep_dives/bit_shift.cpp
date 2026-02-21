@@ -65,6 +65,15 @@ using namespace std;
 // or not to execute a function. LOL a single byte to represent 8 conditional
 // statements nested within eachother. THIS SHIT IS W I L D
 //
+// I guess this is why the L1 cache is so important. uint64_t is a size of 8
+// bytes, and the cache line is 64 bytes long, so you can essentially fit 8
+// complete trading states into a single cache line fetch, for a single
+// nanosecond of operations lol. W I L D, and using a struct, which is what i
+// thought was how it was done at first, is 32 bytes M I N I M U M, just to
+// store 32 seperate bools, AND its stored scattered around memory, whereas
+// this, you can control exactly where it is, for a fraction of the space, and
+// magnitudes faster access.
+//
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
 // - 1) which becomes 1000 & 0111, so because & requires that the bits in the
