@@ -31,7 +31,8 @@ int clamp(int x) {
 // have a 1 at the leftmost bit, which removes a bit that could other be used
 // for data, and the weird bugs that a signed integer overflow causes, which ill
 // probably eventually add to this file, we dont like undefined behavior, almost
-// as much as we dont like java
+// as much as we dont like java, im gonna keep beating this dead horse btw, if
+// your using my notes get used to it
 
 int clamp_branchless(int x) {
   x &= ~(x >> 31); // if x is negative, x >> 31 is all 1's, ~ is all 0's,
