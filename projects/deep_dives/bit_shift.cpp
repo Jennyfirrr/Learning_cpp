@@ -28,6 +28,8 @@ int bitShift(vector<int> &nums, int shift) {
     int result = n >> shift;
     int result2 = n & (n - 1); // neat trick to find powers of 2, because if it
                                // ends in a 0, its a power of 2
+    // class even/odd trick is just n & 1 apparently, because if the last number
+    // is odd, the last index is a 1
     cout << "Right shift: [" << n << " -> " << result << "] , ";
     cout << "[" << n << " -> " << result2 << "]" << "\n";
   }
@@ -64,7 +66,8 @@ int main() {
   cout << "Please select how many indexes you want to shift: ";
   cin >> shift;
 
-  vector<int> nums = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+  vector<int> nums = {2,  3,  4,  5,  6,  7,  8,  9,   10,  11,
+                      12, 13, 14, 15, 16, 32, 64, 128, 256, 512};
 
   if (selection == 1) {
     bitShiftLeft(nums, shift);
