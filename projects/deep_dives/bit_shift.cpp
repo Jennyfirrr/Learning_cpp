@@ -3,6 +3,11 @@
 
 using namespace std;
 
+// probably gonna look at n & (n - 1) == 0 for fast power of 2 checks, I read
+// this is heavily used in quant/HFT systems, and instead of passing full bool
+// values for T/F and stuff like that, just using a status bit, with a 1 or 0 is
+// faster and lower latency. This stuff is neat
+
 int bitShift(vector<int> &nums, int shift) {
 
   // shifts like for example, 1000 is 8, shifting right by 1 makes 0100, which
