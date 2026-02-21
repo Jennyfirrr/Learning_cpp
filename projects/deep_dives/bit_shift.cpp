@@ -35,15 +35,10 @@ int main() {
   int shift;
   int selection = 0;
 
-  while (selection == 0) {
+  while (selection != 1 && selection != 2) {
     cout << "Please select if you want to shift right or left[1 for left : 2 "
             "for right]: ";
     cin >> selection;
-    if (selection != 1 || selection != 2) {
-      cout << "Selection must be 1 or 2!" << "\n";
-    } else {
-      cin >> selection;
-    }
   }
 
   cout << "Please select how many indexes you want to shift: ";
