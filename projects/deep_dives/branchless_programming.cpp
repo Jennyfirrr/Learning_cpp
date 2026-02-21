@@ -89,6 +89,43 @@ int math_clamp_branchless_i32(int value, int low, int hi) {
 // way this works, for any SIGNED integer, it will essentially take the sign bit
 // and smear it across the entire register, leading to the clamping behavior
 // seen in the function above.
+//
+// Two's complement was created to solve the issue of representing the same
+// hardware adder for both positive AND negative numbers. The ideal was getting
+// -5 + 5 = 0 to work on the same circuit paths that the positive integers used.
+// using 5 as an example, 5 is 00000101, each bit is a power of 2, 00000100 is
+// 4, and 00000001 is 1, so those 2 added together using the |= operator, is 5,
+// or 00000101, at first thought, using the left most bit to represent a
+// negative or positive, like 10000101 for -5 was thought, but then you end up
+// with a negative AND a positive zero lol, which apparently just completely
+// breaks math, so to represent negative numbers, engineers decided to just flip
+// all the bits to the inverse, and add 1, 5 = 00000101, so flipped it becomes,
+// 11111010, +1 would be 11111011, when you add these you take 00000101 +
+// 11111011, which apparently leaves 10000000, and the carry overflows out,
+// which leaves you with 00000000, which is 0 lol, and in the explanation above,
+// the left most bit isnt just a flag, it represents -128, in 8-bit, and -2^31
+// in 32-bit, and as explained above, it just smears across the entire register
+// when using the x >> 31, as outlined there, the way the addition works, is
+// like so, using 5 + -5 as an example: 00000101 + 11111011
+//
+// [1 + 1] = 0, carry a 1
+// [0 + 1] + carry 1 = 0 carry a 1
+// [1 + 0] + carry 1 = 0 carry a 1
+// [0 + 1] + carry 1 = 0 carry a 1
+// [0 + 1] + carry 1 = 0 carry a 1
+// [0 + 1] + carry 1 = 0 carry a 1
+// [0 + 1] + carry 1 = 0 carry a 1
+// [0 + 1] + carry 1 = 0 carry a 1
+// [0 + 1] + carry 1 = 0 carry a 1
+//
+// and the final carried one has nowhere to go, so it basically just falls off
+// the edge, and youre left with 00000000, using 8-bit as an example here
+// because i dont wanna copy the same lines 32 times, the carry falling off is
+// integer overflow, and two's complement is designed so that when that happens,
+// it A L W A Y S produces 0, this removes the need for software having to know
+// or care if a number is negative or positive, because it just takes advantage
+// of the limitations of how much information can be stored in a finite space
+// within memory
 
 int main() {
   int num;
