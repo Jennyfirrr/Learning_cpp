@@ -26,6 +26,12 @@ using namespace std;
 // 4th, or the 3rd index of the bit if you wanna be pedantic, but whatever, bit
 // is true, while every other condition is false, this leads to so many
 // possibilities lol, this is SO COOL WTF.
+//
+// the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
+// of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
+// - 1) which becomes 1000 & 0111, so because & requires that the bits in the
+// same positions need to be the same, you end up with 0000, which means 8 is a
+// power of 2, because only powers of 2 have this relations shit with (2^n)-1
 
 int bitShift(vector<int> &nums, int shift) {
 
