@@ -43,7 +43,9 @@ using namespace std;
 // point, im just kinda adding stuff here that I find interesting as I go and
 // learn, and right now its bit manipulation and its applications. THeres not
 // rubric or syllabus im following, this just makes my brain happy going down
-// these rabbit holes.
+// these rabbit holes. You could probably even encode numbers as blocks of sell
+// orders, like 8 (00001000) could indicate sell x shares, or sell y block, or
+// buy n number of something, you could literally do so much with this lol, wtf
 //
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
