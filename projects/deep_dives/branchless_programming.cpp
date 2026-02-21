@@ -12,7 +12,7 @@
 // nano seconds can cost you money, this is critical. The reason this happens is
 // because if the predictor is wrong, the entire pipeline has to flush, and
 // essentially rebuild these operations until it gets it right, which is B A D
-
+/*
 int clamp(int x) {
   if (x < 0) {
     return 0;
@@ -22,6 +22,7 @@ int clamp(int x) {
   }
   return x;
 }
+*/
 
 // thankfully, someone smarter than me laid the groundwork to use bitwise
 // operators to avoid this issue by using *gasp* M A T H, so by using bit
@@ -35,11 +36,40 @@ int clamp(int x) {
 // your using my notes get used to it
 
 int clamp_branchless(int x) {
-  x &= ~(x >> 31); // if x is negative, x >> 31 is all 1's, ~ is all 0's,
-                   // therefore x & 0 is 0.
-  x -= 255;        // shifting the range
-  x &= (x >> 31);  // reapply the sign because it will shift it back to the
-                   // inverse again
-  x += 255;        // shift back
+  x &= ~(x >> 31);         // if x is negative, x >> 31 is all 1's, ~ is all 0's
+  std::cout << x << " < "; // therefore x & 0 is 0.
+  x -= 255;
+  std::cout << x << " , "; // shifting the range
+  x &= (x >> 31);
+  std::cout << x << " , "; // reapply the sign because it will shift it back to
+                           // the inverse again
+  x += 255;
+  std::cout << x << "\n"; // shift back
   return x;
+}
+
+// Visual representation of how this works
+// Ok, so lets assume x = -5, x >> 31, gives you 0xFFFFFFFF, which is all ones,
+// because the shift fills the entire register with the sign bit,
+// ~0xFFFFFFFF(not) flips these to all 0's, because its not 0xFFFFFFFF, which is
+// 0x00000000, then it compares with the and operator, so -5 & 0 = 0, because
+// its clamped to 0, in case 2, x = 300, so x >> 31 returns 0x00000000, ~0 =
+// 0xFFFFFFFF, 300 & 0xFFFFFFFF = 300, so it passes through, x -= 255 = 45, x &=
+// (x >> 31), 45 is positive, so x >> 31 = 0x00000000, 45 & 0 = 0, x += 255 =
+// 255, x = 100, 100 is positive, so it passes through the first gate as 100,
+// then x -= 255 = -155, x &= (x >> 31), is -155 >> 31, which ends up being
+// 0xFFFFFFFF, so -155 & 0xFFFFFFFF = - 155, then -155 += 255 = 100, THIS IS SO
+// COOL WTF LOL, literally just directly manipulating bits, and removing the
+// need for if statements, actually W I L D, ill probably come back and add a
+// better description, but i added a main function to see how it actually works
+// step by step, i gotta let it M A R I N A T E some in mah brain
+
+int main() {
+  int num;
+  std::cout << "Please select a number to see how the bit shifting works: ";
+  std::cin >> num;
+
+  clamp_branchless(num);
+
+  return 0;
 }
