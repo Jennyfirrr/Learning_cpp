@@ -37,7 +37,9 @@ using namespace std;
 // integer addition or something or the & operator to set matching conditions
 // for what action happens when using whole integers in a cas switch format,
 // maybe just cutting out the entire case switching thing, and just adding the &
-// operator to compare numbers, im not sure.
+// operator to compare numbers, im not sure. I read more about this and
+// apparently ive arrived at bitmasking dispatchers, so I guess there is a name
+// for this lol, i love this shit.
 //
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
