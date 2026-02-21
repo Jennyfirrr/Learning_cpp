@@ -55,6 +55,16 @@ using namespace std;
 // math, but for representing operations and function calls by using a single
 // bit.
 //
+// You could probably even do like huge chains of if statements up to 64 long,
+// by just using the INT_MAX, because as long as its an odd number, which im
+// pretty sure it is, everything would have to be 1, so you could say, using 255
+// as an example, only execute function x, if 255 is returned, bceause it
+// requires all 7 prior conditions to be met to be true, like 11111111, so for
+// the 7th bit to be true, all the other bits need to be true as well, which
+// eleminates the need for using if statements to check true values for whether
+// or not to execute a function. LOL a single byte to represent 8 conditional
+// statements nested within eachother. THIS SHIT IS W I L D
+//
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
 // - 1) which becomes 1000 & 0111, so because & requires that the bits in the
