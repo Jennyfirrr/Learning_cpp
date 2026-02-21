@@ -39,7 +39,11 @@ using namespace std;
 // maybe just cutting out the entire case switching thing, and just adding the &
 // operator to compare numbers, im not sure. I read more about this and
 // apparently ive arrived at bitmasking dispatchers, so I guess there is a name
-// for this lol, i love this shit.
+// for this lol, i love this shit. Ill probably do a deep dive on that at some
+// point, im just kinda adding stuff here that I find interesting as I go and
+// learn, and right now its bit manipulation and its applications. THeres not
+// rubric or syllabus im following, this just makes my brain happy going down
+// these rabbit holes.
 //
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
