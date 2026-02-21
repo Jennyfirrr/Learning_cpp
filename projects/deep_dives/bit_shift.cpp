@@ -25,7 +25,15 @@ using namespace std;
 // number, that could potnetially mean that only the condition assigned to the
 // 4th, or the 3rd index of the bit if you wanna be pedantic, but whatever, bit
 // is true, while every other condition is false, this leads to so many
-// possibilities lol, this is SO COOL WTF.
+// possibilities lol, this is SO COOL WTF. You could combine this with case
+// switching to make super fast interpretations by the way the compiler converts
+// to a jump table, like if case 8, you know bit 3 is a true condition, and
+// 2,1,0 are all false, leading to extremely fast, low memory solutions for
+// tracking multivariable states that need up to 32 conditions in unsigned 32
+// bit integers, and 64 conditions in unsigned 64 bit ints, unisnged is
+// prefereed bceause i read that signed ints have some weird interactions in
+// some cases, and for low latency systems, mitigating any chance of risk is
+// highly desireable.
 //
 // the reason that n & (n - 1) == 0 actually finds powers of 2, is that because
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
