@@ -31,7 +31,9 @@ using namespace std;
 // of the way the & (AND) operator works, using 8 as an example, you have 8 & (8
 // - 1) which becomes 1000 & 0111, so because & requires that the bits in the
 // same positions need to be the same, you end up with 0000, which means 8 is a
-// power of 2, because only powers of 2 have this relationship with (2^n)-1
+// power of 2, because only powers of 2 have this relationship with (2^n)-1, my
+// earlier explanation and notes were just surface level reading before a java
+// exam, this was more indepth when i wasnt tired, and actually learning.
 
 int bitShift(vector<int> &nums, int shift) {
 
