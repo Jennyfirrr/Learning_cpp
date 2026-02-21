@@ -7,13 +7,14 @@ using namespace std;
 // this is heavily used in quant/HFT systems, and instead of passing full bool
 // values for T/F and stuff like that, just using a status bit, with a 1 or 0 is
 // faster and lower latency. This would allow 32 status flags to be stored in a
-// single 4 byte integer, following up with the n & ( n - 1) flips all the bits,
-// where 1000 would be 8, then it flips the bits to 0111, which is 7. Im gonna
-// read about and update another file with bitmasking, as well as L1 and L2
-// caching since the ram is usually the bottleneck when trying to access data in
-// HFT systems, or exeuction engines. This is beneficial for the L1 cahcing
-// though, because it created far smaller data structures, which allows more to
-// be stored using less, in a faster section of memory.
+// single 4 byte integer, following up with the n & ( n - 1), I was wrong, the ~
+// operator,  flips all the bits, where 1000 would be 8, then it flips the bits
+// to 0111, which is 7. the n & (n - 1) just clears the lowest bit, my bad, im
+// learning. Im gonna read about and update another file with bitmasking, as
+// well as L1 and L2 caching since the ram is usually the bottleneck when trying
+// to access data in HFT systems, or exeuction engines. This is beneficial for
+// the L1 cahcing though, because it created far smaller data structures, which
+// allows more to be stored using less, in a faster section of memory.
 
 int bitShift(vector<int> &nums, int shift) {
 
