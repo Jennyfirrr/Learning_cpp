@@ -4,6 +4,9 @@
 // were expanding on bitwise operators with branchless programming today, i may
 // go back and make notes for all the operators, like &, |, ^, <<, >>, ?, and a
 // few others before I do this, idk, im seeing where the rabbit hole takes me
+//
+// N O T E, ? isnt a bitwise operator, i was tired when i added the placeholder,
+// its just the correct way to write if/else statements
 
 // branch way, using methods like this are bad in latency critical systems
 // because the CPU essentially tries to predcit which way the if/else statement
@@ -126,6 +129,10 @@ int math_clamp_branchless_i32(int value, int low, int hi) {
 // or care if a number is negative or positive, because it just takes advantage
 // of the limitations of how much information can be stored in a finite space
 // within memory
+//
+// its absolutely C R A Z Y when you realize that all programming languages
+// essnetially compile down to operation chains that just do this faster than i
+// fall asleep in a java lecture
 
 int main() {
   int num;
