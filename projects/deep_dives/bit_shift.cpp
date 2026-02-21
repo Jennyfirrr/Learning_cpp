@@ -23,7 +23,8 @@ using namespace std;
 // to 255 has a unique binary ID. LOL you can store 32 t/f values in the space
 // of a single integer. Like if you returned the integer 8 when reading a
 // number, that could potnetially mean that only the condition assigned to the
-// 4th bit is true, while every other condition is false, this leads to so many
+// 4th, or the 3rd index of the bit if you wanna be pedantic, but whatever, bit
+// is true, while every other condition is false, this leads to so many
 // possibilities lol, this is SO COOL WTF.
 
 int bitShift(vector<int> &nums, int shift) {
