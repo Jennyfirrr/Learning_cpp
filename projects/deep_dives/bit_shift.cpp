@@ -26,7 +26,10 @@ int bitShift(vector<int> &nums, int shift) {
 
   for (int n : nums) {
     int result = n >> shift;
-    cout << "[" << n << " : " << result << "]" << "\n";
+    int result2 = n & (n - 1); // neat trick to find powers of 2, because if it
+                               // ends in a 0, its a power of 2
+    cout << "Right shift: [" << n << " -> " << result << "] , ";
+    cout << "[" << n << " -> " << result2 << "]" << "\n";
   }
 
   return 0;
@@ -42,7 +45,7 @@ int bitShiftLeft(vector<int> &nums, int shift) {
 
   for (int n : nums) {
     int result = n << shift;
-    cout << "[" << n << " : " << result << "]" << "\n";
+    cout << "Left Shift: [" << n << " -> " << result << "]" << "\n";
   }
 
   return 0;
@@ -61,7 +64,7 @@ int main() {
   cout << "Please select how many indexes you want to shift: ";
   cin >> shift;
 
-  vector<int> nums = {2, 4, 6, 8, 10, 12, 14, 16};
+  vector<int> nums = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
   if (selection == 1) {
     bitShiftLeft(nums, shift);
