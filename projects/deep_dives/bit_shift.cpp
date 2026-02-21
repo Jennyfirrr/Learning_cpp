@@ -30,9 +30,21 @@ int bitShift(vector<int> &nums, int shift) {
     int result2 = n & (n - 1);
     int result3 = n & ~(1 << shift);
     int result4 = n & ~(2 << shift);
-    int result5 =
-        n ^ (n & ~(1 << shift)); // neat trick to find powers of 2, because
-                                 // if it ends in a 0, its a power of 2
+    int result5 = n ^ (n & ~(1 << shift));
+    int result6 = n & (1 << shift);
+    // this is basically find the number
+    // that is 2 ^ shift power lol wtf, for example im
+    // going to use n = 16, shift = 4, 1 << 4 = 1000, which
+    // is 16(the mask), ~(1 << 4) = 11101111, because every
+    // bit is flipped, so 0001000 & 11101111 = 00000000(16
+    // AND the mask clears that bit), so n ^ 0 = 0001000,
+    // for n = 12, shift = 4, 1 << 4 is 00010000, ~(1 << 4)
+    // is 11101111, 12 & 11101111 = 0001100 & 11101111 =
+    // 00001100(12, unchanged because bit 4 wasnt set), so
+    // 12 ^ 12 = 0,
+
+    // neat trick to find powers of 2, because
+    // if it ends in a 0, its a power of 2
     // class even/odd trick is just n & 1 apparently, because if the last number
     // is odd, the last index is a 1, the & operator essentially acts as a true
     // false gate for the number in binary, where it only lets n through, if
@@ -41,7 +53,8 @@ int bitShift(vector<int> &nums, int shift) {
     cout << "[" << n << " -> " << result2 << "] , ";
     cout << "[" << n << " -> " << result3 << "] , ";
     cout << "[" << n << " -> " << result4 << "] , ";
-    cout << "[" << n << " -> " << result5 << "]" << "\n";
+    cout << "[" << n << " -> " << result5 << "] , ";
+    cout << "[" << n << " -> " << result6 << "]" << "\n";
   }
 
   return 0;
