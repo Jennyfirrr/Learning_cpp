@@ -56,7 +56,9 @@ void or_exp(int cycles) {
   }
 }
 
-// this has a really weird growth pattern lol, this shit is wacky lol, i love it
+// this has a really weird growth pattern lol, this shit is wacky lol, i love
+// it, instead of having a massive exponential growth rate always, every 2^n
+// power cycles, it just does +2 instead of a huge jump
 
 int main() {
   int cycles;
