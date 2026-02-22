@@ -15,7 +15,7 @@ void or_shift_combo(int cycles) {
     result |= 1;
     // use the or operator to add a 1 to the end, so that your
     // always adding one every cycle
-    std::cout << "Cycle #: " << i + 1 << " : " << result << "\n";
+    std::cout << "Cycle #" << i + 1 << ": " << result << "\n";
   }
 }
 
