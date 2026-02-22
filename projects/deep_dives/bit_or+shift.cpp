@@ -60,11 +60,23 @@ void or_exp(int cycles) {
 // it, instead of having a massive exponential growth rate always, every 2^n
 // power cycles, it just does +2 instead of a huge jump, overflows at cycle > 31
 
+void werid(int cycles) {
+
+  for (int i = 0; i < cycles; i++) {
+    int x = i >> (i & (i << 1));
+    if (x != 0) {
+      std::cout << "Cycle #" << i + 1 << ": " << x << "\n";
+    }
+  }
+}
+
+// these are so weird lol, this shit is SO FREAKING COOL
+
 int main() {
   int cycles;
   int selection = 0;
 
-  while (selection != 1 && selection != 2) {
+  while (selection == 0) {
     std::cout << "Please select a function: ";
     std::cin >> selection;
   }
@@ -73,8 +85,10 @@ int main() {
   std::cin >> cycles;
   if (selection == 1) {
     or_shift_combo(cycles);
-  } else {
+  } else if (selection == 2) {
     or_exp(cycles);
+  } else {
+    werid(cycles);
   }
 
   return 0;
