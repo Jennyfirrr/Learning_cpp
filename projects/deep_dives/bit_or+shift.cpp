@@ -42,13 +42,38 @@ void or_shift_combo(int cycles) {
 // java doesnt let you do cool shit like this, it assumes your stupid and need
 // hand holding
 
+void or_exp(int cycles) {
+  int result = 0;
+
+  for (int i = 0; i < cycles; i++) {
+    result = result << 1;
+    // shifts the bit left 1
+    result |= 3;
+    // adds a 1 to the 0 and 1 bit, assuming they dont already have one
+    result = result ^ (result >> 1);
+    // xor the result value against result shifted back right 1
+    std::cout << "Cycle #" << i + 1 << ": " << result << "\n";
+  }
+}
+
+// this has a really weird growth pattern lol, this shit is wacky lol, i love it
+
 int main() {
   int cycles;
+  int selection = 0;
+
+  while (selection != 1 && selection != 2) {
+    std::cout << "Please select a function: ";
+    std::cin >> selection;
+  }
 
   std::cout << "Please select a cycle count: ";
   std::cin >> cycles;
-
-  or_shift_combo(cycles);
+  if (selection == 1) {
+    or_shift_combo(cycles);
+  } else {
+    or_exp(cycles);
+  }
 
   return 0;
 }
