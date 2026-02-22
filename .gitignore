@@ -1,7 +1,67 @@
 *.pdf
 *.docx
 
-#exlucding compiled binaries
-
+# compiled binaries
 *.o
 *.out
+
+# extensionless compiled binaries (listed explicitly)
+main
+calculator
+hw/hw01/hw1
+hw/hw02/hw2
+hw/bonusHW/Jennifer_Lewis_BonusHW
+lab/lab*/lab*[0-9]
+idk/calc
+idk/check
+idk/circles
+idk/idk
+idk/idk2
+idk/matrix
+idk/not_sure
+idk/palind
+idk/play
+idk/pntr
+idk/pntr_1
+idk/slowfast
+idk/squares
+idk/text_thing
+idk/tui
+idk/tui_math
+idk/vector
+idk/volume
+projects/sphere
+projects/test
+projects/fibbo/fibonacci
+projects/fun/binary_convert
+projects/fun/truth_table
+projects/graphics/colors
+projects/graphics/cube
+projects/graphics/moving
+projects/graphics/moving2
+projects/graphics/sin
+projects/graphics/sin2
+projects/graphics/sin3
+projects/leetcode/2pntr
+projects/leetcode/3sum
+projects/leetcode/binary_search
+projects/leetcode/hacckerrank
+projects/leetcode/hackerrank2
+projects/leetcode/is_bad_version
+projects/leetcode/matrix_diagnol_sum
+projects/leetcode/shuffle_array
+projects/leetcode/smaller_than_cur_atmpt1
+projects/leetcode/unordered_set_practice
+projects/deep_dives/return_operations
+projects/deep_dives/bit_shift
+projects/deep_dives/bit_or+shift
+projects/deep_dives/branchless_programming
+projects/deep_dives/chaining
+projects/deep_dives/it_shift
+projects/deep_dives/or_operator
+
+# log files
+*.log
+
+# stray dotfiles
+hw/hw02/.zshrc
