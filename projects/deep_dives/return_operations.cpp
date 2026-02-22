@@ -210,6 +210,18 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   // delay and its C O N S I S T E N T, and since from the way it was described
   // to me, CPU's are essentially state prediction machines, they L O V E
   // consistency
+  //
+  // I did some more research, and apparently the variance isnt 2ns to 200ns,
+  // since a pipeline flush is like 15-20 cycles, so its more like 4-5ns on
+  // modern cpu's but the point is still conceptually right, even if my numbers
+  // were off, and the buy/sell execution logic isnt exactly right, its more
+  // like, with the branch prediciton its basically a coin toss every single
+  // time, where you have to pipeline flush on every single miss, which if that
+  // happens half the time, youre essentially 50% slower than the branchless
+  // way, and not only slower, but you cant really predict when the branch
+  // prediction will flush or be wrong, so its not a consistent slowdown, its
+  // just random whenever the CPU is wrong, assuming branchless is a consistent
+  // 5ns execution time
 }
 
 int main() {
