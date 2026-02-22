@@ -9,7 +9,12 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   // one thing to note, is that this can technically overflow in some edge
   // cases, so for the mask, ideally you would want to use
   // int32_t mask = (a < b) - 1;
-  // this is apparently safer but then you dont get to play with your bits
+  // this is apparently safer but then you dont get to play with your
+  // bits(please laugh at this), there are ways to keep the shift mechanic if
+  // you dont use this, like upcasting to a 64bit integer before applying the
+  // shift, or the addition, but this is just meant for me to go deep on the
+  // actual mechanics behind how this operates, and start to build a pattern
+  // library and mental model of how the cpu actually does the math
 
   int32_t mask = diff >> 31;
   // so the way this works, is that mask becomes 0xFFFFFFFF if a < b, and
