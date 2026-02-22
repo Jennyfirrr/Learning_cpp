@@ -8,13 +8,68 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   int32_t diff = a - b;
   // one thing to note, is that this can technically overflow in some edge
   // cases, so for the mask, ideally you would want to use
-  // int32_t mask = (a < b) - 1;
+  // int32_t mask = -(a < b);
   // this is apparently safer but then you dont get to play with your
   // bits(please laugh at this), there are ways to keep the shift mechanic if
   // you dont use this, like upcasting to a 64bit integer before applying the
   // shift, or the addition, but this is just meant for me to go deep on the
   // actual mechanics behind how this operates, and start to build a pattern
-  // library and mental model of how the cpu actually does the math
+  // library and mental model of how the cpu actually does the math, a little
+  // bit more on this, in C++, right shifting a negative signed int, is
+  // technically implementation defined, thought for the compilers that I would
+  // be using if I get hired at the place i want, they will use arithmatic shift
+  // or so im told, ill probably learn more about this later, but the arithmatic
+  // method preserves the sign bit, in many modern ISA's this apparently
+  // compiles down to a setcc ( set on condition) or a conditional move(cmove),
+  // which is also *sparkle emoji*B R A N C H L E S S*sparkle emoji*, there is a
+  // trick where you can apparently use the absolute value without using the
+  // std::abs() call, by doing something like int32_t abs_x = (x + mask) ^ mask,
+  // its apparently the same logic where is x is negative the mask is
+  // 0xFFFFFFFF, then you add -1, and it flips the bits, if x is positive the
+  // mask becomes 0, and nothing changes
+  //
+  // ISA is the instruction set architecture, which is essentially the contract
+  // between the hardware and the software, and it defines what the processor
+  // can actually do, the registers it has, memory addressing modes, and the
+  // binary format of the instructions, a few different ones would be x86_64
+  // (CISC), which can do alot of instructions in one go, like lea(idk what this
+  // is, another deep dive probably) + memory indexing, ARM/RISC-V (RISC)
+  // simpler fixed length instructions, apparently the code is just more like a
+  // "suggestion", and the compiler translates it to the ISA-specific machine
+  // code of your specific machine, understanding this helps you predict if the
+  // compiler will actually generate branchless code or if it will just use a
+  // jump
+  //
+  // Arithmatic shift(asr vs lsl), so in this function, there is apparently a
+  // difference between a logical shift, and arithmatic shift, a logical shift
+  // shifts the bits and fills the gaps with 0's which is apparently great for
+  // unsigned math, and arithmatic shift, which shifts the bits, but fills the
+  // bits with the SIGN bit, which is exactly the mechanism that enables
+  // branchless programming like this, it smears the sign bit across the
+  // register n shifts, i went over this in a different file in the deep_dives
+  // folder, but im reiterating it here
+  //
+  // The setcc instructions like setl for set if less, or setz for set if zero,
+  // are used to capture the state of the EFLAGS register(status flags) without
+  // branching, i have no idea what this is and will probably study it more in
+  // detail later, but ill give a brief overview here. You do a cmp a, b , the
+  // CPU subtracts them and sets flags (Sign, Zero, Overflow), setl %al stores a
+  // 1 bit in the 8-bit register, al if the "less than" flag is set, and a 0
+  // otherwise, this is branchless as well, since your just moving a bit from
+  // the status register to a general purpose register
+  //
+  // cmove is apparently the columbiab pure of the HFT world, it was introduced
+  // in the pentium Pro era, and it allows the CPU to pick a value based on the
+  // condition without a jump
+  // an example
+  // cmovl %eax, %ebx (move eax to ebx if the last comparison resulted in "less
+  // than"), the cpu then actually executes the instructions to calculate both
+  // possible values, and then the cmov instruction simply decides which one to
+  // keep at the very last stage of the pipeline, no branch prediction, no
+  // pipeline flushes, so its G O O D, we like this, we love this, we want some
+  // more of this, in cases with highly predictable data, if/else is good
+  // for 99.9% of cases, but for what im learning about cmov is THE B E S T,
+  // because stocks are not inherently predictable.
 
   int32_t mask = diff >> 31;
   // so the way this works, is that mask becomes 0xFFFFFFFF if a < b, and
