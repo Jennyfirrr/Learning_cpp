@@ -38,6 +38,9 @@ void or_shift_combo(int cycles) {
 //
 // you could probably do some wacky shit with this regarding ANSI or ASCII codes
 // lol, since each character has an associated number assigned to it
+//
+// java doesnt let you do cool shit like this, it assumes your stupid and need
+// hand holding
 
 int main() {
   int cycles;
