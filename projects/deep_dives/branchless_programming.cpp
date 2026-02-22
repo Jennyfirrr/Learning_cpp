@@ -34,6 +34,10 @@ int clamp(int x) {
   return x;
 }
 
+// note to add rdtsc to check how many cycles these actually take to complete,
+// im gonna do that at some point, but for now the rabbit hole is telling me to
+// watch pokemon
+
 // thankfully, someone smarter than me laid the groundwork to use bitwise
 // operators to avoid this issue by using *gasp* M A T H, so by using bit
 // manipulation techniques, we can just not use if statements, and mathmatically
