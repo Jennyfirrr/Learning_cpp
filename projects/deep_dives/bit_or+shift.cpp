@@ -36,6 +36,9 @@ void or_shift_combo(int cycles) {
 // 14, then you xor 00001110 ^ 00011100, which becomes 00010010, which is 18,
 // and then 00010010 | 00000001 which becomes 19 or 00010011, and so on
 //
+// you could probably do some wacky shit with this regarding ANSI or ASCII codes
+// lol, since each character has an associated number assigned to it
+
 int main() {
   int cycles;
 
