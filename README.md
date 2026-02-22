@@ -2,6 +2,9 @@
 
 A collection of C++ programs, exercises, and projects created while learning C++.
 
+## DRINKING GAME
+- **Every time I trash on java you have to take a shot when reading my deep_dive notes.**
+
 ## Structure
 
 - **hw/** — Homework assignments (hw01–hw05, plus a bonus)
