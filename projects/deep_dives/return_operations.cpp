@@ -19,14 +19,16 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   // applies like this, (-1)( a < b), if a is bigger, it becomes (-1)(0), and
   // when b is bigger it becomes (-1)(1), my bad, ive been studying alot and got
   // a tad mixed up lol, i was thinking binary bit flipping instead of just
-  // normal multiplication
+  // normal multiplication, bit manipulation is rotting my brain lmao
   //
   // so a ^ b is
   //
   // 0 0 0 1 0 0 0 0
   // 0 0 0 0 1 0 0 0
   // ---------------
-  // 0 0 0 1 1 0 0 0  which is 24
+  // 0 0 0 1 1 0 0 0
+  //
+  // which is 24
   //
   // then you have 24 & mask
   // and since this example we used 16 as a and 8 as b, we are left with a mask
