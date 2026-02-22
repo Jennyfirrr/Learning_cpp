@@ -19,6 +19,13 @@ void or_shift_combo(int cycles) {
   }
 }
 
+// easier visualization of the xor operator for the last cycle referenced
+//
+//  0 0 0 0 1 1 1 0 = 14
+//  0 0 0 1 1 1 0 0 = 28
+//  ---------------
+//  0 0 0 1 0 0 1 0 = 18
+
 // what this does, you start with 00000000_00000000, xor does nothing because
 // there is nothing to shift, so your left with 00000000 | 1, which becomes
 // 00000001, or 1, on the first cycle, then the next cycle, you shift the 1 left
