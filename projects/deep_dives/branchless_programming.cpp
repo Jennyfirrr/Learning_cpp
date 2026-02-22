@@ -21,7 +21,8 @@
 // around secuirty measures, but cyber secuirty isnt exactly my interest so I
 // probably wont go too into detail for that, just making a note of it here in
 // case I wanna go back and study that one day, or someeone else finds it
-// interesting.
+// interesting. If your interested in that, i suggest looking up the spectre and
+// meltdown exploits
 
 int clamp(int x) {
   if (x < 0) {
