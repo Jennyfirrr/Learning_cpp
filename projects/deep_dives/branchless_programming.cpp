@@ -164,7 +164,13 @@ int main() {
   // this doesnt work because the compiler over optimizes it, gonna add
   // something here later to prevent that using random number selection so the
   // loops isnt removed probably with the flag -o0, or something because i dont
-  // really wanna add a ton of code just to benchmark something, FU compiler
+  // really wanna add a ton of code just to benchmark something, FU compiler,
+  // the compiler is smart, and essnetially sees that this will calculate the
+  // same thing over and over again, so it removes "dead code", because it is
+  // optimizing it, as compilers were designed to optimize production code, and
+  // this is technically not optimal for production use, but this isnt
+  // "production code", its a benchmark, and the compiler is like why waste
+  // clock cycles on that
 
   uint64_t end = __rdtscp(&aux);
 
