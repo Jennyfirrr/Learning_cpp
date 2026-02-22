@@ -15,7 +15,14 @@
 // nano seconds can cost you money, this is critical. The reason this happens is
 // because if the predictor is wrong, the entire pipeline has to flush, and
 // essentially rebuild these operations until it gets it right, which is B A D
-/*
+//
+// I also found out that another reason branching systems are B A D, is because
+// the expose vulnerabilities that can be exploited by the flush cycles to get
+// around secuirty measures, but cyber secuirty isnt exactly my interest so I
+// probably wont go too into detail for that, just making a note of it here in
+// case I wanna go back and study that one day, or someeone else finds it
+// interesting.
+
 int clamp(int x) {
   if (x < 0) {
     return 0;
@@ -25,7 +32,6 @@ int clamp(int x) {
   }
   return x;
 }
-*/
 
 // thankfully, someone smarter than me laid the groundwork to use bitwise
 // operators to avoid this issue by using *gasp* M A T H, so by using bit
