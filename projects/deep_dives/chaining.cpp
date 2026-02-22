@@ -103,7 +103,11 @@ int32_t smallest(int32_t num1, int32_t num2) {
 // beacause when missing an order execution by like 3ns could lose you millions
 // of dollars, like a human cant monitor that lmao, holy shit this is insane,
 // how would you even optimize this lol, like i wanna know SO BAD
-
+//
+// if only leetcode was this entertaining lol, this shit is A M A Z I N G, like
+// how am i expected to sit there and draw shapes in J A V A(ICK), when stuff
+// like this exists lol, this isnt fair to me
+//
 int main() {
   int32_t num;
   int32_t num2;
