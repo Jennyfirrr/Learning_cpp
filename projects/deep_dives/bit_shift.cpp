@@ -126,6 +126,34 @@ int bitShift(vector<int> &nums, int shift) {
   return 0;
 }
 
+// so apparently, result5 = n ^ (n & ~(1 << shift)); , is a way to check to see
+// if an individual bit is set, at the shift value, the mask is created by using
+// the ~(1 << shift), so like, if you want to check the 3rd bit, you would set
+// the shift to 3, and 1 << 3 gives you 00001000, the not (~) operator flips
+// these so that it becomes 11110111, this is the inverse mask, which
+// essentially says, Protect everything EXCEPT the third bit, the isolator is
+// the (n & mask), where mask is defined earlier in this explanation, so if n is
+// 00001100, and you apply the mask to that number, the result of (n & ~(1 <<
+// shift)) is going to have a guarenteed 0 at the 3rd spot, because 0 & 1 == 0,
+// due to the way the AND operator only returns a 1, if both bits are 1,
+// everything else will return 0, the comparison, n ^ (result), the XOR operator
+// returns a 1 only if the bits are DIFFERENT, and based on the operations done
+// before, the only place that the bits will be different is the 3rd bit,
+// because we manually forced it to 0 in an earlier step, so if the 3rd bit was
+// 1 in the original n, then the XOR sees 1 ^ 0 and returns a 1, where as if the
+// original 3rd bit was a 0, it sees 0 ^ 0, and by the rules of how XOR works,
+// any value that is XOR that same value will return a 0. This leaves result 5
+// as either 0, or an exact power of 2, which can be checked using the n & (n -
+// 1) operator as outlined above how the relationship with those 2 binary values
+// works, since you dont have to convert to a bool, you can just pass this value
+// onto another bitwise function without any conversion, saving time, speed, and
+// memory, especially when dealing with L1 cache hits vs reading a line from
+// RAM(Y U C K Y), there is apparently a built in function within the standard
+// library, that can do this faster, using the call std::has_single_bit(C++ 20),
+// or n & -n can apparently find it even faster than that, but im kinda relaxing
+// at the time of writing this, so ill probably make notes about that in another
+// file at some point,
+
 int bitShiftLeft(vector<int> &nums, int shift) {
 
   // opposite of the above, 1000 is 8, so left by 1 is 10000 which is 16
