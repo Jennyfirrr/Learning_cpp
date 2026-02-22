@@ -106,7 +106,8 @@ int32_t smallest(int32_t num1, int32_t num2) {
 //
 // if only leetcode was this entertaining lol, this shit is A M A Z I N G, like
 // how am i expected to sit there and draw shapes in J A V A(ICK), when stuff
-// like this exists lol, this isnt fair to me
+// like this exists lol, this isnt fair to me, can you spell A D D I C T I N G,
+// lol like, im H O O K E D
 //
 int main() {
   int32_t num;
