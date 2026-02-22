@@ -153,6 +153,9 @@ int main() {
   unsigned int aux;
   uint64_t start = __rdtscp(&aux);
 
+  // for better benchmarking, using pthread_setaffinity_np before timing,
+  // otherwise it measures scheduler noise as well
+
   int result = 0;
   for (int i = 0; i < 1000000; i++) {
     result ^= clamp_branchless(i % 500);
