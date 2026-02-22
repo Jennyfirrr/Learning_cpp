@@ -8,7 +8,11 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   int32_t diff = a - b;
   // one thing to note, is that this can technically overflow in some edge
   // cases, so for the mask, ideally you would want to use
-  // int32_t mask = -(a < b);
+  //
+  // int32_t mask = -(a < b); this has to be coupled with this return statement,
+  // return b ^ ((a ^ b) & mask); apparently this is the industry standard,
+  // updated
+  //
   // this is apparently safer but then you dont get to play with your
   // bits(please laugh at this), there are ways to keep the shift mechanic if
   // you dont use this, like upcasting to a 64bit integer before applying the
@@ -39,6 +43,17 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   // code of your specific machine, understanding this helps you predict if the
   // compiler will actually generate branchless code or if it will just use a
   // jump
+  //
+  // the LEA is the load effective address, apparently its like the swiss army
+  // knife of the x86 instruction set, it was originally developed for
+  // calculating memory addresses, (base + index * scale + displacement), but
+  // because it doesnt use the same arithmatic unit, you can use it to do fast
+  // math witout effecting the EFLAGS register, for example
+  //
+  // lea eax, [ebx + ebx * 2] is a fancy zero latency way to do eax = ebx * 3
+  // this is asm, im not very familiar with it but will probably do a deeper
+  // dive on that at some point, it seems interesting, because its just directly
+  // managing and shifting the values within memory around
   //
   // Arithmatic shift(asr vs lsl), so in this function, there is apparently a
   // difference between a logical shift, and arithmatic shift, a logical shift
