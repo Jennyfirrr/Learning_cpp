@@ -1,5 +1,7 @@
+#include <cstdint>
 #include <iostream>
 #include <vector>
+#include <x86intrin.h> // header for __rdtsc()
 
 // were expanding on bitwise operators with branchless programming today, i may
 // go back and make notes for all the operators, like &, |, ^, <<, >>, ?, and a
@@ -24,6 +26,7 @@
 // interesting. If your interested in that, i suggest looking up the spectre and
 // meltdown exploits
 
+/*
 int clamp(int x) {
   if (x < 0) {
     return 0;
@@ -33,6 +36,7 @@ int clamp(int x) {
   }
   return x;
 }
+*/
 
 // note to add rdtsc to check how many cycles these actually take to complete,
 // im gonna do that at some point, but for now the rabbit hole is telling me to
@@ -50,23 +54,20 @@ int clamp(int x) {
 // your using my notes get used to it
 
 int clamp_branchless(int x) {
-  x &= ~(x >> 31);         // if x is negative, x >> 31 is all 1's, ~ is all 0's
-  std::cout << x << " , "; // therefore x & 0 is 0.
+  x &= ~(x >> 31); // if x is negative, x >> 31 is all 1's, ~ is all 0's
   x -= 255;
-  std::cout << x << " , "; // shifting the range
   x &= (x >> 31);
-  std::cout << x << " , "; // reapply the sign because it will shift it back to
-                           // the inverse again
+  // the inverse again
   x += 255;
-  std::cout << x << "\n"; // shift back
   return x;
 } // to avoid magic numbers, you could use the parameters passed to the function
   // as the example below
 
+/*
 int math_clamp_branchless_i32(int value, int low, int hi) {
   // rest of function, this prevents magic numbers and its more readable and
   // more geared towards a maintainable codebase
-}
+} */
 
 // Visual representation of how this works
 // Ok, so lets assume x = -5, x >> 31, gives you 0xFFFFFFFF, which is all ones,
@@ -144,13 +145,22 @@ int math_clamp_branchless_i32(int value, int low, int hi) {
 // its absolutely C R A Z Y when you realize that all programming languages
 // essnetially compile down to operation chains that just do this faster than i
 // fall asleep in a java lecture
+//
+// the __rdtscp() works by initializing the unsigned int aux, and passing it
+// through the library call, this stores the processor id, and only lets it
+// count up if the id matches due to the & operator
 
 int main() {
-  int num;
-  std::cout << "Please select a number to see how the bit shifting works: ";
-  std::cin >> num;
+  unsigned int aux;
+  uint64_t start = __rdtscp(&aux);
 
-  clamp_branchless(num);
+  int result = 0;
+  for (int i = 0; i < 1000000; i++) {
+    result ^= clamp_branchless(i % 500);
+  }
+  uint64_t end = __rdtscp(&aux);
+
+  std::cout << "Average cycles: " << (end - start) / 1000000.0 << "\n";
 
   return 0;
 }
