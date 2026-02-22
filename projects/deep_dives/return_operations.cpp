@@ -174,6 +174,42 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   // if(__builtin_expect(order_is_valid, 1)) and this basically tells the
   // compiler to make the code tell the cpu like "hey, this is true 99.9% of the
   // time", and to flag it as the hot path
+  //
+  // EDIT(22-02-2026) so the reason that the "branchless is faster than
+  // prediction branches" is a bad arguement is that it doesnt actually address
+  // the reasons that its used, i kinda touched on why, but didnt really go into
+  // detail here, as you can see from the above, the branch prediction CAN
+  // actually be faster in alot of cases, assuming your data and decision
+  // branches are somewhat predictable, im sure theres some tolerance, or ratio
+  // where the pipeline flush to faster execution is better, but for stocks, its
+  // almost never completely predictable, like yes, stocks could in theory be
+  // perfectly predicted if you could watch every person, and every event on
+  // earth at the same time, since stock prices are basically just reflections
+  // of the actions society takes measured against environmental events, to put
+  // it simply, but thats not what this paragprah is about. SO, when your input
+  // data is PREDICTABLE within a certain fault tolerance, its actually faster
+  // to use if/else statements because of the way the compiler writes that to
+  // the machine code, because the compiler is smarter than you in 99.9% of
+  // cases lol, BUT, HUGE BUT here, stocks arnt predictable, so you need
+  // operations that never use the branch prediction functionality of the cpu,
+  // because while faster is good, the pipeline flush is like slamming into a
+  // wall at 200mph, and the variance is absoultely HUGE, which is bad and you
+  // cant really plan around that, because to predict what the branch predictor
+  // is going to do, is just like why?? like why waste compute on that lol,
+  // which brings us to the variance of the branchless programming, which in
+  // theory should have almost the same execution time, nearly every single
+  // time, and only varying by like cpu heat, clock cycles being used by
+  // smething else, so the variance is WAY SMALLER, and this means that you have
+  // a C O N S I S T E N T  M E A S U R A B L E  F A U L T  T O L E R A N C E,
+  // that you can plan around, because random is BAD, we dont like that, we dont
+  // want that, but consistency? OMG YES PLS GIMME MORE, because if you know
+  // that it will ALWAYS take 10ns to execute an order cycle, then you can plan
+  // and structure your execution harness and parameters around that, similar to
+  // how in video games, 30ping 80% of the time and 300ping the other 20% is SO
+  // ANNOYING, but a consistent 100ms is useable, because you get used to the
+  // delay and its C O N S I S T E N T, and since from the way it was described
+  // to me, CPU's are essentially state prediction machines, they L O V E
+  // consistency
 }
 
 int main() {
