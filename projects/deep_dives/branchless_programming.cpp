@@ -131,7 +131,6 @@ int math_clamp_branchless_i32(int value, int low, int hi) {
 // [0 + 1] + carry 1 = 0 carry a 1
 // [0 + 1] + carry 1 = 0 carry a 1
 // [0 + 1] + carry 1 = 0 carry a 1
-// [0 + 1] + carry 1 = 0 carry a 1
 //
 // and the final carried one has nowhere to go, so it basically just falls off
 // the edge, and youre left with 00000000, using 8-bit as an example here
