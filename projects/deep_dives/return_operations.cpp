@@ -13,6 +13,39 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   // return b ^ ((a ^ b) & mask); apparently this is the industry standard,
   // updated
   //
+  // so the way that the -( a < b) works is the a < b returns a bool or either
+  // 0, false, or 1 true, so a > b returns a value like 0x00000000, and b > a
+  // returns a value like 11111111, i got a little mixed up here, it basically
+  // applies like this, (-1)( a < b), if a is bigger, it becomes (-1)(0), and
+  // when b is bigger it becomes (-1)(1), my bad, ive been studying alot and got
+  // a tad mixed up lol, i was thinking binary bit flipping instead of just
+  // normal multiplication
+  //
+  // so a ^ b is
+  //
+  // 0 0 0 1 0 0 0 0
+  // 0 0 0 0 1 0 0 0
+  // ---------------
+  // 0 0 0 1 1 0 0 0  which is 24
+  //
+  // then you have 24 & mask
+  // and since this example we used 16 as a and 8 as b, we are left with a mask
+  // that is 0x00000000
+  //
+  // 0 0 0 1 1 0 0 0
+  // 0 0 0 0 0 0 0 0
+  // ---------------
+  // 0 0 0 0 0 0 0 0
+  //
+  // which is 0, then you have 8 XOR 0,
+  //
+  // 0 0 0 0 1 0 0 0
+  // 0 0 0 0 0 0 0 0
+  // ---------------
+  // 0 0 0 0 1 0 0 0
+  //
+  // which returns 8
+  //
   // this is apparently safer but then you dont get to play with your
   // bits(please laugh at this), there are ways to keep the shift mechanic if
   // you dont use this, like upcasting to a 64bit integer before applying the
