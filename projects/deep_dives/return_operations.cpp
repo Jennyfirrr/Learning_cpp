@@ -6,6 +6,11 @@
 
 int32_t smallest_of_two(int32_t a, int32_t b) {
   int32_t diff = a - b;
+  // one thing to note, is that this can technically overflow in some edge
+  // cases, so for the mask, ideally you would want to use
+  // int32_t mask = (a < b) - 1;
+  // this is apparently safer but then you dont get to play with your bits
+
   int32_t mask = diff >> 31;
   // so the way this works, is that mask becomes 0xFFFFFFFF if a < b, and
   // 0x00000000 is a >= b, in an example, lets use 8 and 16, where a is 8, and b
