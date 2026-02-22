@@ -46,7 +46,18 @@ int32_t smallest(int32_t num1, int32_t num2) {
   // do num2, im sure that there are versions of these out there that use the
   // entire 32bit or even 64 bit register and have it all running in tandem
   // using SIMD or AVX instructions but im just a girl, and a baby HFT(hopeful)
-  // engineer, so im L E A R N I N G
+  // engineer, so im L E A R N I N G, there are probably methods to use the
+  // outputs from the first 2 functions, to output to a vector<vector<int>> or
+  // something, where you can basically preload deicisons or something assuming
+  // there is memory for it, to ensure that the hotpath is continually fed and
+  // never has down time, but this probably requires a network, or multiple
+  // colocated servers operating together, with a central order routing "brain",
+  // im not sure how the latency part is figured out, but if your continually
+  // caching orders like that, it becomes more about ensuring that you are
+  // generating potential deicisons fast enough, so that the vector is never
+  // empty(?), im just kind of thinking here, so i have no clue if this is right
+  // or not, but saturating an instruction list like that kind of seems optimal,
+  // given just how fast these systems are
   //
   int32_t diff = -(num1 < num2);
   std::cout << diff << "\n";
