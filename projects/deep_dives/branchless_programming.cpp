@@ -154,7 +154,9 @@ int main() {
   uint64_t start = __rdtscp(&aux);
 
   // for better benchmarking, using pthread_setaffinity_np before timing,
-  // otherwise it measures scheduler noise as well
+  // otherwise it measures scheduler noise as well, once again, small actions
+  // like this can happen too foten to actually see in a monitoring tool, and
+  // each one adds tons of uneeded cycles
 
   int result = 0;
   for (int i = 0; i < 1000000; i++) {
@@ -170,7 +172,15 @@ int main() {
   // optimizing it, as compilers were designed to optimize production code, and
   // this is technically not optimal for production use, but this isnt
   // "production code", its a benchmark, and the compiler is like why waste
-  // clock cycles on that
+  // clock cycles on that, according to what im reading about this, the compiler
+  // is smart enough to convert the predicatble i/o into a lookup table during
+  // compile time, rather than calculating it during run time,this is why high
+  // variance data is important, so the answer cant be guessed ahead of time, by
+  // using random numbers as well, the branch predictor cant ever be faster than
+  // the branchless version, so it will ALWAYS be slower, and the branchless
+  // version will have far less variance in run time, because its just math,
+  // instead of adding the pipeline flush when the predictor is wrong, as stated
+  // above on why this adds latency.
 
   uint64_t end = __rdtscp(&aux);
 
