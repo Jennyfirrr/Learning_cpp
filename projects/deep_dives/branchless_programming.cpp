@@ -158,6 +158,9 @@ int main() {
   for (int i = 0; i < 1000000; i++) {
     result ^= clamp_branchless(i % 500);
   }
+  // this doesnt work because the compiler over optimizes it, gonna add
+  // something here later to prevent that using random number selection so the
+  // loops isnt removed
   uint64_t end = __rdtscp(&aux);
 
   std::cout << "Average cycles: " << (end - start) / 1000000.0 << "\n";
