@@ -67,6 +67,43 @@ int32_t smallest(int32_t num1, int32_t num2) {
   return num2 ^ ((num1 ^ num2) & mask);
 }
 
+// and to expand further on that, since saturating the actual order execution
+// pipeline becomes the main challenge, you would probably want a buy vector,
+// sell vector, and maybe a hold vector(?), maybe just 2 though so that you can
+// retain the benefits of the speed of L1 caching since being able to represent
+// things with either a t/f, 1/0 or encoding whatever else information is key,
+// and that would make that significantly more difficult, you would also want a
+// watcher that keeps track of what is in each vector right? because the goal
+// isnt to buy 1 tick and sell 1 tick later, thats a way to get eaten alive by
+// slippage cost, and even if your making positive pnl trades on paper, the
+// broker fees and taxes per trade would significantly cut into that, so you
+// would probably want sell under x conditions, or a target thats like sell x
+// ticks later assuming the price is above or below a certain thresh-hold, and
+// using these same encoding techniques to watch whats in the vectors and
+// compare with that? In that sense it wouldnt really be a pipeline, but you
+// could probably group orders by 8 using a 64 bit int, but that leaves alot of
+// information out, so the way you pack bits to make that work would have to
+// have each bit essentially represent huge amounts of information i think, but
+// it would lead to extremely fast execution vs using all 64 bits or 32 bits to
+// represent the conditions for a single order, because using a 256 or 512 bit
+// register you could fit like, 4 to 8 order books all exeucting and operating
+// at once, with each one storing the information for 8 trades, this is fucking
+// NUTS lol wtf, how would you even use a model to control this? Would this all
+// be just hard coded instructions like buy vs sell given a hard cutoff thats
+// programmed? like an inference module wouldnt even be able to keep up with
+// that level of data flow lol, like for longer durations, maybe like 1m for
+// just a few stocks, and like up to maybe 10-50 stocks, on 5m data, but for
+// tick level LOL, the hardware limitations wouldnt allow for inference that
+// fast would it? like maybe though, idk, id have to look more into that but
+// holy shit thats insane lol, so i guess you use a model to control the hard
+// constraints? How often would those change, do you only change them when you
+// notice a decrease in performance? OMG THIS IS SO FUCKING COOL LOL I LOVE THIS
+//
+// like wtf, would you have like an overseer module that monitors performance,
+// beacause when missing an order execution by like 3ns could lose you millions
+// of dollars, like a human cant monitor that lmao, holy shit this is insane,
+// how would you even optimize this lol, like i wanna know SO BAD
+
 int main() {
   int32_t num;
   int32_t num2;
