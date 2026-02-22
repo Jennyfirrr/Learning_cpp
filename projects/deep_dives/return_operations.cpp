@@ -222,6 +222,10 @@ int32_t smallest_of_two(int32_t a, int32_t b) {
   // prediction will flush or be wrong, so its not a consistent slowdown, its
   // just random whenever the CPU is wrong, assuming branchless is a consistent
   // 5ns execution time
+  //
+  // I ALMOST FORGOT, java is bad because it has the GC, which basically just
+  // does what it wants to do whenever, which is somehow WORSE than the branch
+  // prediction in this context, ok im fine now
 }
 
 int main() {
