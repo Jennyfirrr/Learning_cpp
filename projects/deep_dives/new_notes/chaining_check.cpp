@@ -6,45 +6,25 @@
 // things operate across the entire process for better understanding
 // *sparkle emoji*T R U S T  T H E  P R O C E S S*sparkle emoji* <3
 
-int32_t check_0bit(int32_t num) {
-  int result0 = num & (1 << 0);
-  return result0;
-}
+int32_t check_0bit(int32_t num) { return (num & (1 << 0)) >> 0; }
 
-int32_t check_1bit(int32_t num) {
-  int result1 = num & (1 << 1);
-  return result1;
-}
+int32_t check_1bit(int32_t num) { return (num & (1 << 1)) >> 1; }
 
-int32_t check_2bit(int32_t num) {
-  int result2 = num & (1 << 2);
-  return result2;
-}
+int32_t check_2bit(int32_t num) { return (num & (1 << 2)) >> 2; }
 
-int32_t check_3bit(int32_t num) {
-  int result3 = num & (1 << 3);
-  return result3;
-}
+int32_t check_3bit(int32_t num) { return (num & (1 << 3)) >> 3; }
 
-int32_t check_4bit(int32_t num) {
-  int result4 = num & (1 << 4);
-  return result4;
-}
+int32_t check_4bit(int32_t num) { return (num & (1 << 4)) >> 4; }
 
-int32_t check_5bit(int32_t num) {
-  int result5 = num & (1 << 5);
-  return result5;
-}
+int32_t check_5bit(int32_t num) { return (num & (1 << 5)) >> 5; }
 
-int32_t check_6bit(int32_t num) {
-  int result6 = num & (1 << 6);
-  return result6;
-}
+int32_t check_6bit(int32_t num) { return (num & (1 << 6)) >> 6; }
 
-int32_t check_7bit(int32_t num) {
-  int result7 = num & (1 << 7);
-  return result7;
-}
+int32_t check_7bit(int32_t num) { return (num & (1 << 7)) >> 7; }
+
+// i was wrong about this, this way normalizes to one, because it first checks
+// if the associated bit is active, then it shifts the value returend back to
+// the 0 bit
 
 /*
  * single function to check all states at once, but AS EXPLAINED IN MY LAST
@@ -55,8 +35,8 @@ int32_t check_7bit(int32_t num) {
  * }
  */
 
-std::vector<int> build_vector_states(int32_t order_book0) {
-  std::vector<int> states(8);
+std::vector<int32_t> build_vector_states(int32_t order_book0) {
+  std::vector<int32_t> states(8);
 
   states[0] = check_0bit(order_book0);
   states[1] = check_1bit(order_book0);
