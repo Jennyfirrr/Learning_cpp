@@ -41,7 +41,7 @@ int32_t build_kill_mask(const std::array<int8_t, 32> &kill_mask_bits) {
 
   for (int i = 0; i < 32; i++) {
     // this if statement compiles to a cmovne
-    // EDIT: i was wrong, its apparently just a movl
+    // EDIT: i was wrong, its apparently just a movl, which is move if less
     // the jne at the end is because of the for loop, i think this is fine
     // thought, because its not branch prediction for non-predictable data
     // considering its just a counter
@@ -66,10 +66,9 @@ _Z15build_kill_maskRKSt5arrayIaLm32EE:
 .L5:
   cmpb	$0, (%rdi,%rcx)
   je	.L4
-  movl	$1, %edx
-  sall	%cl, %edx
-  orl	%edx, %eax
-.L4:
+  movl	$1, %edx | gonna need to read about what the $1 means, but it may be
+core? that would be my initial guess
+  sall	%cl, %edx orl	%edx, %eax .L4:
   addq	$1, %rcx
   cmpq	$32, %rcx
   jne	.L5
