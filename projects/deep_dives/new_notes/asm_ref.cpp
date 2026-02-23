@@ -73,3 +73,15 @@
 // 16bit, Ill update this part as I learn what different tags mean,
 //
 // cmp is compare, so like cmpl just means compare long, etc
+//
+// JNE/JE/JMP are the syntax for branches being used instead of branchless logic
+// in asm, when reading that code, first identify if the function is on a
+// critical hot path, because for somethings the jumps dont really matter like
+// initialization code, etc, but on the hot path avoiding this is critical as
+// outlined in the 03 file, for loops use these, but its mostly fine because
+// theyre predictable like 99.9% of the time especially in cases where they
+// simply count up by 1, the only real risk there is when you read the end case
+// that stops the for loop, but even then, 1 mistiming there isnt SUPER bad, its
+// just not ideal in my mind, in production use cases this may be largely
+// ignored because of just how low the variance this would cause is, also for
+// loops probably shouldnt be used for hot paths

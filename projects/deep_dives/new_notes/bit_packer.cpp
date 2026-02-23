@@ -75,7 +75,7 @@ _Z15build_kill_maskRKSt5arrayIaLm32EE:
   .p2align 3
 .L5:
   cmpb	$0, (%rdi,%rcx)
-  je	.L4
+  je	.L4 | this may be point that the jne line jumps back to?
   movl	$1, %edx | gonna need to read about what the $1 means, but it may be
 core? that would be my initial guess, it just means "put a 1 in the edx register
 lol"
@@ -84,8 +84,8 @@ lol"
 .L4:
   addq	$1, %rcx
   cmpq	$32, %rcx
-  jne	.L5
-  ret
+  jne	.L5 | the for loop
+  ret | just the return functions
   .cfi_endproc
   */
 
@@ -120,7 +120,8 @@ std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
 
   /*
   _Z22build_kill_switch_bitsRKi:
-.LFB3764:
+.LFB3764: | so i guess this is essentially what is within the for loop
+
   .cfi_startproc
   movl	(%rsi), %esi
   movq	%rdi, %rdx
@@ -128,7 +129,8 @@ std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
   .p2align 5
   .p2align 4
   .p2align 3
-.L8:
+.L8: | and this is actually the logic that controls the for loop? because it has
+the literal compare and insert syntax
   btl	%eax, %esi
   setc	(%rdx)
   addl	$1, %eax
