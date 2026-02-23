@@ -25,7 +25,11 @@
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
   // this compiles to asm with no jumps, only cmovne
-  // EDIT:nvm was wrong about that, its SO FREAKING COOL TO SEE THIS STUFF
+  // EDIT:nvm was wrong about that, its just a sete, ill probably update the
+  // asm_ref.cpp file to explain what more of these do but right now the
+  // priority is learning how things compile down for branchless programming, i
+  // love how weird this code looks too lol, like idk, its SO FREAKING COOL TO
+  // SEE THIS STUFF
   //
   /*_Z11kill_switchii:
   .LFB3762:
