@@ -1,6 +1,16 @@
 #include <iostream>
 #include <vector>
 
+// N O T I C E
+//
+// these are gonna start assuming that your familiar with the bitwise operators
+// and stuff going forward, ill still probably do the binary bit by bit
+// calculations sometimes when i get confused, but please remember, these are
+// notes im using for learning, they arnt specifically tailored towards others,
+// but i hope they can help someone else too, the way i type these keeps me
+// engaged when i reread these lol, hopefully theyre as entertaining for you as
+// they are me
+
 // WIP FOR ACTUALLY BUILDING ORDERBOOK LOGIC, i understand that its better to
 // use a single reusable function, but im doing it this way to actually see how
 // things operate across the entire process for better understanding
