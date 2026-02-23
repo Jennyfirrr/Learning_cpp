@@ -27,6 +27,15 @@
 // because there is a predictable ratio, so its not actually random or simulated
 // well, like 50% of all numbers will have the 0 bit set, like 25% will have the
 // 3 and 2 bit set, etc
+//
+// NEXT: BMI1/BMI2 (Bit Manipulation Instruction sets)
+//
+// for the most part it looks like this code is mostly avoiding branching in the
+// actual paths that would matter, I guess soon ill attempt to build out more
+// logic to get a better understanding of how the bit encoding works, but on the
+// hot path, its mostly using the kill switch and other "reading" logic, to set
+// up gates, so that the order bits essentially just flow in a straight line,
+// and only stop if a gate doesnt allow it
 
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
@@ -36,6 +45,11 @@ int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   // priority is learning how things compile down for branchless programming, i
   // love how weird this code looks too lol, like idk, its SO FREAKING COOL TO
   // SEE THIS STUFF
+  //
+  // EDIT: So, when you compare (A & B) == 1, the compiler actually converts
+  // this to
+  // (~A & B) == 0, apparently its functionally equivalent but maps to the TEST
+  // instruction better,
   //
   /*_Z11kill_switchii:
   .LFB3762:
@@ -99,6 +113,8 @@ lol"
 }
 
 std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
+  // apparently you can use PDEP or PEXT on x86 CPU's, instead of a for loop,
+  // gonna need to look into this later
   std::array<int8_t, 32> kill_switch_bits;
 
   for (int i = 0; i < 32; i++) {
@@ -247,7 +263,7 @@ main:
   .p2align 5
   .p2align 4
   .p2align 3
-.L11: i guess these are line headers?
+.L11: | i guess these are line headers? | probably set up loop for the mask
   btl	%eax, %esi
   setc	(%rdx)
   addl	$1, %eax
@@ -260,7 +276,7 @@ main:
   .p2align 5
   .p2align 4
   .p2align 3
-.L13:
+.L13: | Setup loops for the mask
   movl	$1, %edx
   sall	%cl, %edx
   orl	%ebp, %edx
@@ -357,7 +373,9 @@ jumps in main
   .cfi_restore_state
   xorl	%ebx, %ebx
   jmp	.L15
-.L25:
+.L25: | this is a stack canary check(?) this checks to see if you overran the
+stack buffer, its a security feature, not part of the code i wrote, see i told
+you the compiler is smart
   call	__stack_chk_fail@PLT
   .cfi_endproc
 .LFE3765:
