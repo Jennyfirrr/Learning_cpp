@@ -217,6 +217,25 @@ int main() {
   // can just do a sign check, which is a single instruction, so its WAY faster,
   // more at 11pm tonight on the local news
   //
+  // EDIT: [23-02-26 3:01am] so i read some more about the sign as the kill
+  // switch and WHY its good, on x86 architecture, after any arithmatic op the
+  // sign flag(SF) is set automatically, so checking if int32_t is L I T E R A L
+  // L Y  F R E E, its just a JS intstruction which is a jump if sign, and you
+  // can do this branchless by using an arithmatic right shift using the
+  // following:
+  /*
+  if bit 7 is the kill switch, packed state in int8_t is
+  int32_t sst_kill_switch_apply(int8_t packed_state) {
+  return packed_state >> 7;
+  }
+  */
+  //
+  // like thats literally it lol, i went more into detail about the kill switch
+  // earlier in this file, but i feel this is noteworthy, this is good because
+  // its a single SAR instruction, and while im not sure what SAR is atm, im
+  // probably gonna learn about that more later, because this shit is S O  F R E
+  // A K I N G  C O O L, and im just reading and asking questions to learn
+  //
   // I was wrong about this being converted to a jump table, thats when there
   // are many conditions, when there are only like 2, its typically converted to
   // a cmov operation, which is fine, as outlined in prior notes, because it
