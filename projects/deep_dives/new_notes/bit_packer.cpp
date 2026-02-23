@@ -16,10 +16,13 @@
 //
 // UDPATE: ASM IS COOL AF WTF
 // its so cool seeing what the actual code compiles down to
+// Im still not sure how to completely read all this, but holy shit this rabbit
+// hole was so freaking worth lol
 
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
   // this compiles to asm with no jumps, only cmovne
+  // EDIT:nvm was wrong about that, its SO FREAKING COOL TO SEE THIS STUFF
   //
   /*_Z11kill_switchii:
   .LFB3762:
@@ -38,6 +41,10 @@ int32_t build_kill_mask(const std::array<int8_t, 32> &kill_mask_bits) {
 
   for (int i = 0; i < 32; i++) {
     // this if statement compiles to a cmovne
+    // EDIT: i was wrong, its apparently just a movl
+    // the jne at the end is because of the for loop, i think this is fine
+    // thought, because its not branch prediction for non-predictable data
+    // considering its just a counter
     if (kill_mask_bits[i]) {
       kill_mask_built |= (1 << i);
     }
@@ -84,6 +91,9 @@ std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
     //
     // my bad, i keep defaulting to the positional storage instead of the
     // normalized 1/0, im learning :D
+    //
+    // same thing here, jne because of the counter in the for loop, which i
+    // think should be fine, ill need to read about that
   }
 
   /*
@@ -212,7 +222,7 @@ main:
   addl	$1, %eax
   addq	$1, %rdx
   cmpl	$32, %eax
-  jne	.L11
+  jne	.L11 I think this may be one of the for loop counters
   movq	%rbx, %rax
   xorl	%ebp, %ebp
   xorl	%ecx, %ecx
