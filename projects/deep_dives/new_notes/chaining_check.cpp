@@ -87,8 +87,9 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
 // misaligns it can be killed at any stage, or at least thats where my thought
 // process is
 
-int32_t check_kill_switch(const std::vector<int32_t> states,
+int32_t check_kill_switch(const std::vector<int32_t> &states,
                           int32_t kill_switch_index) {
+  // udated to take constant reference instead of copying the vector, oopsies
   return ~(states[kill_switch_index]) & 1;
 }
 
@@ -131,6 +132,12 @@ int main() {
   // its better to use the left most sign as the kill switch, because then you
   // can just do a sign check, which is a single instruction, so its WAY faster,
   // more at 11pm tonight on the local news
+  //
+  // I was wrong about this being converted to a jump table, thats when there
+  // are many conditions, when there are only like 2, its typically converted to
+  // a cmov operation, which is fine, as outlined in prior notes, because it
+  // avoids the prediciton branching, which is the entire point of what im
+  // trying to learn lol
 
   std::cout << "\n";
 
