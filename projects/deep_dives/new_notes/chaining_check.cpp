@@ -139,7 +139,12 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
 // JE target
 //
 // a note about the asm code here or machine code, im pretty sure this is asm,
-// you can use the [g++ -S -02 -o -program_name.cpp | c++filt] and look for the
+// you can use the [g++ -S -02 -o -program_name.cpp | c++filt]
+//
+// g++ -S -O2 bit_packer.cpp -o bit_packer.s
+// c++filt < bit_packer.s | less
+//
+// and look for the
 // function names, if you see TEST/AND/CMOV, your G O L D E N, and if you see
 // JE/JNE/JMP, your code is B A D and you need to write less java, and study
 // more branchless programming
