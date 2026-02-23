@@ -25,6 +25,11 @@ int32_t check_7bit(int32_t num) { return (num & (1 << 7)) >> 7; }
 // i was wrong about this, this way normalizes to one, because it first checks
 // if the associated bit is active, then it shifts the value returend back to
 // the 0 bit
+//
+// originially i was just using something like result = num & (1 << bit_index),
+// which just returned the actual value of the bit, like for 7, returns 128,
+// which isnt ideal, so i went back and used logic to normalize it to a 1 or 0
+// using a right shift
 
 /*
  * single function to check all states at once, but AS EXPLAINED IN MY LAST
