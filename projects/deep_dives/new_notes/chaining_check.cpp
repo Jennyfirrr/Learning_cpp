@@ -162,7 +162,7 @@ int32_t check_kill_switch(const std::vector<int32_t> &states,
 uint8_t sst_state_pack(const std::array<int32_t, 8> &states) {
   uint8_t packed = 0;
   for (int i = 0; i < 8; ++i) {
-    packed |= (states[i] & 1) << 1;
+    packed |= (states[i] & 1) << i;
   }
   return packed;
 }
