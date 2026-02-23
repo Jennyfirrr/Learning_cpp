@@ -45,6 +45,9 @@ int32_t build_kill_mask(const std::array<int8_t, 32> &kill_mask_bits) {
     // the jne at the end is because of the for loop, i think this is fine
     // thought, because its not branch prediction for non-predictable data
     // considering its just a counter
+    //
+    // EDIT2: I was wrong about the movl being move if less, it just means mov
+    // with an l suffix, which means long(32-bit), because of the int32_t tags
     if (kill_mask_bits[i]) {
       kill_mask_built |= (1 << i);
     }

@@ -59,4 +59,17 @@
 // calling the imul instruction, which takes more cycles, but i havent read much
 // about that
 //
+// so apparently the things like movl $1, %edx is called AT&T syntax, but
+// anyways the $1 basically means literally "put 1 into the edx register", $ is
+// just a way to express literal, % is the symbol to use to say register,
 //
+// LFE#### just means Local Function End, and LFB#### means Local Function Begin
+// this is what the lines that are like .cfi_startproc / .cfi_endproc means as
+// well
+//
+// the tags for things like movl, addl,xorl,testl, notl, cmovne, cmovl, cmove,
+// are just the suffix indicating what is being used, like l is the suffix for
+// long which is 32-bit data, b is byte which is 8-bit, w is word which is
+// 16bit, Ill update this part as I learn what different tags mean,
+//
+// cmp is compare, so like cmpl just means compare long, etc
