@@ -1,4 +1,6 @@
+#include <stack>
 #include <vector>
+
 using namespace std;
 
 // i literally cannot think after doing the dives into bit masking lol, wtf,
@@ -21,6 +23,32 @@ vector<int> finalPrices(vector<int> &prices) {
         break;
       }
     }
+  }
+
+  return answer;
+}
+
+// second solution using the stack to actually answer this, on leetcode the
+// above solution is faster than the one below this, but thats apparently
+// because of the overhead that the pop and push operations add, and also on the
+// website, the size is bounded to 1 -> 500 or something, in cases of like 10^6
+// this should be faster in theory
+
+vector<int> finalPrices(vector<int> &prices) {
+  int n = prices.size();
+  stack<int> price;
+  vector<int> answer(n);
+
+  for (int i = n - 1; i >= 0; i--) {
+    while (!price.empty() && price.top() > prices[i]) {
+      price.pop();
+    }
+    if (!price.empty()) {
+      answer[i] = prices[i] - price.top();
+    } else {
+      answer[i] = prices[i];
+    }
+    price.push(prices[i]);
   }
 
   return answer;
