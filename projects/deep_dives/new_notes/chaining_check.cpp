@@ -41,7 +41,8 @@ int32_t check_7bit(int32_t num) { return (num & (1 << 7)) >> 7; }
 // because this normalizes it to either 1 or 0
 //
 // 1 0 0 0 0 0 0 0 >> 7 = 0 0 0 0 0 0 0 1 which equals 1, and allows for better
-// and easier parsing, because it simply cuts it down to an on or off state
+// and easier parsing, because it simply cuts it down to an on or off state, god
+// playing with my bits is so much fun
 
 /*
  * single function to check all states at once, but AS EXPLAINED IN MY LAST
@@ -67,7 +68,12 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
   // basically this function, uses the 8 other functions, to build a vector that
   // shows which states are true or false, and im probably gonna try to build a
   // fail switch function next, that uses the vector as an input and checks for
-  // the nth bit which i wanna encode as a kill switch
+  // the nth bit which i wanna encode as a kill switch, im also probably gonna
+  // start looking into how to actually convert these to buy/sell statements but
+  // based off of what i know about jump tables, it may be oky(?) to use a jump
+  // table here because its basically a single clock cycle instead of the branch
+  // prediction mess that if else would cause, i could be wrong, but im learning
+  // as i go, so BEAR WITH ME PLEASE
 
   return states;
 }
