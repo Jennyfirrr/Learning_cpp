@@ -180,6 +180,7 @@ int main() {
             << "%\n";
 
   /*
+this part was cut off from a prior function, i just messed up the splicing
   .LFE3764:
   .size	_Z22build_kill_switch_bitsRKi, .-_Z22build_kill_switch_bitsRKi
   .section	.rodata.str1.1,"aMS",@progbits,1
