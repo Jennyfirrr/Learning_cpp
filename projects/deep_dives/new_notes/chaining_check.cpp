@@ -74,6 +74,12 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
   // table here because its basically a single clock cycle instead of the branch
   // prediction mess that if else would cause, i could be wrong, but im learning
   // as i go, so BEAR WITH ME PLEASE
+  //
+  // this is bad btw, dont actually use this, it returns a vector by value with
+  // heap allocation EVERY SINGLE CALL, for a hot path, this would be a malloc
+  // every single order which is  B A D, see, even i need to write less java,
+  // using the array approach mentioned further down is the better way to do
+  // this
 
   return states;
 }
@@ -198,6 +204,10 @@ int main() {
   default:
     std::cout << "Placing buy/sell order...";
   }
+  // if this was a real execution loop, using the ternary operator, or a
+  // branchless select(gonna need to learn more about this) would be more
+  // explicitly deterministic
+  //
   // so according to my other nothes, this should be fine, because of how the
   // case switching converts to a jump table after the compiler does its thing,
   // and the reason it should theoretically be fine, is because a jump table
