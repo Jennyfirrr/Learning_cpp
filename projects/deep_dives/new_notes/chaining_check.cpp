@@ -127,7 +127,10 @@ int main() {
   // other condition, or a switch statement again, because theyre fast too and
   // deterministc, right? I may try to implement that at some other point, but
   // im doing alot of theory right now instead of actual coding, to create a
-  // solid foundation to work off of, try doing this in java lol
+  // solid foundation to work off of, try doing this in java lol, so apparently
+  // its better to use the left most sign as the kill switch, because then you
+  // can just do a sign check, which is a single instruction, so its WAY faster,
+  // more at 11pm tonight on the local news
 
   std::cout << "\n";
 
