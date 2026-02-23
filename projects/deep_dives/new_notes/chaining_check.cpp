@@ -154,7 +154,9 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
 // jump whereas
 //
 // int32_t result = (state == 1) ? value_a : value_b;
-// is more like to be converted to a cmov(branchless), so apparently this is the
+// is more like to be converted to a cmov(branchless),
+//
+// so apparently this is the
 // ideal way to use if statements when branch prediction is a concern, im sure
 // there are far more weird compiler things that you would need to know, but im
 // just know scratching that surface deeper, maybe custom compiler settings or
