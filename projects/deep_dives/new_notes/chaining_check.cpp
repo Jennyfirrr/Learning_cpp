@@ -47,9 +47,11 @@ int32_t check_7bit(int32_t num) {
 }
 
 /*
- * single function to check all states at once,
- * int32_t extract_bit_state(int32_t packed_state, uint8_t bit_index) {
- * 		return packed_state & (1 << bit_index);
+ * single function to check all states at once, but AS EXPLAINED IN MY LAST
+ * EMAIL, im learning the process by actually writing out the functions bit by
+ * bit, for a better M E N T A L  M O D E L, kthxbaiiiiii int32_t
+ * extract_bit_state(int32_t packed_state, uint8_t bit_index) { return
+ * packed_state & (1 << bit_index);
  * }
  */
 
