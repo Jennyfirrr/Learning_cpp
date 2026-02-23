@@ -27,6 +27,10 @@ std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
 
   for (int i = 0; i < 32; i++) {
     kill_switch_bits[i] = (order_book_seed >> i) & 1;
+    // this basically checks each bit in the order_book_seed, and shifts it to
+    // the right according to the index, so its always comparing the bit to the
+    // 1 binary
+    //
     // my bad, i keep defaulting to the positional storage instead of the
     // normalized 1/0, im learning :D
   }
