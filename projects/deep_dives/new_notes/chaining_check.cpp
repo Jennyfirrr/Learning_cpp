@@ -93,6 +93,9 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
   // every single order which is  B A D, see, even i need to write less java,
   // using the array approach mentioned further down is the better way to do
   // this
+  //
+  // heap allocation and malloc are gonna be in my notes to explore more
+  // eventually, btw, im just F O L L O W I N G  M Y  H E A R T
 
   return states;
 }
