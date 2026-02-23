@@ -86,12 +86,96 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
 // differnt states dependent on different varibles, so that if anything
 // misaligns it can be killed at any stage, or at least thats where my thought
 // process is
+//
+// EDIT: [23-02-26 | 02:34am]
+// so i did some further research about if statements and how they compile down
+// to machine code, and apparently when you use just a single if statement, you
+// can actually avoid the branch prediction as well, like assuming your using a
+// loop, that constantly takes in an order book number from a vector, or however
+// orders are fed to saturate a pipeline, you could potentially use things like
+// if (state == 1) or something like if ((bit_mask & state) != 0) using a break
+// statement, or soemthing else because these are apparently single operation
+// cycles? specifically the first example, i think the 2nd one would consume 2
+// cycles since your packing in the & operator as well as the comparison to 0,
+// but you would have to do that in another part of code anyways, i think this
+// would probably be worth looking at how it converts at compile time
+//
+// about the cycles consumed in the above, i was wrong, on x86 architecutre I
+// was told, that the TEST instruction does a bitwise & and sets the zero flag
+// in a single intstruction
+//
+// so like if((bit_mask & state) != 0) becomes
+// TEST eax, ebx ;
+// JNZ target    ;
+//
+// and
+//
+// if (state == 1) becomes
+// CMP eax, 1
+// JE target
+//
+// a note about the asm code here or machine code, im pretty sure this is asm,
+// you can use the [g++ -S -02 -o -program_name.cpp | c++filt] and look for the
+// function names, if you see TEST/AND/CMOV, your G O L D E N, and if you see
+// JE/JNE/JMP, your code is B A D and you need to write less java, and study
+// more branchless programming
+//
+// so the bitmask version isnt actually slower, theyre equivalent in cycle cost,
+// but the bitmask version is more flexible, because you can check any bit
+// position  without changing the instruction, which is ideal for what I wanna
+// do
+//
+// So apparently the stuff i just wrote about the compile time behavior is based
+// on likely hood for the compiler to emit a cmov, vs a JMP, when the body is
+// simple enough, E X A M P L E
+// if (state == 1) {
+//	 do_function();
+//}
+// so apparently this syntax has a higher likely hood of being converted to a
+// jump whereas
+//
+// int32_t result = (state == 1) ? value_a : value_b;
+// is more like to be converted to a cmov(branchless), so apparently this is the
+// ideal way to use if statements when branch prediction is a concern, im sure
+// there are far more weird compiler things that you would need to know, but im
+// just know scratching that surface deeper, maybe custom compiler settings or
+// an inhouse compiler would be used that could always guarantee cmov over
+// branch prediction paths would be ideal?
+//
+// One key insight is that its apparently not about how many ifs there are, but
+// how complex what is inside them is, the simpler the statement is, the more
+// likely it will be compiled to a cmov, its usually only converted to branch
+// prediction when you call a function, or add complex logic, so while the way
+// using the ? operator may look harder for a human to read, at compile time its
+// computationally far simpler, and more direct
 
 int32_t check_kill_switch(const std::vector<int32_t> &states,
                           int32_t kill_switch_index) {
   // udated to take constant reference instead of copying the vector, oopsies
   return ~(states[kill_switch_index]) & 1;
 }
+
+// so i did some more reading, and apparently this could be made better by doing
+// something like packing all the states into a single byte using uint8_t
+// E X A M P L E
+/*
+uint8_t sst_state_pack(const std::array<int32_t, 8> &states) {
+  uint8_t packed = 0;
+  for (int i = 0; i < 8; ++i) {
+    packed |= (states[i] & 1) << 1;
+  }
+  return packed;
+}
+
+if any kill switch bit is set here this fails
+this changes it to a single operation, which is ideal
+int32_t sst_kill_switch_apply(uint8_t packed_state, uint8_t kill_mask) {
+        return (packed_state & kill_mask) == kill_mask;
+}
+*/
+// using this method, the entire kill switch is one AND + one CMP, two
+// instructions total, zero branches, and fully deterministic for cycle count
+// and benchmarking, which is A M A Z I N G
 
 int main() {
   int32_t order_book_sim;
