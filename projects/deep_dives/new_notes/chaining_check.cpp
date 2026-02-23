@@ -78,6 +78,20 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
   return states;
 }
 
+// so I was thinking about how a kill switch would work, and my original thought
+// was like if/else, or case switching because thats what im used to, but
+// apparently just using a mask, and clearing the bits is a beeter idea, because
+// then nothing else triggers after the kill switch checks happen, and its
+// resuseable to, so in theory you could add more kill switch checks, make
+// differnt states dependent on different varibles, so that if anything
+// misaligns it can be killed at any stage, or at least thats where my thought
+// process is
+
+int32_t check_kill_switch(const std::vector<int32_t> states,
+                          int32_t kill_switch_index) {
+  return ~(states[kill_switch_index]) & 1;
+}
+
 int main() {
   int32_t order_book_sim;
   std::cout << "Please choose a number between 0 and 255: ";
@@ -89,6 +103,31 @@ int main() {
   for (auto order : states_of_order_book) {
     std::cout << order << ", ";
   }
+
+  std::cout << "\n";
+
+  switch (check_kill_switch(states_of_order_book, 0)) {
+  case 1:
+    std::cout << "Stopping buy and selling current positions...";
+    break;
+  default:
+    std::cout << "Placing buy/sell order...";
+  }
+  // so according to my other nothes, this should be fine, because of how the
+  // case switching converts to a jump table after the compiler does its thing,
+  // and the reason it should theoretically be fine, is because a jump table
+  // stores the pointer to a memory address with the branching statements,
+  // instead of having to initialize branch prediction paths, so its a single
+  // cpu cycle to initiate the kill switch im guessing, by setting it to the 0
+  // index bit, you can base the entire decision tree of what happens starting
+  // from here, so if its a 0, that means the kill switch is not engaged, if its
+  // a 1, it means kill the order, something is wrong, and im guessing you could
+  // take this further by using either more bitwise operations in the actual
+  // kill switch logic to make the index its reading dependent on a certain
+  // other condition, or a switch statement again, because theyre fast too and
+  // deterministc, right? I may try to implement that at some other point, but
+  // im doing alot of theory right now instead of actual coding, to create a
+  // solid foundation to work off of
 
   std::cout << "\n";
 
