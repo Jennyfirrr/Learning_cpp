@@ -20,7 +20,7 @@
 // hole was so freaking worth lol
 //
 // imagine if java like actually let you control things lmao, but NOOO garbage
-// collector go brrrrrr
+// collector go brrrrrr, god i hate java so much
 
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
