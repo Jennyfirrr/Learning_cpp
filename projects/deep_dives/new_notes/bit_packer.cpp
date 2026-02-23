@@ -18,6 +18,9 @@
 // its so cool seeing what the actual code compiles down to
 // Im still not sure how to completely read all this, but holy shit this rabbit
 // hole was so freaking worth lol
+//
+// imagine if java like actually let you control things lmao, but NOOO garbage
+// collector go brrrrrr
 
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
