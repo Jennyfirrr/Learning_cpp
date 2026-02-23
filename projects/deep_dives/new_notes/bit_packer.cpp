@@ -3,6 +3,14 @@
 #include <random>
 #include <vector>
 
+// asm generated using the compile command
+// [g++ -S -O2 bit_packer.cpp -o bit_packer.s]
+//
+// Compiler: GCC 15.2.1 20260103
+// ISA: x86_64
+//
+// these outputs can change depending on compiler version
+
 // probably gonna look at how this converts to asm when i havent been up for
 // like 24 hours, toodles
 //
