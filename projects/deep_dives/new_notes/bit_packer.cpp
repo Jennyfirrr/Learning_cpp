@@ -2,6 +2,9 @@
 #include <iostream>
 #include <vector>
 
+// probably gonna look at how this converts to asm when i havent been up for
+// like 24 hours, toodles
+
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
 }
