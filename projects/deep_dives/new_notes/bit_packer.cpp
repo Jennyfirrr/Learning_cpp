@@ -77,8 +77,11 @@ _Z15build_kill_maskRKSt5arrayIaLm32EE:
   cmpb	$0, (%rdi,%rcx)
   je	.L4
   movl	$1, %edx | gonna need to read about what the $1 means, but it may be
-core? that would be my initial guess
-  sall	%cl, %edx orl	%edx, %eax .L4:
+core? that would be my initial guess, it just means "put a 1 in the edx register
+lol"
+  sall	%cl, %edx
+  orl	%edx, %eax
+.L4:
   addq	$1, %rcx
   cmpq	$32, %rcx
   jne	.L5
