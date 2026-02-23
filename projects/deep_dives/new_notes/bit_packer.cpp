@@ -94,7 +94,8 @@ _Z15build_kill_maskRKSt5arrayIaLm32EE:
   .p2align 4
   .p2align 3
 .L5:
-  cmpb	$0, (%rdi,%rcx)
+  cmpb	$0, (%rdi,%rcx) | compare 8-bit because the array for the bits is 8 bit,
+so its compare byte
   je	.L4 | this may be point that the jne line jumps back to?
   movl	$1, %edx | gonna need to read about what the $1 means, but it may be
 core? that would be my initial guess, it just means "put a 1 in the edx register
@@ -163,6 +164,9 @@ the literal compare and insert syntax
   ret
   .cfi_endproc
 */
+  // the anove where it says the movl (%rsi), %esi, this is just loading the
+  // value pointed to by the second function argument,(a pointer) into the %esi
+  // register, which is just the bit_mask being unpacked in kill switch bits
 
   return kill_switch_bits;
 }

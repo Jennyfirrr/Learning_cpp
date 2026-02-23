@@ -15,6 +15,20 @@
 // rax, rbx, rcx, rdx, and the 8bit lower portions are al, bl, cl, dl, which is
 // why there is a file that references setl %al
 //
+// %rsi is one of the general purpose registers, it has multiple portions laid
+// out like
+//
+// %rsi = full 64 bit
+// %esi = lower 32 bit
+// %si = lower 16 bit
+// %sil = lower 8 bit
+//
+// historically the %rsi stood for "source index" and was originally used for
+// the source pointer for string operations like rep movsb(memory copy), but in
+// modern x86_64, its just a general purpose register, the only place source
+// still means anything here is that its the second function argument in the
+// system V calling convention, which only matters in (Linux(arch btw)/macOS)
+//
 // these registers actually have conventional purposes too, like the eax,rax, is
 // called the accumulator, which is where return values go and where most
 // arithmatic results land, so whenever you return something from a function,
@@ -71,6 +85,30 @@
 // are just the suffix indicating what is being used, like l is the suffix for
 // long which is 32-bit data, b is byte which is 8-bit, w is word which is
 // 16bit, Ill update this part as I learn what different tags mean,
+//
+// b = byte = 8 bit
+// w = word = 16bit
+// l = long = 32 bit
+// q = quad = 64 bit
+// These are the AT&T syntax suffixes, INTEL doesnt use these since the operand
+// size is inferred from the register names
+//
+// the actual logic names are just what you call the operators like ==, ~, ^, &,
+// etc within the higher level languages, its just literally like cmp for ==,
+// xor for ^, not for ~, etc
+//
+//====================
+//   btl	%eax, %esi
+//   setc	(%rdx)
+//====================
+// in this example, the btl means bit test long : test bit [eax] of esi, result
+// goes into CF the setc part means store CF (0 or 1 because its testing the
+// bit) into memory at address in rdx
+//
+// ZF = zero flag
+// CF = carry flag
+// SF = sign flag
+// OF = overflow flag
 //
 // cmp is compare, so like cmpl just means compare long, etc
 //
