@@ -5,6 +5,9 @@
 
 // probably gonna look at how this converts to asm when i havent been up for
 // like 24 hours, toodles
+//
+// UDPATE: ASM IS COOL AF WTF
+// its so cool seeing what the actual code compiles down to
 
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
@@ -15,7 +18,7 @@ int32_t build_kill_mask(const std::array<int8_t, 32> &kill_mask_bits) {
   int32_t kill_mask_built = 0;
 
   for (int i = 0; i < 32; i++) {
-    // this if statement compules to a cmovne
+    // this if statement compiles to a cmovne
     if (kill_mask_bits[i]) {
       kill_mask_built |= (1 << i);
     }
