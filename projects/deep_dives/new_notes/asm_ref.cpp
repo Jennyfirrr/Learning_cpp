@@ -31,7 +31,9 @@
 // calls
 //
 // ill probably write more about these later when I need to know more about them
-// but for now this is fine for where im at
+// but for now this is fine for where im at, but for future reference im gonna
+// go over these more:
+// rsp[stack pointer], rbp[base pointer/frame pointer]
 //
 // the reason that these matter though is that when your watching the compiler
 // output from using [g++ -S -02], you can see the compiler pick specific
