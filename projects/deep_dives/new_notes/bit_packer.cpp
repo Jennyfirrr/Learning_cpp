@@ -1,5 +1,6 @@
 #include <array>
 #include <iostream>
+#include <random>
 #include <vector>
 
 // probably gonna look at how this converts to asm when i havent been up for
@@ -25,7 +26,9 @@ std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
   std::array<int8_t, 32> kill_switch_bits;
 
   for (int i = 0; i < 32; i++) {
-    kill_switch_bits[i] = order_book_seed & (1 << i);
+    kill_switch_bits[i] = (order_book_seed >> i) & 1;
+    // my bad, i keep defaulting to the positional storage instead of the
+    // normalized 1/0, im learning :D
   }
 
   return kill_switch_bits;
@@ -48,13 +51,18 @@ int main() {
 
   int32_t killed_trades = 0;
 
+  for (int i = 0; i < 32; i++) {
+    std::cout << static_cast<int>(kill_mask_bits[i]) << " ";
+  }
+
   for (int i = 0; i < order_book_cycle; i++) {
     if (kill_switch(i, kill_mask)) {
       killed_trades++;
     }
   }
 
-  std::cout << "Completed trades: " << order_book_cycle - killed_trades << "\n";
+  std::cout << "\nCompleted trades: " << order_book_cycle - killed_trades
+            << "\n";
   std::cout << "Killed trades: " << killed_trades << "\n";
   std::cout << "% killed: "
             << (static_cast<float>(killed_trades) / order_book_cycle) * 100
