@@ -127,7 +127,7 @@ int main() {
   // other condition, or a switch statement again, because theyre fast too and
   // deterministc, right? I may try to implement that at some other point, but
   // im doing alot of theory right now instead of actual coding, to create a
-  // solid foundation to work off of
+  // solid foundation to work off of, try doing this in java lol
 
   std::cout << "\n";
 
