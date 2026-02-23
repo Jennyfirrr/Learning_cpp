@@ -8,12 +8,14 @@
 
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
+  // this compiles to asm with no jumps, only cmovne
 }
 
 int32_t build_kill_mask(const std::array<int8_t, 32> &kill_mask_bits) {
   int32_t kill_mask_built = 0;
 
   for (int i = 0; i < 32; i++) {
+    // this if statement compules to a cmovne
     if (kill_mask_bits[i]) {
       kill_mask_built |= (1 << i);
     }
@@ -60,6 +62,8 @@ int main() {
   }
 
   for (int i = 0; i < order_book_cycle; i++) {
+    // the loop condition within this for loops compiles down to a jump using
+    // cmpl %ecx, %eax+jne
     if (kill_switch(i, kill_mask)) {
       killed_trades++;
     }
