@@ -11,21 +11,38 @@ int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
 
 int32_t build_kill_mask(const std::array<int8_t, 32> &kill_mask_bits) {
   int32_t kill_mask_built = 0;
+
   for (int i = 0; i < 32; i++) {
     if (kill_mask_bits[i]) {
       kill_mask_built |= (1 << i);
     }
   }
+
   return kill_mask_built;
+}
+
+std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
+  std::array<int8_t, 32> kill_switch_bits;
+
+  for (int i = 0; i < 32; i++) {
+    kill_switch_bits[i] = order_book_seed & (1 << i);
+  }
+
+  return kill_switch_bits;
 }
 
 int main() {
   int order_book_cycle;
+  int kill_mask_seed;
 
   std::cout << "Cycles: ";
   std::cin >> order_book_cycle;
 
-  std::array<int8_t, 32> kill_mask_bits = {1, 0, 1, 1, 0, 0, 1, 0, 0, 0};
+  std::cout << "Seed: ";
+  std::cin >> kill_mask_seed;
+
+  std::array<int8_t, 32> kill_mask_bits =
+      build_kill_switch_bits(kill_mask_seed);
 
   int32_t kill_mask = build_kill_mask(kill_mask_bits);
 
@@ -37,6 +54,7 @@ int main() {
     }
   }
 
+  std::cout << "Completed trades: " << order_book_cycle - killed_trades << "\n";
   std::cout << "Killed trades: " << killed_trades << "\n";
   std::cout << "% killed: "
             << (static_cast<float>(killed_trades) / order_book_cycle) * 100
