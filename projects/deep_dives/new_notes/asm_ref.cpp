@@ -65,6 +65,10 @@
 // transfer, its just the cpu shifting values that are actually stored within
 // it,
 //
+// IMPORTANT: cmovl is different from movl, cmovl means move if less than, while
+// movl just means move long, because cmov infers from the register as pointed
+// out in the intel vs AT&T syntax
+//
 // this is also why the lea eax, [ebx + ebx * 2] works, because its just dogin
 // eax = ebx * 3 entirely within the registers, since this is a ebx + ebx * 2,
 // you can only do odd multiples for this, so like *, *3, *5, *9,, or instead of
