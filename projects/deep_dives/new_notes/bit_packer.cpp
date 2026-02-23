@@ -50,13 +50,13 @@ int32_t build_kill_mask(const std::array<int8_t, 32> &kill_mask_bits) {
     }
   }
   /*
-.LFE3762:
+.LFE3762: | I guess this is like defining the function name and inputs?
   .size	_Z11kill_switchii, .-_Z11kill_switchii
   .p2align 4
   .globl	_Z15build_kill_maskRKSt5arrayIaLm32EE
   .type	_Z15build_kill_maskRKSt5arrayIaLm32EE, @function
 _Z15build_kill_maskRKSt5arrayIaLm32EE:
-.LFB3763:
+.LFB3763: | and this is the actual function logic?
   .cfi_startproc
   xorl	%ecx, %ecx
   xorl	%eax, %eax
