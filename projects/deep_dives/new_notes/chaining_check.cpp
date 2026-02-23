@@ -96,6 +96,8 @@ std::vector<int32_t> build_vector_states(int32_t order_book0) {
   //
   // heap allocation and malloc are gonna be in my notes to explore more
   // eventually, btw, im just F O L L O W I N G  M Y  H E A R T
+  //
+  // see arena allocaters and pre-allocated pools along with that future me <3
 
   return states;
 }
