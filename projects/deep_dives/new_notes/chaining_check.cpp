@@ -29,7 +29,19 @@ int32_t check_7bit(int32_t num) { return (num & (1 << 7)) >> 7; }
 // originially i was just using something like result = num & (1 << bit_index),
 // which just returned the actual value of the bit, like for 7, returns 128,
 // which isnt ideal, so i went back and used logic to normalize it to a 1 or 0
-// using a right shift
+// using a right shift for a written out example see below
+//
+// so assuming you start with bit 7 in a number like 255, bit 7 represents 128
+// so
+//
+// 1 1 1 1 1 1 1 1 = 255
+// 1 0 0 0 0 0 0 0 = 1 << 7, then apply the & operator
+// ---------------
+// 1 0 0 0 0 0 0 0 = 128, so then the reason you wanna use the result >> 7, is
+// because this normalizes it to either 1 or 0
+//
+// 1 0 0 0 0 0 0 0 >> 7 = 0 0 0 0 0 0 0 1 which equals 1, and allows for better
+// and easier parsing, because it simply cuts it down to an on or off state
 
 /*
  * single function to check all states at once, but AS EXPLAINED IN MY LAST
