@@ -25,7 +25,8 @@
 // gonna add randomizations to this for each time the foor loop iterates to
 // actually see this work better instead of scaling based on the bits set,
 // because there is a predictable ratio, so its not actually random or simulated
-// well
+// well, like 50% of all numbers will have the 0 bit set, like 25% will have the
+// 3 and 2 bit set, etc
 
 int32_t kill_switch(int32_t order_book_state, int32_t kill_mask) {
   return (order_book_state & kill_mask) == kill_mask;
