@@ -179,8 +179,10 @@ int main() {
 
   std::array<int8_t, 32> kill_mask_bits =
       build_kill_switch_bits(kill_mask_seed);
+  // has a jump, expected, function contains a for loop
 
   int32_t kill_mask = build_kill_mask(kill_mask_bits);
+  // has a for loop, jump expected
 
   int32_t killed_trades = 0;
 
