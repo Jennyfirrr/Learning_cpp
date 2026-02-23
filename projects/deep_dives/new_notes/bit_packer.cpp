@@ -134,7 +134,7 @@ std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
   addl	$1, %eax
   addq	$1, %rdx
   cmpl	$32, %eax
-  jne	.L8
+  jne	.L8 | for loop jump
   movq	%rdi, %rax
   ret
   .cfi_endproc
@@ -238,13 +238,13 @@ main:
   .p2align 5
   .p2align 4
   .p2align 3
-.L11:
+.L11: i guess these are line headers?
   btl	%eax, %esi
   setc	(%rdx)
   addl	$1, %eax
   addq	$1, %rdx
   cmpl	$32, %eax
-  jne	.L11 I think this may be one of the for loop counters
+  jne	.L11 | I think this may be one of the for loop counters
   movq	%rbx, %rax
   xorl	%ebp, %ebp
   xorl	%ecx, %ecx
@@ -260,7 +260,7 @@ main:
   addl	$1, %ecx
   addq	$1, %rax
   cmpl	$32, %ecx
-  jne	.L13
+  jne	.L13 | most likely the other foor loop counter
   leaq	32(%rbx), %r12
   .p2align 4
   .p2align 3
@@ -275,7 +275,7 @@ main:
   call
 _ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@PLT
   cmpq	%rbx, %r12
-  jne	.L14
+  jne	.L14 | not sure about this one
   movl	8(%rsp), %ecx
   testl	%ecx, %ecx
   jle	.L19
@@ -293,7 +293,7 @@ _ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@PL
   movzbl	%dl, %edx
   addl	%edx, %ebx
   cmpl	%ecx, %eax
-  jne	.L17
+  jne	.L17 | or this one, the earlier jumps may be the cin/cout
 .L15:
   leaq	.LC3(%rip), %rsi
   leaq	_ZSt4cout(%rip), %rdi
@@ -331,7 +331,8 @@ _ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@PL
   call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc@PLT
   movq	56(%rsp), %rax
   subq	%fs:40, %rax
-  jne	.L25
+  jne	.L25 | this is more likely probably the other for loop? idk, like 5
+jumps in main
   addq	$64, %rsp
   .cfi_remember_state
   .cfi_def_cfa_offset 32
