@@ -105,7 +105,17 @@ std::array<int8_t, 32> build_kill_switch_bits(const int32_t &order_book_seed) {
     // normalized 1/0, im learning :D
     //
     // same thing here, jne because of the counter in the for loop, which i
-    // think should be fine, ill need to read about that
+    // think should be fine, ill need to read about that, yeah, its fine because
+    // after building the actualy kill switch, this would basically only run any
+    // time it changed, so the jump here is like 1 misprediction chance out of
+    // like millions+ of cycles so its largely negligiable, because its not on a
+    // hot path, this would be more under initialization code, rather than the
+    // actual execution logic, and even then, an overseer when changing it would
+    // probably do that on another cpu or something, and it would be imported to
+    // the hotpath to be used rather than actual calculated by the same cores
+    // that are executing trades, but I guess this is where FPGA modules come
+    // in, because those are specially designed to deal with things like this I
+    // think, I only did light reading about those
   }
 
   /*
