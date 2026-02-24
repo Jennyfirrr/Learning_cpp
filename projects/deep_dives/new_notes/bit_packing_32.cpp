@@ -107,6 +107,8 @@ int main() {
                        (killed_trades + valid_trades)) *
                       100)
             << "%" << "\n";
+  // so glad i remembered what i forgot, this file felt like it was missing
+  // something
   std::cout << "Java bad\n";
 
   return 0;
