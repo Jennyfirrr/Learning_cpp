@@ -121,11 +121,37 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   //
   // Java Is Trash H A H A H A H A H A
   // ok back to being serious *wink*
+  //
+  // also, to address some errors within the code here, im using int8_t, which
+  // is signed, so that means the values from 128-255 are getting interpreted as
+  // negative numbers(i wonder if this caused the issue earlier where the cin
+  // error occured with it interpreting 128 as 1), when you shift a N E G T I V
+  // E, int8_t left, you get sign extension into the upper bits, which will
+  // corrupt adjacent packed slots, i probably should use uint8_t for the trade
+  // ID's, but thats why WE ARE LEARNING, and also the kill mask 128 is probably
+  // killing all trades because it converts to -128, and when you shift this
+  // left, it smears 1's across the entire packed register, which is probably
+  // why results looked weird,
 
   return kill_mask_built;
 }
 
 int32_t kill_switch(int32_t packed_order_int, const int32_t &kill_mask_built) {
+  // so theres apparently a better way to do this, apparently I could have just
+  // checked each 8 bit lane seperatly using something like the following:
+  //
+  // bool lane0_killed = (packed & 0xFF) == (kill_mask & 0xFF);
+  // bool lane1_killed = ((packed >> 8) & 0xFF) == ((kill_mask >> 8) & 0xFF);
+  //
+  // and so one, etc, this gives per lane granularity, without having to unpack
+  // back to individual 8bit values, in a real system, this is where you would
+  // wanna use SIMD(_mm_cmpeq_epi8), but im just a baby engineer, so thats kinda
+  // out of my expertise, but ILL LEARN, toodles
+  //
+  // also please clone my theme repo *pleading eyes emoji* it would make me SO
+  // HAPPY
+  //
+  //
   return (packed_order_int & kill_mask_built) == kill_mask_built;
 }
 
