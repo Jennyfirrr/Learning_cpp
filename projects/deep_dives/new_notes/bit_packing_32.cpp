@@ -114,7 +114,13 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   // check against, im kinda surprised im still going with this lol, like these
   // are WHOLE ASS PAPERS IN THE COMMENTS, and im having T H E  T I M E  O F  M
   // Y  L I F E writing these, like this is so freaking cool, imagine using java
-  // and not having to know any of this lol, couldnt be me lmao
+  // and not having to know any of this lol, couldnt be me lmao, Also heres
+  // another Z I N G E R
+  //
+  // What does the JIT stand for?
+  //
+  // Java Is Trash H A H A H A H A H A
+  // ok back to being serious *wink*
 
   return kill_mask_built;
 }
