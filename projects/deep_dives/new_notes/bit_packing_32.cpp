@@ -71,7 +71,7 @@ int main() {
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
   std::mt19937 rng(21); // deterministic fixed seed
-  std::uniform_int_distribution<int> dist(128, 255);
+  std::uniform_int_distribution<int> dist(0, 255);
 
   std::vector<int8_t> potential_trades(generate_x_orders);
 
