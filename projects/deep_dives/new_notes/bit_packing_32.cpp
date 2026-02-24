@@ -376,7 +376,7 @@ int main() {
   // main function, ideally you would probabably just wanna use a class or
   // something that wraps everything else together in a big warm hug, but im
   // kinda bad at coding and citadel doesnt wanna reply to me becuase im BaD aT
-  // lEeTcOdE </3 (this CAN be fixed)
+  // lEeTcOdE </3, its ok i forgive you though
   //
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
