@@ -451,7 +451,11 @@ int main() {
 // lol
 //==========================================================================
 /*
-_ZNSt12_Vector_baseIiSaIiEED2Ev:
+_ZNSt12_Vector_baseIiSaIiEED2Ev: | so im guessing this is where the kill mask
+gets build, because it has what loops like a simple loop? either that or this is
+where the faux trades vector gets built, or the for loop right below those, but
+this stuff is all above the string outputs, so its also possible i broke this up
+wrong, im still LEARNING to read assembly
 .LFB4141:
         .cfi_startproc
         movq	%rdi, %rax
