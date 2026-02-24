@@ -203,7 +203,12 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   // the order vector, but im already thinking about that, and im gonna try
   // implementing that in the next thing i do, also remember kids, everything
   // you see is performed by a TRAINED PROFESSIONAL, do not attempt this at home
-  // without parental supervision
+  // without parental supervision,
+  //
+  // **Fox ML infrastructure LLC is not legally
+  // responsible for bodily harm, mental health concerns, or anything else that
+  // may impact life, liberty, or happiness from performing unlicensed bit
+  // manipulation without proper supervision or safety measures**
   //
   // the cpu does this in a single imul instruction instead of shifting the same
   // byte and using |= to place the byte ID in the correct place
