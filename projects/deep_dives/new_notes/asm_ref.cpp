@@ -128,3 +128,29 @@
 // just not ideal in my mind, in production use cases this may be largely
 // ignored because of just how low the variance this would cause is, also for
 // loops probably shouldnt be used for hot paths
+//
+// So, the J part of the JNE/JE/JMP just means jump, similar to how some of the
+// other operators work, and im gonna kind list more of the suffixes here,
+// specifically the condition code suffixes, because the sizing ones are gone
+// over above:
+//
+// [e / z] equal/zero
+// [ne/nz] not equal/not zero
+// [g] is greater assuming the int is signed
+// [ge] greater or equal (signed)
+// [l] less(signed)
+// [le] less or equal (signed)
+// [a] above (unsigned)
+// [ae] above or equal (unsigned)
+// [b] below (unsigned)
+// [be] below or equal (unsigned)
+// [s] sign flag set(negative)
+// [ns] sign flag not set
+//
+// for my use cases, the signed vs unsigned distinction matters, because g/l
+// respect the sign bit, while a/b treat everything as unsigned, i MAY go over
+// the floating point operators here, but floating point is I C K Y when fixed
+// point math is a thing, so dont expect it
+//
+// apparently when i start diving into SIMD instructions, ill start to see
+// epi8/epi16/epi32 suffixes which just indicated packed integer widths
