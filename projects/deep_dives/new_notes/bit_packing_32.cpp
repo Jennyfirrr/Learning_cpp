@@ -84,11 +84,12 @@ build_order_book(const std::vector<int8_t> &potential_trades,
           movl	$0, (%rax)
           movq	%r13, 16(%rbp)
           cmpq	$1, 8(%rsp)
-          je	.L16 | probably the first for loop
+          je	.L16 | probably the first for loop, thats weird why does this
+  jump to .L16 from  the begining?
           subq	$4, %rdx
           xorl	%esi, %esi
           call	memset@PLT
-          leaq	-4(%r13,%rax), %rdx
+          leaq	-4(%r13,%rax), %rdx | F R E E  M A T H
           subq	%rbx, %rdx
           movq	%rdx, %rax
           movq	%rdx, 8(%rbp)
@@ -118,7 +119,13 @@ build_order_book(const std::vector<int8_t> &potential_trades,
           movl	%esi, (%rbx,%rdi)
           addq	$4, %rdi
           cmpq	%rdi, %r8
-          jne	.L9
+          jne	.L9 | maybe these are the 2 for loops? theyre right next to
+  eachother, so thats why i would think at first, and you can see the addl where
+  the multiplication is with i, and the 32 bit cap on the inner loop, or maybe
+  the .L8 jump is the inner loop, then it compares to the 32, and moves the .L9
+  jump when its done?, resetting to the outer loop?, idk ill probably annotate
+  this more when im in my next java lecture, its not like java is gonna be
+  useful to me anyways XD
   .L1:
           addq	$24, %rsp
           .cfi_remember_state
@@ -156,9 +163,10 @@ build_order_book(const std::vector<int8_t> &potential_trades,
   .L16:
           .cfi_restore_state
           movq	%rdi, 8(%rbp)
-          movl	$1, %eax
-          jmp	.L6 |
-          .cfi_endproc
+          movl	$1, %eax | and the i++ is right here
+          jmp	.L6 | this is probably the outer for loop, because you can see
+  how it resets the %rdi register, back to 0, which is what happens whenever the
+  outer for loop resets .cfi_endproc
   */
   // i mean technically for the build_order_book function, it doesnt REALLY
   // matter, because its just initialization, but i guess in a hot path to keep
