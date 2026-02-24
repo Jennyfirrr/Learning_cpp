@@ -64,7 +64,9 @@ int main() {
   // character, and not as a number, so when you entered 1, or 128, it was
   // reading BOTH of them as 1 lol, thats so weird
   // using 128 as the kill mask id will block 100% of trades becaues its
-  // basically checking every bit that is packed at the 7th bit
+  // basically checking every bit that is packed at the 7th bit, im sure theres
+  // a bug in my kill switch logic, and i need to work it out, but thats HOW WE
+  // LEARN RIGHT???
 
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
