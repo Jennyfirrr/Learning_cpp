@@ -426,6 +426,9 @@ int main() {
     killed_trades += result;
     valid_trades += (1 - result);
   }
+  // this is a branchless way to handle adding up 2 values by simply using the
+  // output of a bool, if its 1, then a valid trade doesnt get added, BECAUSE
+  // valid trades are 0, and 1 - 0 is *shocker* 0
 
   std::cout << "Successful trades: " << valid_trades << "\n";
   std::cout << "Failed trades: " << killed_trades << "\n";
