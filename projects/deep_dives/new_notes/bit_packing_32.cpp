@@ -30,7 +30,11 @@ build_order_book(const std::vector<int8_t> &potential_trades,
   // all fail, this would probably need to be split at execution time, but im
   // experimenting with the bitwise operators and bit packing as well as
   // encoding information, plus this is just so fun lol, like, this shit is W A
-  // C K Y
+  // C K Y, one way around this would be instead of completely killing the
+  // order, shift to a cpu core dedicated for failure checks, and possibly
+  // unpack and run each one through a single 8bit gate, but by that time the
+  // trades may be bad? idk, or grouping similar orders together? This is a head
+  // scratcher lol
 }
 
 int32_t build_kill_mask(int8_t kill_mask_bits) {
