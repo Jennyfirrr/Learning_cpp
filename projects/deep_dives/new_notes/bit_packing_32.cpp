@@ -445,10 +445,10 @@ int main() {
 }
 //==========================================================================
 // EDIT [24-02-26 01:04pm]:
-//  I BET YOU THOUGHT I WASNT GONNA ANNOTATE THE MAIN FUNCTION DIDNT YOU,
-//  im gonna annotate and dig into this after i finish making up my sociology
-//  assignments, and getting told how bad I did on my discrete structures exam
-//  lol
+// I BET YOU THOUGHT I WASNT GONNA ANNOTATE THE MAIN FUNCTION DIDNT YOU,
+// im gonna annotate and dig into this after i finish making up my sociology
+// assignments, and getting told how bad I did on my discrete structures exam
+// lol
 //==========================================================================
 /*
 _ZNSt12_Vector_baseIiSaIiEED2Ev:
