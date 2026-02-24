@@ -31,6 +31,7 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   int32_t kill_mask_built = 0;
 
   // this should probably be renamed the risk gate
+  // its not a true kill mask or kill switch
 
   for (int i = 0; i < 4; i++) {
     kill_mask_built |= kill_mask_bits << (i * 8);
