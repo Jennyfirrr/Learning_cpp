@@ -511,7 +511,6 @@ references this, and its the - to positive range because its a signed integer
         cmpq	%r9, %rcx
         jne	.L22 | no this is definitely where the for loop builds the
 trades vector beacuse ti caps out at the INT_MAX or something close to that
-
         movq	1816(%rdi), %rsi
         leaq	3168(%rdi), %r8
         .p2align 4
@@ -533,7 +532,10 @@ trades vector beacuse ti caps out at the INT_MAX or something close to that
         xorq	%rcx, %rax
         movq	%rax, 1808(%rdx)
         cmpq	%rdx, %r8
-        jne	.L23
+        jne	.L23 | this is probably a for loop from a function i think?
+probably where the kill mask or the actual orders gets built, because it has
+multiples of 8 being added every iteration, which is what i was doing to bit
+pack
         movq	4984(%rdi), %rax
         movq	(%rdi), %rdx
         movq	$0, 4992(%rdi)
@@ -549,7 +551,9 @@ trades vector beacuse ti caps out at the INT_MAX or something close to that
         xorq	%rdx, %rax
         movq	%rax, 4984(%rdi)
         ret
-        .cfi_endproc
+        .cfi_endproc | it also has a function end point right here, so this is
+probably where a function gets called, and the actual data gets passed, which is
+way the INT_MAX and INT_MIN are referenced here in the edx and rax registers
 .LFE4613:
         .size
 _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EE11_M_gen_randEv,
