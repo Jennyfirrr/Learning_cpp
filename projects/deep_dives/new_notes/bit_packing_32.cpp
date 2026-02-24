@@ -32,6 +32,9 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
 
   // this should probably be renamed the risk gate
   // its not a true kill mask or kill switch
+  // a kill mask would probably only be engaged if something went
+  // catastrophically wrong, and would probably be engaged by a self monitoring
+  // system for system health or something
 
   for (int i = 0; i < 4; i++) {
     kill_mask_built |= kill_mask_bits << (i * 8);
