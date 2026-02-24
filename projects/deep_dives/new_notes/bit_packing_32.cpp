@@ -50,6 +50,71 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
     kill_mask_built |= kill_mask_bits << (i * 8);
   }
   // use packed_orders & kill_mask == kill_mask
+  //
+  // SO I JUST FOUND OUT ABOUT de Brujin-style multiplication, where you can
+  // apparently multiply your int8_t, or byte mask by 0x01010101, and the math
+  // naturally places the byte into all four slots
+  // ID0: 0x01
+  // ID1: 0x100
+  // ID2: 0x10000
+  // ID3: 0x1000000
+  //
+  // the cpu does this in a single imul instruction instead of shifting the same
+  // byte and using |= to place the byte ID in the correct place
+  //
+  // Toggling the mask is just using XOR tricks, inverting it is 0xFFFFFFFF
+  // or just use the ~ operator lol
+  //
+  // You can use XOR for something called delta encoding, which is using the
+  // old_order_state, and new_order_state, which when XOR'd tells you exactly
+  // which bits changed, if the result is 0, nothing changed and you can just
+  // send the next order through, this lets you bypass the entire logic gate, so
+  // I guess to take advantage of this you would basically check the state of
+  // the current order_book, and store it in a register pre kill_mask, and post
+  // kill_mask, then if the next order book was the same, and nothing changed,
+  // you check it against the post kill_mask order state, which is probably
+  // faster because its just a bool check which when compiled converts down to a
+  // bit check i believe(?)
+  //
+  // This is called loop unrolling, which is manually doing what the compiler
+  // TRIES to do, because while the compiler is very VERY smart, it still has a
+  // deterministic output, its not ai, and I was right about it being faster
+  // because this goes from like 8+ instructions, down to 1-2 which is GOOD, i
+  // love this, you love this, everyone loves this
+  //
+  // SO because i havent made notes about imul yet, and ive referenced it a few
+  // times, H E R E  W E  G O, imul is the x86 instruction set for signed
+  // integer multiplication, this comes in a few flavors(just like crayons, red
+  // is my favorite flavor personally), also these are gonna be added to the asm
+  // ref file, as well as here:
+  //
+  // One operand:
+  // imul r/m : multiples the EAX register(or RAX), by the operand, storing the
+  // result in EDX:EAX(or RDX:RAX) for the full double width result
+  //
+  // Two operand:
+  // imul dest, src : multiplies dest by src, and stores the truncated result in
+  // dest
+  //
+  // Three operand:
+  // imul dest, src, imm : multiplies src by the immedediate value, stores in
+  // dest
+  //
+  // WHY ITS IMPORTANT, in low latency systems, its relevant because when you do
+  // fixed point arithmatic nstead of FP to maintain deterministic execution,
+  // integer multiplay by imul has P R E D I C T A B L E, C O N S I S T A N T
+  // latency, (on INTEL cpu's typically around 3 cycles on modern cores), no
+  // rouding mode surprises, no denormal stalls, as a note, for signed ints, the
+  // compiler like imul, for unsigned it will choose mul, For signed quantities
+  // like P&L, position deltas, or anything that can go N E G A T I V E(like my
+  // bank account), the compiler picks imul, The two operand, and three operand
+  // forms discard the upper half of the result(no EDX:EAX split), which is fine
+  // when you know the result fits in the 32/64bit range, but if you need
+  // overflow detection, the one operand form gives you the full width result to
+  // check against, im kinda surprised im still going with this lol, like these
+  // are WHOLE ASS PAPERS IN THE COMMENTS, and im having T H E  T I M E  O F  M
+  // Y  L I F E writing these, like this is so freaking cool, imagine using java
+  // and not having to know any of this lol, couldnt be me lmao
 
   return kill_mask_built;
 }
