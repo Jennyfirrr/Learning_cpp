@@ -197,6 +197,14 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   // ID2: 0x10000
   // ID3: 0x1000000
   //
+  // EDIT [24-02-26 : 11:58am]: So one thing about the de Brujin style, thing is
+  // that while this does fire off with a single imul instruction, you would
+  // still need a way to build each individual block based of each set of 4 in
+  // the order vector, but im already thinking about that, and im gonna try
+  // implementing that in the next thing i do, also remember kids, everything
+  // you see is performed by a TRAINED PROFESSIONAL, do not attempt this at home
+  // without parental supervision
+  //
   // the cpu does this in a single imul instruction instead of shifting the same
   // byte and using |= to place the byte ID in the correct place
   //
