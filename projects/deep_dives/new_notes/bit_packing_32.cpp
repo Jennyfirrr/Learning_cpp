@@ -107,6 +107,7 @@ int main() {
                        (killed_trades + valid_trades)) *
                       100)
             << "%" << "\n";
+  std::cout << "Java bad\n";
 
   return 0;
 }
