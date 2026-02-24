@@ -27,7 +27,10 @@ build_order_book(const std::vector<int8_t> &potential_trades,
   return order_book_packed;
   // the packing for this works as expected i THInk, but the reading part and
   // applying the kill mask could be better, right now if one trade fails, they
-  // all fail
+  // all fail, this would probably need to be split at execution time, but im
+  // experimenting with the bitwise operators and bit packing as well as
+  // encoding information, plus this is just so fun lol, like, this shit is W A
+  // C K Y
 }
 
 int32_t build_kill_mask(int8_t kill_mask_bits) {
