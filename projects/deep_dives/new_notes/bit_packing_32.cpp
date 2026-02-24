@@ -62,7 +62,7 @@ int main() {
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
   std::mt19937 rng(21); // deterministic fixed seed
-  std::uniform_int_distribution<int> dist(0, 255);
+  std::uniform_int_distribution<int> dist(128, 255);
 
   std::vector<int8_t> potential_trades(generate_x_orders);
 
@@ -84,7 +84,9 @@ int main() {
   std::cout << "Successful trades: " << valid_trades << "\n";
   std::cout << "Failed trades: " << killed_trades << "\n";
   std::cout << "Success rate: "
-            << 100 - ((static_cast<float>(killed_trades) / valid_trades) * 100)
+            << 100 - ((static_cast<float>(killed_trades) /
+                       (killed_trades + valid_trades)) *
+                      100)
             << "%" << "\n";
 
   return 0;
