@@ -214,6 +214,13 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   // faster because its just a bool check which when compiled converts down to a
   // bit check i believe(?)
   //
+  // the delta encoding mentioned above is basically this pattern:
+  // delta = old_state ^ new_state;
+  // if(!delta) skip_validation();
+  //
+  // and the reason this is good, is because this basically compiles down to
+  // essentially 2 instructions, which become, xor + jz
+  //
   // This is called loop unrolling, which is manually doing what the compiler
   // TRIES to do, because while the compiler is very VERY smart, it still has a
   // deterministic output, its not ai, and I was right about it being faster
@@ -369,8 +376,8 @@ int main() {
   // main function, ideally you would probabably just wanna use a class or
   // something that wraps everything else together in a big warm hug, but im
   // kinda bad at coding and citadel doesnt wanna reply to me becuase im BaD aT
-  // lEeTcOdE
-
+  // lEeTcOdE </3 (this CAN be fixed)
+  //
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
   std::mt19937 rng(21); // deterministic fixed seed
