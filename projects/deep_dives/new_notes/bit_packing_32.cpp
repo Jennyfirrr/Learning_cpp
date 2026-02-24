@@ -339,6 +339,13 @@ int32_t kill_switch(int32_t packed_order_int, const int32_t &kill_mask_built) {
   //
   //
   return (packed_order_int & kill_mask_built) == kill_mask_built;
+  // when i did this, i forgot that it returns a bool, i would probably need to
+  // change this to allow, or packaed a yes/no bit within each individual order,
+  // but this just checks all 4 at once as more like a risk gate than kill
+  // switch, i think i handled this in the testing harness in main, but in a
+  // production system this part would need to be WAY more complex, but am baby
+  // HFT engineer(please notice me) or whatever else i said lol
+  //
   /*
   .p2align 4
   .globl	_Z11kill_switchiRKi
