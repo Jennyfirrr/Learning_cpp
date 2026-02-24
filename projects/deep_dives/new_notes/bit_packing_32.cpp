@@ -119,7 +119,7 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   //
   // What does the JIT stand for?
   //
-  // Java Is Trash H A H A H A H A H A
+  // Java Is Trash H A H A H A H A H A(your supposed to laugh here)
   // ok back to being serious *wink*
   //
   // also, to address some errors within the code here, im using int8_t, which
