@@ -50,14 +50,19 @@ int32_t kill_switch(int32_t packed_order_int, const int32_t &kill_mask_built) {
 
 int main() {
   int32_t generate_x_orders;
-  int8_t kill_mask_bits_id;
+  int32_t temp_kill_mask;
 
   std::cout << "Generate orders amount: ";
   std::cin >> generate_x_orders;
   generate_x_orders = generate_x_orders * 4;
 
   std::cout << "Select a kill mask id #[0-255]: ";
-  std::cin >> kill_mask_bits_id;
+  std::cin >> temp_kill_mask;
+
+  int8_t kill_mask_bits_id = static_cast<int8_t>(temp_kill_mask);
+  // apparently when you use cin to grab an int8_t int, it reads it as a
+  // character, and not as a number, so when you entered 1, or 128, it was
+  // reading BOTH of them as 1 lol, thats so weird
 
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
