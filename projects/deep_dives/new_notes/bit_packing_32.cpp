@@ -173,7 +173,11 @@ int main() {
   // using 128 as the kill mask id will block 100% of trades becaues its
   // basically checking every bit that is packed at the 7th bit, im sure theres
   // a bug in my kill switch logic, and i need to work it out, but thats HOW WE
-  // LEARN RIGHT???
+  // LEARN RIGHT???, this is just a testing harness i slaped together in the
+  // main function, ideally you would probabably just wanna use a class or
+  // something that wraps everything else together in a big warm hug, but im
+  // kinda bad at coding and citadel doesnt wanna reply to me becuase im BaD aT
+  // lEeTcOdE
 
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
