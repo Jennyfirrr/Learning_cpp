@@ -206,10 +206,10 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   // you see is performed by a TRAINED PROFESSIONAL, do not attempt this at home
   // without parental supervision,
   //
-  // **Fox ML infrastructure LLC is not legally
-  // responsible for bodily harm, mental health concerns, or anything else that
-  // may impact life, liberty, or happiness from performing unlicensed bit
-  // manipulation without proper supervision or safety measures**
+  // **Fox ML infrastructure LLC, and its employees or subsidiaries is not
+  // legally responsible for bodily harm, mental health concerns, or anything
+  // else that may impact life, liberty, or happiness from performing unlicensed
+  // bit manipulation without proper supervision or safety measures**
   //============================================================================
   //
   // the cpu does this in a single imul instruction instead of shifting the same
