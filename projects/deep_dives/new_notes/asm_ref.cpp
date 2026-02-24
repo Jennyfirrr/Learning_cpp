@@ -50,11 +50,12 @@
 // rsp[stack pointer], rbp[base pointer/frame pointer]
 //
 // the reason that these matter though is that when your watching the compiler
-// output from using [g++ -S -02] [c++filt], you can see the compiler pick
-// specific registers for specific jobs, and knowing why eax keeps showing up as
-// the return or why the loop counter lands in the exc register makes this way
-// more readable, this shit is so amazing like wtf, ITS NEVER ENDING LIKE THERES
-// ALWAYS SOMETHING NEW TO LEARN THAT TIES TO SOMETHING ELSE WTFFF
+// output from using [g++ -S -02] [c++filt < <file_name> | less], you can see
+// the compiler pick specific registers for specific jobs, and knowing why eax
+// keeps showing up as the return or why the loop counter lands in the exc
+// register makes this way more readable, this shit is so amazing like wtf, ITS
+// NEVER ENDING LIKE THERES ALWAYS SOMETHING NEW TO LEARN THAT TIES TO SOMETHING
+// ELSE WTFFF
 //
 // the registers are essentially the fastest memory available to the cpu, even
 // faster than the l1 cache, its basically where your DATA goes when the cpu is
