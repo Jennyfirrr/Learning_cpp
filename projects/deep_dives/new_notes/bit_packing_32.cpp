@@ -35,6 +35,136 @@ build_order_book(const std::vector<int8_t> &potential_trades,
   // unpack and run each one through a single 8bit gate, but by that time the
   // trades may be bad? idk, or grouping similar orders together? This is a head
   // scratcher lol
+  //
+  // OH BOY LOL THIS IS QUITE A FUNCTION IN ASM LOL, H E R E  W E  G O
+  /*
+  .LHOTB1:
+          .p2align 4
+          .globl	_Z16build_order_bookRKSt6vectorIaSaIaEEi
+          .type	_Z16build_order_bookRKSt6vectorIaSaIaEEi, @function
+  _Z16build_order_bookRKSt6vectorIaSaIaEEi:
+  .LFB3762:
+          .cfi_startproc
+          pushq	%r13
+          .cfi_def_cfa_offset 16
+          .cfi_offset 13, -16
+          leal	6(%rdx), %eax
+          pushq	%r12
+          .cfi_def_cfa_offset 24
+          .cfi_offset 12, -24
+          pushq	%rbp
+          .cfi_def_cfa_offset 32
+          .cfi_offset 6, -32
+          pushq	%rbx
+          .cfi_def_cfa_offset 40
+          .cfi_offset 3, -40
+          subq	$24, %rsp
+          .cfi_def_cfa_offset 64
+          addl	$3, %edx
+          cmovns	%edx, %eax
+          sarl	$2, %eax
+          movslq	%eax, %rcx
+          movq	%rcx, %rax
+          shrq	$61, %rax
+          jne	.L12
+          movq	%rdi, %rbp
+          testq	%rcx, %rcx
+          je	.L15
+          leaq	0(,%rcx,4), %rdx | its really neat seeing this stuff
+          movq	%rcx, 8(%rsp)
+          movq	%rsi, %r12
+          movq	%rdx, %rdi
+          movq	%rdx, (%rsp)
+          call	_Znwm@PLT
+          movq	(%rsp), %rdx
+          movq	%rax, 0(%rbp)
+          movq	%rax, %rbx
+          leaq	4(%rax), %rdi
+          leaq	(%rax,%rdx), %r13
+          movl	$0, (%rax)
+          movq	%r13, 16(%rbp)
+          cmpq	$1, 8(%rsp)
+          je	.L16 | probably the first for loop
+          subq	$4, %rdx
+          xorl	%esi, %esi
+          call	memset@PLT
+          leaq	-4(%r13,%rax), %rdx
+          subq	%rbx, %rdx
+          movq	%rdx, %rax
+          movq	%rdx, 8(%rbp)
+          subq	%rbx, %rax
+          sarq	$2, %rax
+          testl	%eax, %eax
+          jle	.L1 | the second one?
+  .L6:
+          subl	$1, %eax
+          movq	(%r12), %r9
+          xorl	%edi, %edi
+          leaq	4(,%rax,4), %r8
+          .p2align 4
+          .p2align 3
+  .L9:
+          leaq	(%r9,%rdi), %rdx
+          xorl	%ecx, %ecx
+          xorl	%esi, %esi
+  .L8:
+          movsbl	(%rdx), %eax
+          addq	$1, %rdx
+          sall	%cl, %eax
+          addl	$8, %ecx
+          orl	%eax, %esi
+          cmpl	$32, %ecx
+          jne	.L8
+          movl	%esi, (%rbx,%rdi)
+          addq	$4, %rdi
+          cmpq	%rdi, %r8
+          jne	.L9
+  .L1:
+          addq	$24, %rsp
+          .cfi_remember_state
+          .cfi_def_cfa_offset 40
+          movq	%rbp, %rax
+          popq	%rbx
+          .cfi_def_cfa_offset 32
+          popq	%rbp
+          .cfi_def_cfa_offset 24
+          popq	%r12
+          .cfi_def_cfa_offset 16
+          popq	%r13
+          .cfi_def_cfa_offset 8
+          ret
+          .p2align 4,,10
+          .p2align 3
+  .L15:
+          .cfi_restore_state
+          pxor	%xmm0, %xmm0
+          movq	$0, 16(%rdi)
+          movq	%rbp, %rax
+          movups	%xmm0, (%rdi)
+          addq	$24, %rsp
+          .cfi_remember_state
+          .cfi_def_cfa_offset 40
+          popq	%rbx
+          .cfi_def_cfa_offset 32
+          popq	%rbp
+          .cfi_def_cfa_offset 24
+          popq	%r12
+          .cfi_def_cfa_offset 16
+          popq	%r13
+          .cfi_def_cfa_offset 8
+          ret
+  .L16:
+          .cfi_restore_state
+          movq	%rdi, 8(%rbp)
+          movl	$1, %eax
+          jmp	.L6 |
+          .cfi_endproc
+  */
+  // i mean technically for the build_order_book function, it doesnt REALLY
+  // matter, because its just initialization, but i guess in a hot path to keep
+  // an order stream saturated, it would matter, but im new to this lol, and bad
+  // at coding i guess, too bad im not some MIT wizard who can do leetcode while
+  // blindfolded and being waterboarded
 }
 
 int32_t build_kill_mask(int8_t kill_mask_bits) {
@@ -134,6 +264,32 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   // why results looked weird,
 
   return kill_mask_built;
+  /*
+  .LCOLDE1:
+  .text
+.LHOTE1:
+  .p2align 4
+  .globl	_Z15build_kill_maska
+  .type	_Z15build_kill_maska, @function
+_Z15build_kill_maska:
+.LFB3772:
+  .cfi_startproc
+  movsbl	%dil, %eax
+  movl	%eax, %edx
+  movl	%eax, %ecx
+  sall	$8, %edx
+  sall	$16, %ecx
+  orl	%ecx, %edx
+  orl	%eax, %edx
+  sall	$24, %eax
+  orl	%edx, %eax
+  ret
+  .cfi_endproc
+.LFE3772:
+  .size	_Z15build_kill_maska, .-_Z15build_kill_maska
+*/
+  // well how about that, i guess the for loop was simple enough it could just
+  // accomplis this with just move operations
 }
 
 int32_t kill_switch(int32_t packed_order_int, const int32_t &kill_mask_built) {
@@ -153,9 +309,37 @@ int32_t kill_switch(int32_t packed_order_int, const int32_t &kill_mask_built) {
   //
   //
   return (packed_order_int & kill_mask_built) == kill_mask_built;
+  /*
+  .p2align 4
+  .globl	_Z11kill_switchiRKi
+  .type	_Z11kill_switchiRKi, @function
+_Z11kill_switchiRKi:
+.LFB3773:
+  .cfi_startproc
+  movl	(%rsi), %eax
+  notl	%edi
+  testl	%eax, %edi
+  sete	%al
+  movzbl	%al, %eax
+  ret
+  .cfi_endproc
+.LFE3773:
+  */
+  // yeah not too surprised about this one, its just a simple compare, well, a
+  // not + test + set, which is the thing i pointed out in the first file where
+  // i dug into the assembly code, it converts it to (~A & B) == B, or something
+  // like this, idk its like 2am lol, G I M M E  A  B R E A K, im like actually
+  // studying(shocker i know right????)
 }
 
 int main() {
+  // i dont think im gonna put the main function asm code here lol, its like
+  // 500-1000 lines lmao, maybe though, its not like line count stopped me in
+  // other files lmao, i should probably do an execution class or something
+  // next, to actually see how the cmov and jump operators actually get placed
+  // within a hot path, that sounds like a good idea, NOT THAT ANYONE ACTUALLY
+  // CARES(please love me)
+  //
   int32_t generate_x_orders;
   int32_t temp_kill_mask;
 
