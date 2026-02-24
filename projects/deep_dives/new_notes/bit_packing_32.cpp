@@ -63,6 +63,8 @@ int main() {
   // apparently when you use cin to grab an int8_t int, it reads it as a
   // character, and not as a number, so when you entered 1, or 128, it was
   // reading BOTH of them as 1 lol, thats so weird
+  // using 128 as the kill mask id will block 100% of trades becaues its
+  // basically checking every bit that is packed at the 7th bit
 
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
