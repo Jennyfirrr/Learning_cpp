@@ -497,7 +497,8 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
         addq	$8, %rcx
         andq	$-2147483648, %rsi
         movq	%r8, %rax
-        andl	$2147483647, %eax
+        andl	$2147483647, %eax | you can see where the comment below
+references this, and its the - to positive range because its a signed integer
         orq	%rsi, %rax
         movq	%rax, %rsi
         andl	$1, %eax
@@ -508,7 +509,9 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
         xorq	%rsi, %rax
         movq	%rax, -8(%rcx)
         cmpq	%r9, %rcx
-        jne	.L22
+        jne	.L22 | no this is definitely where the for loop builds the
+trades vector beacuse ti caps out at the INT_MAX or something close to that
+
         movq	1816(%rdi), %rsi
         leaq	3168(%rdi), %r8
         .p2align 4
