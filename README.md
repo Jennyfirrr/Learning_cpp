@@ -2,9 +2,6 @@
 
 A collection of C++ programs, exercises, and projects created while learning C++.
 
-## DRINKING GAME
-- **Every time I trash on java you have to take a shot when reading my deep_dive notes.**
-
 ## Structure
 
 - **hw/** — Homework assignments (hw01–hw05, plus a bonus)
@@ -14,6 +11,6 @@ A collection of C++ programs, exercises, and projects created while learning C++
   - `leetcode/` — LeetCode and HackerRank problem solutions
   - `fun/` — Miscellaneous fun programs (truth tables, etc.)
   - `fibbo/` — Fibonacci implementation
-  - `deep_dives/` — Deep dives into the way the actual physics works, and limitations of hardware (bitshifting, fixed point integar math, COBOL, dives...)
+  - `deep_dives/` — Deep dives into hardware-level topics: bitwise operators, branchless programming, bit packing, x86 assembly analysis, and HFT system design patterns ([index](projects/deep_dives/README.md))
 - **idk/** — Scratch files and experimentation (pointers, vectors, matrices, TUI apps, etc.)
-- **01.cpp, var.cpp, calculator.cpp** — Early standalone exercises
+- **notes_to_study.md** — Java/OOP study notes for CS203

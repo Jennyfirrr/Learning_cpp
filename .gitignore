@@ -5,6 +5,10 @@
 *.o
 *.out
 
+# claude code config
+CLAUDE.md
+.claude/
+
 # extensionless compiled binaries (listed explicitly)
 main
 calculator
@@ -52,13 +56,6 @@ projects/leetcode/matrix_diagnol_sum
 projects/leetcode/shuffle_array
 projects/leetcode/smaller_than_cur_atmpt1
 projects/leetcode/unordered_set_practice
-projects/deep_dives/return_operations
-projects/deep_dives/bit_shift
-projects/deep_dives/bit_or+shift
-projects/deep_dives/branchless_programming
-projects/deep_dives/chaining
-projects/deep_dives/it_shift
-projects/deep_dives/or_operator
 
 # log files
 *.log
