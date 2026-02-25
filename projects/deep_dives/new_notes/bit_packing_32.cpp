@@ -483,11 +483,16 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
 _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EE11_M_gen_randEv,
 @function
 _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EE11_M_gen_randEv:
+| yeah because you can see where the random engine is used for the
+potential_trades function, and with the way asm works, its going to have this
+worked out here, im not sure if this is the random generator being intialized,
+or if the ones below this are though
 .LFB4613:
         .cfi_startproc
         movq	(%rdi), %r8
         movq	%rdi, %rdx
-        leaq	1816(%rdi), %r9
+        leaq	1816(%rdi), %r9 | im guessing this is actually the lea being
+used in the way intended
         movq	%rdi, %rcx
         .p2align 4
         .p2align 3
@@ -545,9 +550,11 @@ pack
         movq	%rax, %rdx
         andl	$1, %eax
         negq	%rax
-        shrq	%rdx
+        shrq	%rdx | im guessing this means share quad? so like its maybe a
+const or the & reference within the function inputs
         xorq	3168(%rdi), %rdx
-        andl	$2567483615, %eax
+        andl	$2567483615, %eax | im not sure what this number is for, its not
+quite the int max, but its close?
         xorq	%rdx, %rax
         movq	%rax, 4984(%rdi)
         ret
@@ -568,6 +575,10 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
 _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EEclEv,
 @function
 _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EEclEv:
+| haha you can see the random function implemented here, im guessing this is
+probably where the actual function uses it, because above this is where the
+random distribution bounds are set?
+
 .LFB4525:
         .cfi_startproc
         subq	$24, %rsp
@@ -592,7 +603,10 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
         xorq	%rdx, %rax
         movq	%rax, %rdx
         salq	$15, %rdx
-        andl	$4022730752, %edx
+        andl	$4022730752, %edx |this is still technically a 32bit, when it
+doesnt have the sign at the begining, it basically doubles the actual range,
+because you cant display negatives
+
         xorq	%rax, %rdx
         movq	%rdx, %rax
         shrq	$18, %rax
@@ -665,13 +679,39 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
         cmpq	%rcx, %r13
         jb	.L40
         testq	%rax, %rax
-        jne	.L40
-        addq	$8, %rsp
+        jne	.L40 | i wonder why this wasnt turned into a simple cmov
+instruction or something else, probably because it iterates like 32 times? you
+can see it lowers by 1 every single function loop, at the movl $-1, or atleast i
+think thats what that means, because a normal for loop has $1 instead, well this
+is probably just where the trades get packed into a single integer, because it
+has the addq $8 below, its just actually being used after being declared in the
+above, so apparently this wasnt converted to a cmov because the branch target
+being called here is a call, and cmov can only conditionally move between
+registers/memory, which makes sense because if branches only get converted down
+to this when theyre simple, which excludes function calls
+
+        addq	$8, %rsp | so i was wrong about this just being used after being
+called, apparently this is just deallocating 8 bytes of local stack space, it
+was allocated earlier with a subq $8, %rsp, its just the function cleaning up
+before the epilogue sequence of popq instructions
+
         .cfi_remember_state
         .cfi_def_cfa_offset 40
         leal	(%rbx,%rcx), %eax
         popq	%rbx
-        .cfi_def_cfa_offset 32
+        .cfi_def_cfa_offset 32 | im not sure what these offsets mean, so they
+are apparently called DWARF Call Frame Information directives, they tell the
+debugger/unwinder how to find the previous stack frame for each point in the
+code, from what im reading its like an offset from the current stack pointer to
+the canonical frame address (CFA - lol chik fla), which is the stack pointer
+value right before the call that entered the function, so in the example below,
+i guess when you use a stack memory layout in higher level code, push and pop
+just manipulate these registers directly
+
+EDIT: these are a push pop mechanism for the unwinders state, the compiler saves
+the CFI state before an alternate code path so that are the paths rejoin, it can
+restore without respecifying every registers location, like a checkpoint
+
         popq	%rbp
         .cfi_def_cfa_offset 24
         popq	%r12
@@ -680,22 +720,48 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
         .cfi_def_cfa_offset 8
         ret
         .p2align 4,,10
-        .p2align 3
+        .p2align 3 | these are called directives, and theyre basically padding
+with NOPs to aligh loop entry points to 16-byte or 8-byte boundaries, this
+apparently matters because instruction fetch on x86 pulls 16-byte aligned
+blocks, this is a compiler optimization i guess because i didnt explcitily say
+to do this, but it does it because if a hot loop header straddles a boundary,
+you waste a fetch cycle E V E R Y  S I N G L E  I T E R A T I O N, free
+performance, we like this, we like this ALOT, the second parameter is a max
+padding limit, it means align to 16 bytes, but O N L Y if it takes 10 or fewer
+bytes of NOP padding to get there,
+
 .L42:
         .cfi_restore_state
         call
 _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EEclEv
         leaq	1(%r13), %r12
-        imulq	%r12, %rax
+        imulq	%r12, %rax | IMUL INSTRUCTIONS HAHA, i wrote about these last
+night, instead of DIV, this reduces compute by 20-90 cycles, which I think i
+wrote about how its more effecient somewhere else, but this actually lets me see
+it in the code, and as stated before, IMUL is like 3 cycles
+
         movq	%rax, %rcx
         cmpl	%r12d, %eax
-        jnb	.L32
+        jnb	.L32 | this is jump if not below, ill probably try to map this
+to which function is actually ebing called here, but its probably the
+kill_mask_built function, no, its something being used in the actual main
+function, im guessing the compiler turned this into a count down instead because
+a max size is known, based on the code that i wrote? so apparently GCC/Clang
+loves doing this, because counting towards zero lets them flag results from the
+DEC/SUB directly, which probably reduces cycle counts further because less
+overhead
+
         movl	%r12d, %eax
         xorl	%edx, %edx
         negl	%eax
         divl	%r12d
         movl	%edx, %r13d
-        cmpl	%edx, %ecx
+        cmpl	%edx, %ecx | this is a modular arithmatic block, apparently this
+computes something like (-n) % n or something equivalent, i only had 1 direct
+division call that i personally wrote, so im guessing this is part of something
+else that got turned into a top -> down format instead of counting up, because
+of being able to reference the DEC/SUB directly like mentioned above
+
         jnb	.L32
         .p2align 4
         .p2align 3
