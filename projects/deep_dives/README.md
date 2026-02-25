@@ -35,18 +35,32 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 
 Things I'm probably gonna eventually add here:
 
-- SIMD[still need more on this]
+- SIMD/AVX-512[still need more on this]
 - Bitset class[idk if i did this or not]
 - Branchless programming[alot of this is done]
+    - basics for this are mostly covered I think
 - Memory alignment[probably gonna need to know more about asm]
     - this will probably cover things like malloc, heap, stack, and other stuff like that
+    - Partially done, malloc, alignas, cachelines, etc, need to cover implementation more
+    - heap and stack need more indepth notes, only briefly covered
+    - maybe optimal ASM inline implementations if im really bored
 - Lock Free Concurrency[this is important]
+    - to put in memory_stuff or not to put it there, that is the question
 - Branchless Backtester[already kind of have the logic laid out]
+    - idk how useful this would be
 - FPGA/kernal bypasses
+    - nust pure curiosity, would mostly be writing about, not actual code
 - Inline ASM
+    - definiely need to know this
 - ASM[registers, DOD, lower level optimizations]
+    - being able to write all asm not as important, but DOD(data oriented design), big important
+    - need more references for how cpp converts to asm at compile time
 - Centralized time keeping
+    - not hugely important, just a curisoty for node based trading systems
 - ML library design, although the guy that made databricks or whatever it is has a great thing for that, like Matei Zaharia is his name or something i think, i may just follow that, idk I saw a link for something that covered the fundamentals of that and it looked interesting
 - Actual cpu design[lol ambitious i know]
+    - probably more related to FPGA
+- BMI1/BMI2[bit manipulation instructions]
+    - this will probably be under branchless programming or bitset class
 
 **Keep in mind that these are more like things I wanna study, there isnt like a guarentee or anything ill every actually get to these or push anything about them, there just a list of things that im currently interested in**
