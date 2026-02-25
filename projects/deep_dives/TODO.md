@@ -6,6 +6,7 @@ Things I'm probably gonna eventually add here:
 - Bitset class[idk if i did this or not]
 - Branchless programming[alot of this is done]
 - Memory alignment[probably gonna need to know more about asm]
+    - this will probably cover things like malloc, heap, stack, and other stuff like that
 - Lock Free Concurrency[this is important]
 - Branchless Backtester[already kind of have the logic laid out]
 - FPGA/kernal bypasses
