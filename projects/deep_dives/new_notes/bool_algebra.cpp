@@ -158,6 +158,10 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // the entire 32 bit register, ill probably go a little deeper on that function
 // later to actually understand how it works, but this was like ALOT lol,
 //
+// EDIT: apparently this isnt even a function call anymore, its just a single
+// assembly instruction called POPCNT, so apparently there is SILICON dedicated
+// to counting the number of active bits in a single clock cycle
+//
 // this trick was attributed to Alan Mycroft from 1987 btw, its often called the
 // mycroft trick, or hasless, or haszero macro, it became known through the use
 // in strlen() implementations in libc, instead of checking 1 bit at a time for
@@ -167,5 +171,25 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // like this, so if i ever get that book, you can be *sparkle emoji*A S S U R E
 // D*sparkle emoji* that i will start covering stuff from there in this, this
 // also shows up in the de Bruijin sequence i mentioned in a prior file lol
+//
+// SO, i just wanted to add here, the reason that this actually works is the
+// following:
+//
+// the (diff - 0x01010101) part works as a trap, if a lane is 0x00, it forces it
+// to either flip, or borrow from another lane, so that is becomes all 1's, and
+// sets the MSB(0x80) if the lane is 0
+//
+// then the & ~diff part, is the basically a guard, you ONLY want to see bits
+// that were originally 0 in the diff, so if a byte was like 0x81, the
+// subtraction would leave the MSB set, but the & ~diff would kill it beacuse
+// the original MSB was already 1
+//
+// then the 0x80808080 part, this is the filter, it ignores all the noise, and
+// ONLY looks for the sign bit in each lane
+//
+// so i guess this basically works to normalize all the bits except the sign bit
+// to 0, and then sets the sign bit to either a 1 or 0 depending on the exact
+// conditions that you want, which are eventually controlled by the 0x80808080
+// part
 //
 // T H I S  S H I T  I S  A M A Z I N G
