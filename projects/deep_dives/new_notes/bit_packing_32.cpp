@@ -173,6 +173,40 @@ build_order_book(const std::vector<int8_t> &potential_trades,
   // an order stream saturated, it would matter, but im new to this lol, and bad
   // at coding i guess, too bad im not some MIT wizard who can do leetcode while
   // blindfolded and being waterboarded
+  //============================================================================
+  // EDIT[25-02-26: 01:32am]:
+  //============================================================================
+  // so in a production use system, you would probably wanna make sure these are
+  // fed fast enough to the actual execution engine, like, idk, thats porbably
+  // why FPGA's were developed, they essentially just have the actual model
+  // produced by the ML team baked into the hardware, and theyre essentially
+  // specialized pieces of hardware that are P U R P O S E  B U I L T for
+  // whatever application theyre used in, also kernal bypasses are heavily used,
+  // because having to pass an instruction from the software, to the actual
+  // exchange requires the OS to take note of it, but when you use a kernal
+  // bypass, your essentially removing that bottle neck, im not sure how many
+  // clock cycles it saves, but its significant enough for it to be industry
+  // standard
+  //
+  // also, im just using this to simulate orders, i guess the next logical
+  // progression would be attempting to build a branchless backtester and use
+  // actual stock data, but idk, im enjoying actually studying the actual
+  // mechanics behind the way the cpp -> asm -> actual hardware gates within the
+  // silicon, like this is almost way more interesting than HFT, but idk, i dont
+  // have an electrical engineering degree, and I think its pretty clear that i
+  // R E A L L Y dont learn well from the standard way education is formatted,
+  // like ive written 10-16k words about something in my free time that i find
+  // interesting, sorry if its frustrating profs lol, i dont get to pick how my
+  // brain works, like idk what it is about the way my brain works, but when
+  // there is a grade, or outcome thats determined by a grade, i just completely
+  // S H U T D O W N lol, and i dont even try, its kind of a pattern but oh well
+  //
+  // also if youre classes were at like, 2am, id probably pay attention better
+  // lol, daytime S U C K S, arnt the bit by bit tracethroughs for boolean
+  // algebra nice though, those are actually pretty fun lol, anyways this breaks
+  // the 4th wall a bit too much,so back to whatever the fuck you wanna call the
+  // rest of this LMAO
+  //============================================================================
 }
 
 int32_t build_kill_mask(int8_t kill_mask_bits) {
@@ -196,6 +230,28 @@ int32_t build_kill_mask(int8_t kill_mask_bits) {
   // ID1: 0x100
   // ID2: 0x10000
   // ID3: 0x1000000
+  //============================================================================
+  // EDIT[26-02-26 01:48am]:
+  //============================================================================
+  //	so after doing the bit by bit tracethrhough in the bool_algebra.cpp
+  // file, you could probably just have an input be like the entire thing there,
+  // and add it as a function parameter so that a model could push updates when
+  // it decideds the risk gate needs to change, a kill switch would probably be
+  // more like a hard stop where it closes out all current orders, and
+  // completely blocks all trades, i think i mentioned this is probably more
+  // like a risk gate than anything, but i want to kind of expand on this more
+  // after doing the mycroft trick, because i have a WAY better understanding of
+  // this now, i wonder if i should do a reference file on kernal bypasses, but
+  // im not sure if those are done in house or whatever, or if theyre licensed
+  // from a different company,i know there is one like sunflare or something,
+  // that i saw in a passing comment when i was reading about some of this
+  // stuff, its SOLARFLARE(now xilinx/AMD), apparently their OpenOnload bypass
+  // is exactly the thing that HFT firms use to skip the OS network stack
+  // security entirely, for future me, some of these to look into would be
+  // OpenOnload, Solarflare, DPDK(which is intels flavor), but thats gonna be a
+  // DEEP rabbit hole lol, you cant do that on W I N D O W S(sorry microsoft,
+  // but we both know you arnt gonna hire me like EVER) lol, and java doesnt
+  // even deserve to be dissed in this paragprah lmao
   //
   //============================================================================
   // EDIT [24-02-26 : 11:58am]: So one thing about the de Brujin style, thing is
@@ -350,7 +406,19 @@ int32_t kill_switch(int32_t packed_order_int, const int32_t &kill_mask_built) {
   // complex, but am baby HFT engineer(please notice me) or whatever else i said
   // lol
   //============================================================================
-  //
+  // EDIT[26-02-26 01:57am]:
+  //============================================================================
+  // so this is just a basic risk management system, i just wanted to add this,
+  // and that in the bool_algebra.cpp file, that would be a way better approach
+  // to this, because if you go read it youll see why, but anyways, im not sure
+  // if ill keep just continuing to push any of this, like the clones and stuff
+  // are nice, but like, idk, its not really useful to anyone, it may be useful
+  // for like anyone interested in graphics and video game development, but i
+  // have just about zero interest in that tbh, alot of the big companies are
+  // kinda crappy, and they take advantage of developers, if I wanted to work in
+  // game dev, id target studios like Larian btw, theyre G O A T E D
+  //============================================================================
+
   /*
   .p2align 4
   .globl	_Z11kill_switchiRKi
