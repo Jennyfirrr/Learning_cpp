@@ -218,6 +218,7 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // | diff = packed_order ^ broadcast_mask |
 // ----------------------------------------------
 // | ((diff - 0x01010101) & ~diff & 0x80808080) |
+// | return popcount of the matches from above  |
 //-------------------------------------------------------------------
 //      lane 3    |    lane 2     |    lane 1     |     lane 0    |
 //-------------------------------------------------------------------
