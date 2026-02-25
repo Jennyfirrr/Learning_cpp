@@ -230,6 +230,11 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // 1 0 0 0 0 0 0 0|1 0 0 0 0 0 0 0|1 0 0 0 0 0 0 0|1 0 0 0 0 0 0 0| &
 //-------------------------------------------------------------------
 // 1 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|1 0 0 0 0 0 0 0|1 0 0 0 0 0 0 0|
+// popcount       |popcount       |popcount       |popcount       |
+// ------------------------------------------------------------------
+// 1              +0              +1              +1              = 3
+//
+// for a result of *sparkle emoji*T H R E E*sparkle emoji*
 //
 // i wanted to add this so i could see exactly how it traces thruogh in a
 // single look
