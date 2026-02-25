@@ -905,7 +905,8 @@ generation
         shrq	$30, %rax
         xorq	%rcx, %rax
         imulq	$1812433253, %rax, %rax | this is apparently the MT seed
-initialization constant
+initialization constant, im not sure if it will A L W A Y S be this number, or
+if its deoendent on the seed that is set within the function parameters
 
         leal	(%rax,%rdx), %ecx
         addq	$1, %rdx
