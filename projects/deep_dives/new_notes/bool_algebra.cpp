@@ -194,6 +194,19 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 //
 // T H I S  S H I T  I S  A M A Z I N G
 //
+// Function for reference again when looking at the full table
+//
+/*
+uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
+  uint32_t diff = packed_order ^ broadcast_mask;
+
+  uint32_t matches = ((diff - 0x01010101) & ~diff & 0x80808080);
+
+  return __builtin_popcount(matches);
+}
+*/
+
+//
 // *gasp*  F U L L  T A B L E
 //
 //-------------------------------------------------------------------
@@ -218,5 +231,5 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 //-------------------------------------------------------------------
 // 1 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|1 0 0 0 0 0 0 0|1 0 0 0 0 0 0 0|
 //
-// i wanted to add this so i could see exactly how it traces thruogh in a single
-// look
+// i wanted to add this so i could see exactly how it traces thruogh in a
+// single look
