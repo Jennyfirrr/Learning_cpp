@@ -472,6 +472,28 @@ int main() {
   // something that wraps everything else together in a big warm hug, but im
   // kinda bad at coding and citadel doesnt wanna reply to me becuase im BaD aT
   // lEeTcOdE </3, its ok i forgive you though
+  //============================================================================
+  // EDIT[25-02-26 2:02am]:
+  //============================================================================
+  // this was completely unessecary, if only nvim had a spell checker btw lol,
+  // but we dont care about my spelling here do we XD, anyways the bool_algebra
+  // file has a way better way to attemp this, and the kill switch shouldnt even
+  // be connected to the order placement, that should be more like portfolio
+  // monitering, like if there is a drawdown of like something greater than x%
+  // or whatever risk tolerance is in place, then it just completely stops,
+  // rather than killing individual orders, because if something triggers a
+  // drawdown that large, theres a more systemic issue at play, than just a few
+  // bad trades, but thats more related to model health, and detecting corrupted
+  // or degraded models that have lost their edge because in HFT, once you have
+  // alpha, theres a limited window to trade on it in most cases, because you
+  // can only exploit a market ineffecieny for so long before the market
+  // corrects itself
+  //
+  // I should really publish this or something lol, did i accidentally make
+  // system design I N T E R E S T I N G????? UwU, i couldnt help myself, if i
+  // get too annoyed im gonna drop the UwU whats this copypasta in a file, and
+  // yall are just gonna get that burned into your eyes
+  //============================================================================
   //
   int32_t kill_mask_built = build_kill_mask(kill_mask_bits_id);
 
@@ -493,6 +515,10 @@ int main() {
     int32_t result = kill_switch(order, kill_mask_built);
     killed_trades += result;
     valid_trades += (1 - result);
+    // i kinda wanna break this down into assembly to see what this actually
+    // becomes, i know its lower in the annotations below the main block, but i
+    // kinda wanna isolate this just to see it in more detail, because its kind
+    // of elegant
   }
   // this is a branchless way to handle adding up 2 values by simply using the
   // output of a bool, if its 1, then a valid trade doesnt get added, BECAUSE
