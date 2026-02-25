@@ -954,7 +954,9 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
         movl	%r14d, %edx
         movq	%r12, %rdi
 .LEHB1:
-        call	_Z16build_order_bookRKSt6vectorIaSaIaEEi
+        call	_Z16build_order_bookRKSt6vectorIaSaIaEEi | oh neat you can see
+the actual function calls sometimes too
+
 .LEHE1:
         movq	64(%rsp), %rax
         movq	72(%rsp), %rsi
@@ -1014,14 +1016,33 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
         pxor	%xmm1, %xmm1
         pxor	%xmm0, %xmm0
         movq	%rax, %rdi
-        cvtsi2ssl	%r14d, %xmm1
+        cvtsi2ssl	%r14d, %xmm1 | this is where the static_cast<float> is
+converting one of the ints to a float and the ones below do the same because C O
+M P I L E R  I S  S M O R T, the i2ss basically means int -> float, the ss2sd
+means float -> double for the cout call, god this is so much cooler than java
+
         addl	%r15d, %r14d
         cvtsi2ssl	%r14d, %xmm0
         divss	%xmm0, %xmm1
         movss	.LC8(%rip), %xmm0
         mulss	%xmm0, %xmm1
         subss	%xmm1, %xmm0
-        cvtss2sd	%xmm0, %xmm0
+        cvtss2sd	%xmm0, %xmm0 | im not sure what these are but theyre
+probably some special type of register, i know java has parameters you can set
+in launch instructions with things that looks similar, wow i actually mentioned
+java WITHOUT trashing it, being mature sucks, 0/10 would not reccomend, ill be
+back to normal next time i reference java, dw
+
+EDIT: SO THESE ARE SIMD INSTRUCTIONS, this si where the trades are and success
+rate calculation happens, i probably should have realized this, because of the
+basic_ostream calls which are the cout function being used, or method, or
+whatever that is
+
+EDIT2:these arnt SIMD INSTRUCTIONS, but SIMD REGISTERS, i guess they have theyre
+on special hardware structures that reside within the warm embrace of the
+silicon, so its SIMD registers being used with scalar instructions, which is
+just a serious way of saying WERE FLOATING
+
         call	_ZNSo9_M_insertIdEERSoT_@PLT
         leaq	.LC9(%rip), %rsi
         movq	%rax, %rdi
