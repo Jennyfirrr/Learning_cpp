@@ -486,7 +486,12 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
 | yeah because you can see where the random engine is used for the
 potential_trades function, and with the way asm works, its going to have this
 worked out here, im not sure if this is the random generator being intialized,
-or if the ones below this are though
+or if the ones below this are THOUGHT, no i was wrong here, this is just the
+assembly for that function call, or like the internal state refresh of the
+function, it processes 624 64-bit state words in two loops, with 0-226 being
+handled by .L22, and .L23 handling 227-623, its safe to disregard the comments
+here
+
 .LFB4613:
         .cfi_startproc
         movq	(%rdi), %r8
@@ -515,7 +520,9 @@ references this, and its the - to positive range because its a signed integer
         movq	%rax, -8(%rcx)
         cmpq	%r9, %rcx
         jne	.L22 | no this is definitely where the for loop builds the
-trades vector beacuse ti caps out at the INT_MAX or something close to that
+trades vector beacuse ti caps out at the INT_MAX or something close to that, i
+was wrong here, this is just the Mersenne Twister assembly
+
         movq	1816(%rdi), %rsi
         leaq	3168(%rdi), %r8
         .p2align 4
@@ -551,7 +558,9 @@ pack
         andl	$1, %eax
         negq	%rax
         shrq	%rdx | im guessing this means share quad? so like its maybe a
-const or the & reference within the function inputs
+const or the & reference within the function inputs, i over thought this, its
+just shift right lmao
+
         xorq	3168(%rdi), %rdx
         andl	$2567483615, %eax | im not sure what this number is for, its not
 quite the int max, but its close?
@@ -888,12 +897,16 @@ main:
         .p2align 6
         .p2align 4
         .p2align 3
-.L44:
+.L44: | this is the mersenne twister seeding loop, not the actual trade
+generation
+
         movq	%rcx, %rax
         addq	$8, %rsi
         shrq	$30, %rax
         xorq	%rcx, %rax
-        imulq	$1812433253, %rax, %rax
+        imulq	$1812433253, %rax, %rax | this is apparently the MT seed
+initialization constant
+
         leal	(%rax,%rdx), %ecx
         addq	$1, %rdx
         movq	%rcx, -8(%rsi)
@@ -923,7 +936,8 @@ main:
         movq	%rbp, %r13
         .p2align 4
         .p2align 3
-.L51:
+.L51: | THIS IS WHERE TRADES GET GENERATED
+
         movl	$255, %edx
         xorl	%esi, %esi
         leaq	96(%rsp), %rdi
