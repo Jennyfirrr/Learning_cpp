@@ -205,7 +205,6 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
   return __builtin_popcount(matches);
 }
 */
-
 //
 // *gasp*  F U L L  T A B L E
 //
