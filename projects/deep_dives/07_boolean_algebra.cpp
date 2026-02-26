@@ -82,7 +82,7 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 //==============================================================================
 //[EDIT [25-02-26 08:29pm]
 //==============================================================================
-// son, one thing i just realized is another example to showcase the subtraction
+// SO, one thing i just realized is another example to showcase the subtraction
 // more easily, like suppose you have 0xFF000000 - 0x00000001, right, and easy
 // way to think about this is that whenever you have to carry, you think about
 // what the lane above the one that has the actual subtraction has, and when you
