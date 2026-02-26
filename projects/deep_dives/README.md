@@ -22,14 +22,19 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 | `inline_asm_discovery.cpp` | The moment of discovering you can write ASM inline in C++ (and that Java definitely does not let you do this) |
 | `fixed_point_math.cpp` | COBOL-inspired fixed point arithmetic — storing decimals as integers for deterministic financial math, why floating point comparison is icky |
 | `FIX_protocol.cpp` | Placeholder for FIX protocol research |
-| `vector_preallocation.cpp` | Why pre-reserving vector memory beats push_back — avoiding repeated heap allocations and copy/move/delete cycles |
 
-### Assembly Outputs
+### `new_notes/`
+
+| File | Topics |
+|------|--------|
+| `memory_stuff.cpp` | Memory alignment, malloc internals, struct padding, alignas(64), cache hierarchy (L1/L2/L3), stack vs heap allocation, false sharing, buddy allocators, vector preallocation — why pre-reserving beats push_back |
+
+### `asm_outputs/`
 
 | File | Source |
 |------|--------|
-| `06_kill_switch_asm.s` | Generated with `g++ -S -O2` from `06_kill_switch_asm.cpp` |
 | `05_bit_packing_orders.s` | Generated with `g++ -S -O2` from `05_bit_packing_orders.cpp` |
+| `06_kill_switch_asm.s` | Generated with `g++ -S -O2` from `06_kill_switch_asm.cpp` |
 
 ## Future Deep Dives
 
