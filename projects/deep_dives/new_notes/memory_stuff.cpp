@@ -278,4 +278,7 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 // knows ahead of time, the less work it has to do at runtime, just like me when
 // i actually study for am exam, instead of waiting until the night before lmao,
 // this is also why java sucks, because you cant do this
-//
+//==================================================================================
+// TODO[Buddy allocaters, memory managment, bitwise memory managment]
+//==================================================================================
+//==================================================================================
