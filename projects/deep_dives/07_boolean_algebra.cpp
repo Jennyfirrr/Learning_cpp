@@ -1,3 +1,6 @@
+//==============================================================================
+// This is probably gonna serve as a reference for all bool algebra
+//==============================================================================
 // this is just the math to explain and understand the function below and how it
 // can be useful in the context of a risk gate
 //
