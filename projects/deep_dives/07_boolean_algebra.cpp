@@ -1,6 +1,6 @@
-// this is kinda a placeholder file for something im gonna implement + the math
-// behind it
-
+// this is just the math to explain and understand the function below and how it
+// can be useful in the context of a risk gate
+//
 /*
 uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
   uint32_t diff = packed_order ^ broadcast_mask;
