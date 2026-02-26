@@ -154,3 +154,190 @@
 //
 // apparently when i start diving into SIMD instructions, ill start to see
 // epi8/epi16/epi32 suffixes which just indicated packed integer widths
+//
+//=================================================================================
+// EDIT[25-02-26 09:59pm]
+//=================================================================================
+// SO, were gonna go over more ASM stuff rn, for funsies, because i think this
+// stuff is N E A T O
+//
+// so, to start the night we have an appetizer that contains the subjects rsp
+// and rbp, so lets put our napkins in our shirt collars, and start the causal
+// conversations over the appetizer,
+//
+// so, this stuff relates to the stack, and as noted before in the
+// memory_references.cpp file under new_notes currently, we know that [sub rsp,
+// N] allocates in the stack, its fast, its ferocious, its deterministic, and
+// its as stated before unadultered pointer management, we love that shit, so,
+// rsp is basically the stack pointer, this register will A L W A Y S hold the
+// address at the top of the stack, which may be a little confusing because it
+// grows downwards or whatever, but in this case, the top basically means the
+// last item you inserted into the stack, so conceptually, its the top, the CPU
+// keeps track of this at all times, rain, sun, cloudy, stormy, night, you name
+// it, the cpu knows where it is, and because of this, every push, pop, call,
+// and ret, implicitly modifies the rsp register, because they change where the
+// memory address of the top of the stack is, like push, adds something to the
+// stack, so memory address change, pop removes, so memory address changes,
+// call, i think uses the memory address, im not too sure on that one, but ret
+// basically closes out the function that was using a stack, and as we know,
+// once a function is done, the stack frame within it also collapses, and
+// dissappears *poof*, so, whenever you see [sub rsp, 64] in asm code, that
+// basically just means the code is saying "hey bucko, i need like 64 bytes of
+// local variable space, can ya do that for me?", and because its sub, the
+// register loses 64 bytes of space, so it moves the pointer down by 64 bytes,
+// the reverse is [add rsp, 64] which basically creates space, like saying, hey
+// this register need that 64 bytes back, ya donzo, and thats basically all that
+// means, allocation and deallocation of the rsp register, no lists, no metadata
+// headers, no fragmentation, just pure, white, booger sugar,
+//
+// now, we can move onto rbp, which is colloquially known as the base pointer,
+// or the frame pointer, its basically the anchor point for the CURRENT
+// functions stack frame, when you look at asm, youll basically see this pattern
+// everytime a stack is used right:
+//
+// push rbp - save the OLD base pointer
+// mov rbp, rsp - set YOUR base pointer to the current stack top
+// sub rsp, N - make room for local variables
+//
+// and what this basically says is, push the current value in rbp to the stack,
+// move the value in rbp to rsp then allocate space N for the stack,or for a
+// better explanation, see the tags, and when it closes out, you get the reverse
+//
+// mov rsp, rbp - throw away local variables
+// pop rbp - restore callers base pointer
+// ret - jump back to caller (ew a jump(I C K Y))
+//
+// or sometimes just
+//
+// leave - this does the same thing just in one instruction, probably a modern
+// invention
+// ret (i think the other ones look cooler)
+//
+// anyways, the REASON this exists, is so that you have a fixed reference point
+// within the stack frame, and that once you set rbp = rsp at the start, rbp
+// doesnt move for the ENTIRE function, it must not have adhd, even as you push
+// and pop other stuff, so the compuler can ALWAYS access your local variables
+// as negative offsets from the value of rbp, and function arguments, that were
+// pushed by the caller, as positive offsets, like [rbp - 8] is your first local
+// variable, and [rbp - 16] is your second etc, just like how i showcased the
+// good and bad structs within the memory_references file,
+//
+// BUT, this is where it gets interesting, apparently, when you compile using
+// the [-O2] flag, the compiler often omits the frame pointer instruction
+// entirely, thats really weird wtf,
+//
+/* .L6:
+        subl	$1, %eax
+        movq	(%r12), %r9
+        xorl	%edi, %edi
+        leaq	4(,%rax,4), %r8
+        .p2align 4
+        .p2align 3
+.L9:
+        leaq	(%r9,%rdi), %rdx
+        xorl	%ecx, %ecx
+        xorl	%esi, %esi
+.L8:
+        movsbl	(%rdx), %eax
+        addq	$1, %rdx
+        sall	%cl, %eax
+        addl	$8, %ecx
+        orl	%eax, %esi
+        cmpl	$32, %ecx
+        jne	.L8
+        movl	%esi, (%rbx,%rdi)
+        addq	$4, %rdi
+        cmpq	%rdi, %r8
+        jne	.L9
+.L1:
+        addq	$24, %rsp
+        .cfi_remember_state
+        .cfi_def_cfa_offset 40
+        movq	%rbp, %rax
+        popq	%rbx
+        .cfi_def_cfa_offset 32
+        popq	%rbp
+        .cfi_def_cfa_offset 24
+        popq	%r12
+        .cfi_def_cfa_offset 16
+        popq	%r13
+        .cfi_def_cfa_offset 8
+        ret
+        .p2align 4,,10
+        .p2align 3
+.L15:
+        .cfi_restore_state
+        pxor	%xmm0, %xmm0
+        movq	$0, 16(%rdi)
+        movq	%rbp, %rax
+        movups	%xmm0, (%rdi)
+        addq	$24, %rsp
+        .cfi_remember_state
+        .cfi_def_cfa_offset 40
+        popq	%rbx
+        .cfi_def_cfa_offset 32
+        popq	%rbp
+        .cfi_def_cfa_offset 24
+        popq	%r12
+        .cfi_def_cfa_offset 16
+        popq	%r13
+        .cfi_def_cfa_offset 8
+        ret
+
+*/
+
+// so i grabbed some asm code from the 06 asm file, and yeah, you can kinda see
+// here, it doesnt have those, im guessing this is what the CFI offsets are for,
+// i think i annotated one of those in one of the longer files, and its like the
+// chik fla thing i referecned, where the Dwarf thingy, anyways, apparently it
+// does this because with optimization on, the compiler just think "i can just
+// track everything as offsets from rsp directly, and I get rbp back as a free
+// general purpose register", and this is called frame pointer omission, oh
+// thats really cool, im guessing this is a modern day optimization, and the GCC
+// enables this by default at -O2, and yeah from what im reading this is why we
+// see the .cfi offset lines, those are the offsets that the compiler inserted
+// instead to track the variables and stuff instead of manually moving the
+// pointers around i guess, OH RIGHT these are the DWARF unwinders, and its
+// keeping track of where the frame is witout the rbp because the debugger still
+// needs to know how to walk the stack even when the frame pointer is gonezo, so
+// its basically a fancy way of saying, "at this point in the code, the
+// canonical frame address is rsp + this_offset", so the unwinder can
+// reconstruct the call chain, that so neat wtf, i wonder why this optimization
+// was implemented, i guess to make readability easier, or like i read before,
+// how it gives you the rsp back as free general register, god DAMN there is so
+// much to learn lol, its lke the hole just keeps getting deeper, and i keep
+// finding new cool shit,
+//
+// this is apparently good for hot paths, because you get an extra register,
+// which is NICE, because theyre ricky bobby fast, the trade off though is that
+// debugging gets way harder, but we arnt gonna be debugging mid trade, you run
+// tests, simulations, and all that jazz before you EVEN think about letting
+// code start placing trades, lol, because while a bad strategy may end up with
+// like a 5-10% maxDD, bad exexecution can tank your account faster than you can
+// blink lmao, but that gets more into a trading strategy, and exploting alpha,
+// vs just the exectuon harness that actually controls the stream of trades,
+// which I HAVENT GOTTEN TO YET
+//
+// CONTINUING, when you see something like push rax, its really just a shorthand
+// way of saying, [sub rsp, 8] then [mov [rsp]], decrement the stack pointer,
+// then store the value at the new top, one stone, 2 birds, ez pz, great value
+// prices
+//
+// pop rax, is the reverse, its just [mov [rax]] then [add rsp, 8] read the
+// value from the top, then move the pointer back up, call some_function is push
+// rip(save the return address), then jmp(icky) some_function, thats why you see
+// ret, its just pop rip, grab the return address off the top of the stackm then
+// just jump your way back to the associated address, this is also apparently
+// why stack overflows happen, if you keep calling functions without returning,
+// you just keep pushing return addresses, and then the stack either overflows
+// the available memory, or it meets where the heap ends, which is B A D, shit
+// gets all fucky wucky, im probably gonna go over the rip register next, but
+// idk, im just *sparkle emoji* F O L L O W I N G  M Y  H E A R T*sparkle
+// emoji*, as everyone else should, and following wherever this leads me because
+// this is honestly like opening up pandoras box lmao, like 20k words in like a
+// WEEK, but i cant be assed to write a 500 page paper for my sociology class
+// lmao, such is life right?
+//=================================================================================
+// TODO[EFLAHS, rip register, SAR v SHR] (its nap time, im kinda cranky today
+// anyways)
+//=================================================================================
