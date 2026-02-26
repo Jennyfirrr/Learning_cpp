@@ -79,6 +79,52 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // so the table i showed above, basucally becomes this table after you kind of
 // shift it all around
 //
+//==============================================================================
+//[EDIT [25-02-26 08:29pm]
+//==============================================================================
+// son, one thing i just realized is another example to showcase the subtraction
+// more easily, like suppose you have 0xFF000000 - 0x00000001, right, and easy
+// way to think about this is that whenever you have to carry, you think about
+// what the lane above the one that has the actual subtraction has, and when you
+// reach a lane that does have enough, you just pull the associated bit from it,
+// and because no matter how big the number you are subtracting from the initial
+// value is, it will ALWAYS at most, pull a single bit from the lane above it,
+// because that 1 bit in like lane 1 -> lane 0, makes lane 0, 255, because the
+// maximum bit value in lane 0, is 128, and the first bit in lane 1 basically
+// represents 256, ill show another example here, and like even if you have like
+// 0x00000001 being subtracted from an intitial value of 0xFF000000, it
+// propogates downward right, and so the bit that carries down, is also the bit
+// being subtracted from the associated lane
+//
+//-------------------------------------------------------------------
+//      lane 3    |    lane 2     |    lane 1     |     lane 0    |
+//-------------------------------------------------------------------
+// 1 1 1 1 1 1 1 1|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|
+// 0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 1| -
+//-------------------------------------------------------------------
+//  255 - 1       | 255           | 255           | 255           |
+//-------------------------------------------------------------------
+// 1 1 1 1 1 1 1 0|1 1 1 1 1 1 1 1|1 1 1 1 1 1 1 1|1 1 1 1 1 1 1 1|
+// 0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 1| -
+//-------------------------------------------------------------------
+// 1 1 1 1 1 1 1 0|1 1 1 1 1 1 1 1|1 1 1 1 1 1 1 1|1 1 1 1 1 1 1 1|
+//
+// so 0xFF000000 - 0x00000001 = 0xFEFFFFFF
+//
+// EDIT: so i was kinda wrong about the propogation and carrying downwards with
+// the borrow logic, since you cant subtract 1 from 0x00, and then lane 1 is
+// also 0x00, and lane 2 is also 0x00, you subtract 1 from lane 3, so it becomes
+// 0xFE, and then that single bit has to propogate downwards and fills the other
+// bits to 255 each, so you get 0xFEFFFFFF, if it were 0xFEFEFEFF, like i
+// initially thought, then each lane would have had to lose a single bit, but it
+// didnt, and i thought each lane continulally borrowed, instead of each byte
+// below the lane that is borrowed from being set to the max value for the 8
+// bits within it
+
+//==============================================================================
+
+//
+//
 //-------------------------------------------------------------------
 //      lane 3    |    lane 2     |    lane 1     |     lane 0    |
 //-------------------------------------------------------------------
