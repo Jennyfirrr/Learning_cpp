@@ -319,11 +319,11 @@
 // which I HAVENT GOTTEN TO YET
 //
 // CONTINUING, when you see something like push rax, its really just a shorthand
-// way of saying, [sub rsp, 8] then [mov [rsp]], decrement the stack pointer,
-// then store the value at the new top, one stone, 2 birds, ez pz, great value
-// prices
+// way of saying, [sub rsp, 8] then [mov [rsp], rax], decrement the stack
+// pointer, then store the value at the new top, one stone, 2 birds, ez pz,
+// great value prices
 //
-// pop rax, is the reverse, its just [mov [rax]] then [add rsp, 8] read the
+// pop rax, is the reverse, its just [mov rax, [rsp]] then [add rsp, 8] read the
 // value from the top, then move the pointer back up, call some_function is push
 // rip(save the return address), then jmp(icky) some_function, thats why you see
 // ret, its just pop rip, grab the return address off the top of the stackm then
@@ -337,6 +337,14 @@
 // this is honestly like opening up pandoras box lmao, like 20k words in like a
 // WEEK, but i cant be assed to write a 500 page paper for my sociology class
 // lmao, such is life right?
+//
+// one thing i was wrong about is that whereever i reference call, its worth
+// noting that call pushes the address of the next instruction after the call,
+// (not rip itself, but the value rip will have after the call instruction
+// finishes), subtle but it apparently matters when i start reading return
+// addresses in stack traces
+//
+//
 //=================================================================================
 // TODO[EFLAHS, rip register, SAR v SHR] (its nap time, im kinda cranky today
 // anyways)
