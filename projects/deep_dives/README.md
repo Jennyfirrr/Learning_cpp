@@ -39,11 +39,13 @@ Things I'm probably gonna eventually add here:
 - Bitset class[idk if i did this or not]
 - Branchless programming[alot of this is done]
     - basics for this are mostly covered I think
+    - need to add more advanced implementations, like the mycroft trick, and using techniques for memory managment
 - Memory alignment[probably gonna need to know more about asm]
-    - this will probably cover things like malloc, heap, stack, and other stuff like that
-    - Partially done, malloc, alignas, cachelines, etc, need to cover implementation more
-    - heap and stack need more indepth notes, only briefly covered
+    - this will probably cover things like malloc, heap, stack, and other stuff like that[these are pretty fleshed out]
+    - Partially done, malloc, alignas, cachelines, etc, need to cover implementation more[mostly done, need use cases/examples]
+    - heap and stack need more indepth notes, only briefly covered[updated]
     - maybe optimal ASM inline implementations if im really bored
+    - buddy/pool allocators
 - Lock Free Concurrency[this is important]
     - to put in memory_stuff or not to put it there, that is the question
 - Branchless Backtester[already kind of have the logic laid out]
@@ -54,7 +56,9 @@ Things I'm probably gonna eventually add here:
     - definiely need to know this
 - ASM[registers, DOD, lower level optimizations]
     - being able to write all asm not as important, but DOD(data oriented design), big important
+    - understandnig how ASM works is very important, especially manual pointer managment
     - need more references for how cpp converts to asm at compile time
+    - added inline asm notes to point out registers for better explanations
 - Centralized time keeping
     - not hugely important, just a curisoty for node based trading systems
 - ML library design, although the guy that made databricks or whatever it is has a great thing for that, like Matei Zaharia is his name or something i think, i may just follow that, idk I saw a link for something that covered the fundamentals of that and it looked interesting
