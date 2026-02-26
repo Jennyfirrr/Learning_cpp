@@ -119,7 +119,10 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // initially thought, then each lane would have had to lose a single bit, but it
 // didnt, and i thought each lane continulally borrowed, instead of each byte
 // below the lane that is borrowed from being set to the max value for the 8
-// bits within it
+// bits within it, and like for another way to see it, like what happens when
+// you have 0x0100, right, its not 1, and since 0xFF is 255, that means that
+// 0x0100, is 256 right, and 256 - 1, is 255, therefor 0x0100 - 0x0001, is
+// 0x00FF
 
 //==============================================================================
 
