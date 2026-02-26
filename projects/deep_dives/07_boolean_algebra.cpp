@@ -30,7 +30,7 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // ------------------------------------------------------------------
 // 0 0 0 0 0 0 0 0|1 1 1 1 0 1 1 1|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|
 //
-// so now the diff is just 0x03080A21 right, then you wanna subtract 0x01010101
+// so now the diff is just 0x00F070000 right, then you wanna subtract 0x01010101
 // from the diff, and this is what i struggled with, because its kinda weird,
 // the way i figured it out was calculating the total for each individual byte
 // within the 32bit binary format, or lane, for the trading analogy, so the
