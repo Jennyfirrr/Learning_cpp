@@ -122,7 +122,9 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // bits within it, and like for another way to see it, like what happens when
 // you have 0x0100, right, its not 1, and since 0xFF is 255, that means that
 // 0x0100, is 256 right, and 256 - 1, is 255, therefor 0x0100 - 0x0001, is
-// 0x00FF
+// 0x00FF, this is just a mini proof, but its an easier way to visualize it
+// without all the noise in the table, i just kind like how those look in my
+// code editor tbh
 
 //==============================================================================
 
