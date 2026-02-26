@@ -62,5 +62,6 @@ Things I'm probably gonna eventually add here:
     - probably more related to FPGA
 - BMI1/BMI2[bit manipulation instructions]
     - this will probably be under branchless programming or bitset class
+    - gonna group PDEP/PEXT in which this because WHY NOT LOL
 
 **Keep in mind that these are more like things I wanna study, there isnt like a guarentee or anything ill every actually get to these or push anything about them, there just a list of things that im currently interested in**
