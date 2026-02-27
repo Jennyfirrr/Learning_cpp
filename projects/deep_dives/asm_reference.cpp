@@ -349,6 +349,7 @@
 // anyways), probably gonna add a deeper dive into the DWARF unwinders here,
 // because i wanna know exactly how the track the stack frame pointer to free up
 // the rbp register or whatever it was, mem@PLT, _Znem@PLT, probably go over asm
-// instructions more too, pxor, .cfi_remember_state
-
+// instructions more too, pxor, .cfi_remember_state, [.cfi_def_cfa_offset 24
+// .cfi_offset 12, -24] i want to know more about the imediate offset being set,
+// and then subtracted, maybe just all @PLT calls, i have no clue what those do
 //=================================================================================
