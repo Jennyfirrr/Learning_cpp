@@ -888,7 +888,8 @@ _ZNSt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm429496
 _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EEEEiRT_RKNS0_10param_typeE.isra.0,
 .-_ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EEEEiRT_RKNS0_10param_typeE.isra.0
         .section	.rodata.str1.1,"aMS",@progbits,1
-.LC0:
+.LC0: | all the cout stuff being initialized here obviously
+
         .string	"Generate orders amount: "
         .section	.rodata.str1.8,"aMS",@progbits,1
         .align 8
@@ -919,18 +920,33 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
         .p2align 4
         .globl	main
         .type	main, @function
-main:
+main: | WHERE MAIN ACTUALLY BEINGS LOL, i should really start cutting out the
+twister fuctions, its like 200 lines of nothing
+
 .LFB3734:
         .cfi_startproc
-        .cfi_personality 0x9b,DW.ref.__gxx_personality_v0
+        .cfi_personality 0x9b,DW.ref.__gxx_personality_v0 | i wonder what this
+part means, i know it has something to do with the DWARF unwinders, but idk why
+the personality part
+
         .cfi_lsda 0x1b,.LLSDA3734
         pushq	%r15
         .cfi_def_cfa_offset 16
         .cfi_offset 15, -16
-        leaq	_ZSt4cout(%rip), %rdi
-        pushq	%r14
+        leaq	_ZSt4cout(%rip), %rdi | using the lea to set a location
+
+        pushq	%r14 | i think this means push the stack base pointer 14 from
+the rdi or the rip register, because this is with the cout function using the
+lea math
+
         .cfi_def_cfa_offset 24
-        .cfi_offset 14, -24
+        .cfi_offset 14, -24 | idk why this has a cfa_offset, immediatly followed
+by a cfi_offset, this pattern follows all the way down this section of main, im
+pretty sure this part is where its initializing the variables for the 3 cout/cin
+statements, this continue pattern where the cfa_offset being set to an integer
+thats a multiple of 8, and then immediately subtracting that same number
+confuses me
+
         pushq	%r13
         .cfi_def_cfa_offset 32
         .cfi_offset 13, -32
@@ -945,7 +961,11 @@ main:
         .cfi_offset 3, -56
         subq	$5112, %rsp
         .cfi_def_cfa_offset 5168
-        movq	%fs:40, %rsi
+        movq	%fs:40, %rsi | im not sure what this is for, the %fs:40 is new
+syntax i havent seen, but im assuming its moving a quad from the %rsi register
+into something? maybe its a varibable, and this is where the cin sets the
+initialized variable to the value you enter?
+
         movq	%rsi, 5096(%rsp)
         leaq	.LC0(%rip), %rsi
 .LEHB0:
@@ -978,21 +998,31 @@ main:
 .L44:
         movq	%rcx, %rax
         addq	$8, %rsi
-        shrq	$30, %rax
+        shrq	$30, %rax | shift right quad, the value 30, into the rax
+register
+
         xorq	%rcx, %rax
-        imulq	$1812433253, %rax, %rax
+        imulq	$1812433253, %rax, %rax | this is probably more de-bruijn
+multiplication, where it uses a magic number to immediately load all the values
+into the int in a single clock cycle
+
         leal	(%rax,%rdx), %ecx
         addq	$1, %rdx
         movq	%rcx, -8(%rsi)
         cmpq	$624, %rdx
-        jne	.L44
+        jne	.L44 | so this is probably the for loop where the simulated
+orders are built, and then the jne to .L83 is where the vector being build here
+is passed to another for loop where the simulated trades are ran
+
         movl	20(%rsp), %r13d
-        movq	$624, 5088(%rsp)
+        movq	$624, 5088(%rsp) | not sure about this syntax
+
         movq	%r13, %r14
         testq	%r13, %r13
         je	.L83
         movq	%r13, %rdi
-        call	_Znwm@PLT
+        call	_Znwm@PLT | im not sure what this is
+
 .LEHE0:
         leaq	(%rax,%r13), %r12
         movq	%rax, 32(%rsp)
@@ -1012,26 +1042,41 @@ main:
         movl	$255, %edx
         xorl	%esi, %esi
         leaq	96(%rsp), %rdi
-        addq	$1, %rbx
+        addq	$1, %rbx | i may have been wrong earlier, because this is where
+the twister function actually gets called to generate the values?, yeah because
+you can see the (dist(rng)) where rng(0,255) references here | im assuming thats
+what the movl $255, %edx means
+
         call
 _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm397ELm31ELm2567483615ELm11ELm4294967295ELm7ELm2636928640ELm15ELm4022730752ELm18ELm1812433253EEEEiRT_RKNS0_10param_typeE.isra.0
         movb	%al, -1(%rbx)
         cmpq	%r13, %rbx
-        jne	.L50
+        jne	.L50 | and yeah this jumps back and continually calls this, so
+its definitely the orderbook loop, probably this code block
+
+  for (int i = 0; i < (int)generate_x_orders; i++) {
+    potential_trades[i] = static_cast<uint8_t>(dist(rng));
+  }
+
 .L46:
         leaq	64(%rsp), %r13
         leaq	32(%rsp), %rsi
         movl	%r14d, %edx
         movq	%r13, %rdi
 .LEHB1:
-        call	_Z16build_order_bookRKSt6vectorIhSaIhEEj
+        call	_Z16build_order_bookRKSt6vectorIhSaIhEEj | i guess this is where
+it calls the above function?, and that was defining the loop, similar to how a
+function is defined, and then called when you create it outside of main
+
 .LEHE1:
         movq	64(%rsp), %rdi
         movq	72(%rsp), %r9
         cmpq	%rdi, %r9
         je	.L67
         movzbl	12(%rsp), %ebx
-        imull	$16842752, %ebx, %r8d
+        imull	$16842752, %ebx, %r8d | more magic numbers with de-bruijn
+multiplication
+
         movl	%ebx, %eax
         sall	$8, %eax
         addl	%ebx, %eax
@@ -1052,15 +1097,41 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
 .L53:
         movq	%rsi, %rdx
         shrq	%cl, %rdx
-        cmpb	$1, %dl
+        cmpb	$1, %dl | like this is kinda weird its comparing a single byte
+after shfting a quad right, so this has to be the actual risk gate being
+applied?, and then it shifts 8, to check other bytes in the same int, which is
+why it caps to 64, because the uint64_t ints have 64 bits, and then it moves 8
+again into the rdi register to check the next int, because theyre seperated by
+block of 8 in registers? or maybe instead of building the entire 64bit int, its
+checking each individual order within the orderbook? or maybe this is where the
+actual orders are build and thats the logic for building the build_order_book
+output? idk im doing this the night after writing and doing the other
+annotations
+
         adcl	$0, %eax
         addl	$8, %ecx
         cmpl	$64, %ecx
-        jne	.L53
-        addq	$8, %rdi
+        jne	.L53 | this is probably the function that either builds the risk
+gate or checks the packed orders against the risk gate, becasue once again its
+multiples of 8 being iterated up in a for loop, and it could probably be
+optomized further to be subtraction instead of adding to take advantage of the
+zero flag, which would save a clock cycle
+
+        addq	$8, %rdi | im not sure why this adds 8, then compares, then adds
+8 again?
+
         addq	%rax, %rbx
-        cmpq	%rdi, %r9
-        jne	.L54
+        cmpq	%rdi, %r9 | then its comparing the 8 pushed into the rdi
+register, with whats within the %r9 register?
+
+        jne	.L54 | yeah this must be the vector actually being built with
+the complete order_bit_packed, because it jumps to .L54, which has the 3.p2align
+calls, and vectors need the 3 pointers to indiciate where they are in the heap,
+maybe this is just the for loop thats right before the final cout statements
+that show the breakdown though, thats probably more likely because the final
+cout statements are right below this, idk maybe this just builds all the stuff
+in main, and then its actually used at the bottom of the asm code
+
 .L52:
         leaq	.LC3(%rip), %rsi
         leaq	_ZSt4cout(%rip), %rdi
@@ -1086,8 +1157,11 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
         call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc@PLT
         testq	%rbx, %rbx
         js	.L55
-        pxor	%xmm4, %xmm4
-        cvtsi2ssq	%rbx, %xmm4
+        pxor	%xmm4, %xmm4 | this is a new instruction i havent seen before
+
+        cvtsi2ssq	%rbx, %xmm4 | this is just converting an int to scalar,
+which is the static_cast<float> i used in a cout statement
+
         movss	%xmm4, 12(%rsp)
 .L56:
         movl	20(%rsp), %edx
@@ -1095,8 +1169,15 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
         movss	12(%rsp), %xmm0
         movq	%rax, %rdi
         cvtsi2ssq	%rdx, %xmm1
-        divss	%xmm1, %xmm0
-        mulss	.LC7(%rip), %xmm0
+        divss	%xmm1, %xmm0 | like 95% sure this is the fail rate or something
+being calculated because thats the only place i use a foat for division, and
+this is a division instruction that uses the scalar suffix, which just means
+divide a float
+
+        mulss	.LC7(%rip), %xmm0 | this is mulitplying the float after
+dividing, so yeah, probably not points breaking apart the cout statements or
+anything, but i kinda just enjoy learning this stuff
+
         cvtss2sd	%xmm0, %xmm0
         call	_ZNSo9_M_insertIdEERSoT_@PLT
         leaq	.LC8(%rip), %rsi
@@ -1133,17 +1214,23 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
         movq	%r13, %rdi
         call	_ZNSt12_Vector_baseImSaImEED2Ev
         testq	%rbp, %rbp
-        je	.L61
+        je	.L61 | this is jump if equal i think, otherwise it does the
+below, so this is like the check if theres anything to clean up before
+continuing i think
+
         movq	%r12, %rsi
         movq	%rbp, %rdi
         subq	%rbp, %rsi
-        call	_ZdlPvm@PLT
+        call	_ZdlPvm@PLT | still not sure what this is
+
 .L61:
         movq	5096(%rsp), %rax
         subq	%fs:40, %rax
         jne	.L84
         addq	$5112, %rsp
-        .cfi_remember_state
+        .cfi_remember_state | should probably go deeper in the
+cfi_remember_state instructions
+
         .cfi_def_cfa_offset 56
         xorl	%eax, %eax
         popq	%rbx
@@ -1158,7 +1245,11 @@ _ZNSt24uniform_int_distributionIiEclISt23mersenne_twister_engineImLm32ELm624ELm3
         .cfi_def_cfa_offset 16
         popq	%r15
         .cfi_def_cfa_offset 8
-        ret
+        ret | this has to be a function call, because its popping all the stack
+pointers in the DWARF unwinders before returning whatever was done, im not sure
+which function it is, but its definitly something being called here, i doubt its
+the end of main, because theres another 100 lines to go through
+
 .L47:
         .cfi_restore_state
         leaq	-1(%r13), %rdx
