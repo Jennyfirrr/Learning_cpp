@@ -93,7 +93,10 @@ memset calls
   sarq	$3, %rax
   testl	%eax, %eax
   jle	.L1
-.L5:
+.L5: | yeah the 2nd ret function returning here after it, must be the actual
+integer being loaded into the vector, because why else would it jump back to
+where a loop starts?
+
   subl	$1, %eax
   movq	(%r12), %r9
   xorl	%edi, %edi
@@ -185,6 +188,9 @@ unwinders
 so maybe one of the ret instructions is the actual integer being loaded into the
 vector, then once all the loop conditions are satisfied, then it actually
 returns the vector from the function?
+    order_book_packed[i] = order_bit_packed;
+im guessing this is where this ret function ends? because thats when the loop
+restarts
 
   .cfi_endproc
 .LFE3722:
