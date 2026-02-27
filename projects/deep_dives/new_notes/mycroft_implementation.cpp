@@ -71,6 +71,11 @@ build_order_book(const std::vector<uint8_t> &potential_trades,
       // favorite thing which is B O O L E A N  A L G E B R A, beacuse seeing
       // those binary tables just makes me feel all warm and fuzzy inside,
       //
+      // when using targeted hardware specific code, like pdep/pext, make sure
+      // to check latency tables, because while intel handles these relitively
+      // fast, on older amd cpu's architectures, such as the zen 3, its
+      // notoriously slow
+      //
       //=========================================================================
       //[NOTE] branchless risk gate using mycroft to avoid branches, turn bad
       // trades into 0x00, note to continue that later
@@ -144,7 +149,9 @@ implicitly, so basically a free comparison
 
   xorl	%esi, %esi
   call	memset@PLT | i should probably add a section in the mem_stuff file about
-memset calls
+memset calls | so this apparently happens when you initialize a std::vector or a
+large array to zero, sometimes using a lazy initialization or custom allocators
+to avoid the hit on the hot path, see buddy/arena allocators
 
   leaq	-8(%r13,%rax), %rdx
   subq	%rbx, %rdx
