@@ -45,11 +45,18 @@ uint64_t risk_gate(uint8_t risk_gate_sell, uint8_t risk_gate_buy) {
 uint32_t calc_laneMatchCount(uint64_t packed_order, uint64_t risk_gate) {
   uint64_t diff = packed_order ^ risk_gate;
 
-  uint64_t matches = ((diff - 0x01010101) & ~diff & 0x80808080);
+  uint64_t matches =
+      ((diff - 0x0101010101010101ULL) & ~diff & 0x8080808080808080);
 
   return __builtin_popcount(matches);
 }
 */
+// ALRIGHTY THEN, were starting halfway through the file this time lol, but
+// anyways, this WOULD work, assuming that the int that im packing would be all
+// the same type of order group, so like 8xsell orders or 8x buy orders, but i
+// wanted to try packing 4 buy and 4 sell in the same integer because i wanna
+// feel S P E C I A L, so i had to modify to something else, which is the thing
+// below
 
 uint32_t calc_laneMatchCount64(uint64_t packed_order, uint64_t risk_gate) {
   uint64_t xor_result = packed_order ^ risk_gate;
