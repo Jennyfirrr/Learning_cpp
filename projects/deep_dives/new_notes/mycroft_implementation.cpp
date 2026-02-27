@@ -14,6 +14,67 @@ build_order_book(const std::vector<uint8_t> &potential_trades,
 
     for (int j = 0; j < 8; j++) {
       order_bit_packed |= potential_trades[i * 8 + j] << (j * 8);
+      // so, aparently theres a better way to do this by using BMI1/2, or PDEP,
+      // which is parallel bits deposit, it was brought to my attention that
+      // using a signed int can cause bit smearing, and stuff, but were using
+      // uint so thats not a huge issue here, this is more so to turn this into
+      // a single for loop i think, so basically what PDEP does, is that it
+      // takes a source value and a mask,and it takes the low-order bits, from
+      // the the source, and deposits them into the positions where the mask has
+      // 1's, so apparently you can deposit like 4 - 8 different values
+      // depending on the mask, im not too sure how this would build just using
+      // individual 8bit orders, but i guess i ll find out, so for this trick,
+      // you apparently need
+      // #include <immintrin.h> which is for _pdep_u64, and _pext_u64
+      // #include <cstdint>
+      //
+      // the actual code looks something like
+      //
+      // const uint64_t mask = 0xFFFFFFFFFFFFFFFF;
+      // return _pdep_u64(source_data, mask);
+      //
+      // damn, well thats like super simple wtf lol, like why am i doing all
+      // this when i can just do that lmao, always taking the harder route lmao,
+      // FML, like wtf why lmao, and apparently this is like 1-2 instructions
+      // instead of 10 XD, jesus christ, why do i make things so hard, ALWAYS
+      // OVER THINKING, im sure we can all relate to that lol, so apparently
+      // these have a constant latency on modern intel core(idk about amd), and
+      // its usually like 3 cycles apparently so about the same as an imul
+      // instruction, and this lets you avoid loops, but im pretty sure if the
+      // loop is simple enough it doesnt really matter, because the compiler
+      // will just unroll the loop anyways, still good to know though
+      //
+      // so if _pdep_u64 acts as the depositer, then _pext_u64 works to unpack
+      // the orders, so for this you can just define a mask ONCE AGAIN, like so:
+      //
+      // const uint64_t mask = 0xFFFFFFFF00000000;
+      // return (uint32_t)_pext_u32(packed_order, mask);
+      //
+      // like, i feel like im getting a history lesson as well when learning
+      // about this, learn the hard way, spend hours breaking it apart, writing
+      // a fucking thesis, and then gemini is just like, HEY GIRL, DID YOU KNOW
+      // ABOUT PDEP AND PEXT, and im like nah whats that, and hes like lmao, so
+      // your gonna love this, so now im just sitting here questioning life
+      //
+      // so using this apparently removes the chance a loop just doesnt get
+      // unrolled, so it makes the compiler deterministic, and apparently i just
+      // just unpack the entire 64bit integer at once using this lol, FML lmao,
+      // brb gonna go jump out my window real quick(i kid), like seriously this
+      // turns what was like a 4-6 line function, into a function declaration
+      // and a return statement lol, like i wanna see how this compiles down now
+      // lol, because this just blew my mind, also im apparently required by law
+      // to have a vendetta against signed integers now since i wanna work in
+      // HFT, because sign bits are I C K Y, ill probably try to make a
+      // branchless select next, but i think i kinda already did that using
+      // __builtin_popcount(), but it uses a for loop which is gross, so ill
+      // probably look into ways to optimize that further just using my new
+      // favorite thing which is B O O L E A N  A L G E B R A, beacuse seeing
+      // those binary tables just makes me feel all warm and fuzzy inside,
+      //
+      //=========================================================================
+      //[NOTE] branchless risk gate using mycroft to avoid branches, turn bad
+      // trades into 0x00, note to continue that later
+      //=========================================================================
     }
     order_book_packed[i] = order_bit_packed;
   }
