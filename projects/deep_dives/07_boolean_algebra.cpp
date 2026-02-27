@@ -302,3 +302,32 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 //
 // i wanted to add this so i could see exactly how it traces thruogh in a
 // single look
+//
+// EDIT: this is apparently called a SWAR technique, which ust means SIMD within
+// a register, which is basically the art of treating a standard 64-bit register
+// as a vector or list of 8-bit or 16-bit values, and this lets you perform
+// parallel operations without actually using the specialized SIMD(AVX/SSE)
+// hardware
+//==============================================================================
+// EDIT[27-02-26 02:06am] bool masking
+//==============================================================================
+// just a neat little trick to take advantage of two complement to check if a
+// trade is good or not without using an if statement
+//
+// so, because of the way twos complement works, you can take advantage of that
+// with a little line of code like this:
+//
+// uint64_t filtered_price = trade_price & -static_cast<int64_t>(trade_price >
+// 100);
+//
+// so the reason this works, is that by taking advantage of the sign bit, since
+// the trade_price > 100 , returns a bool, when you convert that to a negative,
+// it basically becomes 0xFFFFFFFF, if its true, and 0x00000000, if its false,
+// that way when you want to compare the actual trade your evaluation, it
+// basically becomes the trade_price & 0xFFFFFFFF if its 1, and 0x00000000, if
+// its 0, and because of the way this works, it will return either a 1 or 0
+// based on twos complemenet, im pretty sure that i went over this in a
+// different file, but its good to reiterate it here for pattern matching
+// building, so while sign bits are icky for order packing, theyre actually
+// kinda useful when taking advnateg of bitmasks and gates
+//==============================================================================
