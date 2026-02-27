@@ -344,8 +344,11 @@
 // finishes), subtle but it apparently matters when i start reading return
 // addresses in stack traces
 //
-//
 //=================================================================================
 // TODO[EFLAHS, rip register, SAR v SHR] (its nap time, im kinda cranky today
-// anyways)
+// anyways), probably gonna add a deeper dive into the DWARF unwinders here,
+// because i wanna know exactly how the track the stack frame pointer to free up
+// the rbp register or whatever it was, mem@PLT, _Znem@PLT, probably go over asm
+// instructions more too, pxor, .cfi_remember_state
+
 //=================================================================================
