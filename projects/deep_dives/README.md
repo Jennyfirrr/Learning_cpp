@@ -45,6 +45,7 @@ Things I'm probably gonna eventually add here:
 - Branchless programming[alot of this is done]
     - basics for this are mostly covered I think
     - need to add more advanced implementations, like the mycroft trick, and using techniques for memory managment
+    - basic mycroft implementation done, why its not ideal in some cases, why signed bits are bad for order packing
 - Memory alignment[probably gonna need to know more about asm]
     - this will probably cover things like malloc, heap, stack, and other stuff like that[these are pretty fleshed out]
     - Partially done, malloc, alignas, cachelines, etc, need to cover implementation more[mostly done, need use cases/examples]
@@ -64,6 +65,7 @@ Things I'm probably gonna eventually add here:
     - understandnig how ASM works is very important, especially manual pointer managment
     - need more references for how cpp converts to asm at compile time
     - added inline asm notes to point out registers for better explanations
+    - added todo's[DWARF unwinder, @PLT, more suffix/instruction]
 - Centralized time keeping
     - not hugely important, just a curisoty for node based trading systems
 - ML library design, although the guy that made databricks or whatever it is has a great thing for that, like Matei Zaharia is his name or something i think, i may just follow that, idk I saw a link for something that covered the fundamentals of that and it looked interesting
@@ -71,6 +73,6 @@ Things I'm probably gonna eventually add here:
     - probably more related to FPGA
 - BMI1/BMI2[bit manipulation instructions]
     - this will probably be under branchless programming or bitset class
-    - gonna group PDEP/PEXT in which this because WHY NOT LOL
+    - gonna group PDEP/PEXT in which this because WHY NOT LOL[briefly covered, probably more indepth in a new reference file for hardware instructions or microcode calls]
 
 **Keep in mind that these are more like things I wanna study, there isnt like a guarentee or anything ill every actually get to these or push anything about them, there just a list of things that im currently interested in**
