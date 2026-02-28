@@ -353,3 +353,74 @@
 // .cfi_offset 12, -24] i want to know more about the imediate offset being set,
 // and then subtracted, maybe just all @PLT calls, i have no clue what those do
 //=================================================================================
+// EDIT[27-02-26 06:00pm]: UpDaTeS
+//=================================================================================
+// ALRIGHTY THEN, so after annotating and tearing apart then mycroft
+// implementation, that i then swapped to a for loop, because it was having
+// weird results, im gonna go over some of the TODO's here
+//
+// after reading some more about _ZdlPvm@PLT, and the other @PLT intrusctions,
+// these are apparently just operator delete(void*, size_t), which is a sized
+// dellocation, and the _Znwm@PLT is just operator new(size_t) which is the
+// opposite i guess, for whatever reason, the compiler just calls this stuff by
+// these names, apparently running the asm file through c++filt will convert
+// these back to be human readable instead of whatever the fuck that is
+//=================================================================================
+// EDIT: the @PLT part stands for the procedure linkage table, which is the
+// dynamic linkers indirection for calling shared library functions, the first
+// call goes through the resolver, and any subsequent calls hit a cached
+// address, THIS IS BAD BECAUSE WE WANNA USE THE CACHE ONLY FOR PACKED ORDERS,
+// you would wanna avoid these in hot paths because they take up instruction
+// cycles AND L1 cache space(I C K Y), you can either staticaly link, or use the
+// CLA -fno-plt, ill probably go more into detail on this later but for now this
+// is good enough for me
+//=================================================================================
+//
+// the %fs:40 is just a stack canary, once again, i think i went over these in
+// this or in like the 06 or 05 file, but i forgot about it, because its only
+// been like a week since i started diving into this stuff, but anyways, what
+// this does is that it loads a random value from thread-local storage at
+// function entry, then checks it before the return value from the function, now
+// the interesting thing happens if its overwritten, which in that case, the
+// __stack_chk_fail gets called, and this is the stack smashing protection, not
+// related to cin like i think i annotated in the mycroft implementation file,
+// but i was just guessing there and now im going back over it to self correct,
+// like a *sparkle emoji*S C I E N T E S T*sparkle emoji*
+//
+// so also in the mycroft implementation, there was somewhere i noted where
+// there were 2 ret instructions in a single function, and it confused the HECK
+// out of me, because like, whats the purpose lol? anyways, it actually is smart
+// though, each ret function is a seperate exit path from the function, not
+// multiple returns of different values, the compiler apparently duplicates the
+// epilogue,(which is where the pop sequence + ret is), for different branches,
+// so it avoids jump backs to within the function, apparently this is a size vs
+// speed tradeoff, and it means that for that specific function, you have
+// BRANCHING PATTERNS( I C K Y ),
+//
+// one thing to note about PDEP/PEXT, is that on the older AMD processors, the
+// implementation is in microcode, so its basically just emulated, and not
+// actually a hardware instruction, anything zen3+ is fine, and has around the
+// same cycle count that intel processors have(3 cycles, give or take a few), so
+// for code that runs anywhere a wrapper for functions that uses these and
+// dispatches based on hardware would be ideal,but thats not SUPER important,
+// because this would be tailored for specailized CPU's anyways, theres also a
+// compuler CLA that is like -march= to target your specfic deployment hardware
+//
+// so onto the SAR vs SHR, the SHR is a logical shift, which just fills with
+// 0's, and the SAR is the arithmatic shift, which i think i kinda covered this
+// briefly earlier, but its good to re go over it anyways BECAUSE I FORGOT,
+// because my brain is smooth and aerodynamic, just like a racecar, the only
+// real difference from what i can tell is that SAR instructions preserves the
+// sign bit, so when you compile with unsigned ints i guess it will tend to
+// prefer SHR, whereas when you have a signed integer, the compiler emits an SAR
+// because it has a sign bit and that has to be preserved because of how two's
+// complement works, in bit maskes and gates, and using bool outputs to convert
+// to a 1 or 0, the SAR is useful, otherwise unsigned is ALWAYS btter because
+// you dont lose the highest 8 bits to nothing because you lose the last bit to
+// a sign bit in signed ints
+//
+//
+//
+//=================================================================================
+//=================================================================================
+//=================================================================================
