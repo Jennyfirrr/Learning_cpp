@@ -1,12 +1,19 @@
-// place holder for playing around with different types of allocaters, also
-// continuous order generation + routing
-//
+//=================================================================================
+// [TAGS] [for grep searching later]
+//=================================================================================
+// [de-bruijn] [PDEP , PEXT] [pool allocator , arena allocator] [imul] [tzcnt
+// bsf]
+//=================================================================================
+// included libraries
+//=================================================================================
 #include <array>
 #include <cstdint>
 #include <immintrin.h>
 #include <iostream>
 #include <vector>
-
+//=================================================================================
+// [GOALS and PLAN]
+//=================================================================================
 // basic idea behind this, use a pool allocator or the arena allocator, to track
 // placed orders, using the 64 bit order packing w/ 4 buy and 4 sell orders at a
 // time, instead of pre-generating orders, use a while loop and continuously
@@ -26,3 +33,12 @@
 // using 2 imul instructions and converting the buy/sell orders into 32bit
 // integers before packing, so that will be a goal for this as well, and
 // optimizing the risk gate build furter using these same techniques
+//=================================================================================
+// [FUNCTIONS]
+//=================================================================================
+//=================================================================================
+// [MAIN]
+//=================================================================================
+//=================================================================================
+// [ASM BREAKDOWN]
+//=================================================================================
