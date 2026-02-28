@@ -331,3 +331,7 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // building, so while sign bits are icky for order packing, theyre actually
 // kinda useful when taking advnateg of bitmasks and gates
 //==============================================================================
+//[TODO[0x077CB531, de-bruijn constant that lets you map a bit index to a has
+// table in a single multiply shift]]
+//==============================================================================
+//==============================================================================
