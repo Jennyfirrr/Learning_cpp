@@ -18,3 +18,11 @@
 // order in the last file, the compiler optimized it to multiplication by a
 // magic number, ((1 << 8) + (1 << 16)), but i wanna try to manually implement
 // that, this is just the plan for this file
+//
+// gonna try to avoid @PLT instructions, as well as using the tzcnt/bsf if
+// needed, basic order booking and stuff is kinda down mostly solid, using for
+// loops to build them, so more practice using the de-bruijn techniques is
+// needed, for example the order books could be built in at minimum 6 cycles,
+// using 2 imul instructions and converting the buy/sell orders into 32bit
+// integers before packing, so that will be a goal for this as well, and
+// optimizing the risk gate build furter using these same techniques
