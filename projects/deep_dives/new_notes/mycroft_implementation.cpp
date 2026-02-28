@@ -352,7 +352,7 @@ im pretty sure that sall means shift all?, so the sell side gets handled by
 this, so its the first for loop
 
   imulq	$65792, %rdx, %rdi | ah so i was wrong, that number is 0x10100, which is
-apparently 1 + (1 << 8) + (1 << 16), so its basically using this to cast the
+apparently (1 << 8) + (1 << 16), so its basically using this to cast the
 risk_gate_buy/sell into multiple bytes at the same time | OH COOL, it took both
 for loops, and converted it into de-bruijn style multiplication, i should
 probably do a more indepth reference for that under bool algebra, wow, so i
