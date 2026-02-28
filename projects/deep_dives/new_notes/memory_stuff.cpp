@@ -312,4 +312,170 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 //==================================================================================
 // TODO[Buddy allocaters, memory managment, bitwise memory managment]
 //==================================================================================
+//[EDIT [27-02-26 09:56pm] BUDDY/ARENA ALLOCATORS, Memory managment, and bitwise
+// memory managemnt]
+//==================================================================================
+// so, isnce its been like a few days since i last did anything actually
+// different here instead of just consolidating my vector.push_back() and vector
+// allocation notes, and since the last time we found out about how the push and
+// pop functions actually influence the stack, and why we love the stack and the
+// heap is ICKY, were gonna expand on memory allocation, so that we can avoid
+// malloc calls on the hot path, because as we learned last time, malloc is this
+// whole affiar and its basically the cpp version, of, and i cant believe im
+// saying this, the garbage collector in the programming language that shall not
+// be named, so LETS DIG IN
+//
+// so, the core problem that buddy and arena allocators solve are avoiding
+// malloc and new, because these introduce non deterministic latency, and it
+// actually takes more than a few clock cycles to resolve and finish those
+// instructions, like theyre flexible, and thats the exact reason we dont like
+// them, because they have to handle any memory size, from any thread, at any
+// time, and free things in any order, this is BAD, we dont like this, we dont
+// want this, and we absolutely dont wanna let that happen, you should dislike
+// this as much as i do, but if you actually, god forbid it, *like* java(my skin
+// crawled after saying that), then you know, its YOUR Life, but ok, lets
+// continue
+//
+// so the arena allocator is the simpler one of the two, the idea is pretty
+// straight forward, grab one BIG chunk of memory upfront, just like a business
+// loan, and then use that to basically function as a custom malloc or new
+// instruction, where it just hands out bits and pieces of it sequentially by
+// bumping the pointer forward, kind of like using a single pointer to traverse
+// a vector, and just updating the incrememts by i amount every time, or you can
+// also think of it like a stack but for heap memory,
+//
+// [====================[Free Space]====================]
+// 	^ <- pointer
+//
+// [===USED=====|=======[Free Space]====================]
+//              ^
+//
+// [===USED=====|=======[Free Space]=USED|==============]
+// 										 ^
+//
+// see how simple that is, just like a sliding window or traversing a vector,
+// like its literally just pointer += size;, which i heard is something alot of
+// dudes are insecure about btw, no searching for free blocks, no metadata
+// headers, no fragmentation, none of that icky stuff, one addition, completely
+// deterministic, O(1) time complexity, just like the *sparkle emoji*P U R E  U
+// N C U T*sparkle emoji* pointer management of a stack allocation, it takes the
+// exact same number of cycles regardless of the state of memory, so its
+// basically like, you preallocate all the memory you have calulated that you
+// will nead in the heap, and then you just ration it out using a pointer, im
+// sure its a bit more complex when actually going to implement this, but
+// conceptually, its pretty simple, and now we get to the bad part, because if
+// it sounds too good to be true, it probably is, or at least thats what my mom
+// always said, so, the bad part is that you cant free individual blocks, its
+// kind of an all or nothing type deal, but for trading, this apparently isnt a
+// huge deal, because you keep allocating trade orders, memory gets full, then
+// you just flush it in a single clock cycle, and start over, ez pz lemon
+// squeezy, so, ot kinda recover all this, its basically define the block of
+// memory you want, incrementally ration it out as you need it, then once it
+// gets full, you clear it all at once in a single instruction, because the
+// pointer is essentially a single address in a register, and then start over
+//
+// SO, now that we have that concept started, and we gotta let that sit and
+// fester in our minds for a bit, lets start on buddy allocators, and now bear
+// with me, because these are a tad more complex, but they also have a wider
+// array(pun intended) of uses,
+//
+// so what happens when you DO need to free individual blocks, thats where your
+// friendly neighborhood buddy allocator comes to save the day, the main idea
+// behind this, is that you start with a single big block of memory, and for
+// this example were gonna use 256kb, and when you have someone request an
+// allocation, you keep splitting blocks in half, until you find the smallest
+// power of 2 block that fits that request, which is where function like n & n-1
+// are useful, becaues you can use these to check a power of 2 in a single
+// cycle, or shifting right and left, because shifts are always a power of 2 *
+// i, where i is the amount of bits you shift over
+//
+// start: 256kb
+// [==========================256==========================]
+//
+// [==========128==============|======128==================]
+//
+// [======64=====|======64=====|==========128==============]
+//
+// [==32==|==32==|======64=====|==========128==============]
+//
+// [==XX==|==32==|======64=====|==========128==============]
+//     ^ <- what is allocated
+//
+// so now that we can see how this works using a *gasp* table, when you need to
+// go to free a single block that go allocated, it checks if its buddy is also
+// free, so you get the 32 and 32 as two buddies, then if the XX is free and the
+// other 32 is free, you get the two 64|64 blocks that are buddies, and it kinda
+// of just cascdades upwards, assuming the associated buddy is free, until you
+// have the entire 256kb block free again, they just keep going until they hit
+// the next pair, where one of the buddies isnt free, and what makes this REALLY
+// special, is that theyre always powers of 2, and when using bit shifting and
+// other bitwise operators, we like powers of 2, because its EASY, computers
+// LOVE powers of 2, almost as much as like the austin powers moveies lol, but
+// this also means that finding a buddy is just a bit flip, [address ^
+// block_size], and if you get 0, BOOM, it fits bette than my ex, no searching,
+// no linked list traversal, just a single, quick, painless xor check to find
+// the buddies address, but now, for all good things theres also something that
+// makes them a choice rather than use this every time, and in this case, since
+// it splits memory like this, it tends to get fragmented, which we dont like,
+// but this is the cost of keeping everything seperated and deterministic, which
+// we accept, because we will do ANYTHING to avoid having to rely on the garbage
+// collector in a dead language like java
+//
+// so, within the context of HFT, which is what i love, alot of systems use a
+// hybrid approach apparently in actual production code bases, arena allocators
+// for the hot path, where youre processing batches of orders, allocate is
+// always forward, never free individually, reset when the batch is done, and
+// this actually makes sense, because every operation, including the reset, is
+// O(1), wheras the buddy system is O(log n), just like a binary search, and you
+// could probably kinda think of this like a binary serch for the actual memory
+// needed, then a reverse binary search when freeing it, so while fast, its not
+// SUPER fast, but it works for avoid the icky heap, some examples of what to
+// track within this is like position tracking, or connection state, you wanna
+// store longer lived objects here, that need individual lifetime managment
+//
+// one key note is to pick which allocator to use is based on the lifetime
+// patter of your data, and not just size(similar to guys), orders that live for
+// microseconds? A R E N A, Positions that live for hours? B U D D Y or a P O O
+// L allocator, the schema that you define for your data dictates which
+// allocator is a better selection
+//
+// now, we gonna talk about pool allocators because i know we all love the pool,
+// and i was told this one would feel natural to me, because ive been using a
+// similar concept to pack orders into integers, anyways a pool alocator is for
+// when you have a bunch of objects that are the same size, kind of like a
+// parking lot, or order ID's, because theyre *sparkle* A L W A Y S 8 bits, but
+// anyways the reason they are all the same size, is so you can beasically check
+// if one is used by using a single bit to track the state of it, you pre
+// allocate a large block of memory, and divide it into N equal sized slots, so
+// you get something that kinda looks like this,
+//
+// Slots: [0][1][2][3][4][5][6][7][8][9]
+// bitmap: 1  1  1  1  1  1  1  1  1  1  (ones represent free here)
+//
+// Allocate slot:
+// index = __builtin_cztll(bitmap); (find first free)
+// bitmap &= ~(1ULL << index); (mark used)
+//
+// Free slot:
+// bitmap |= (1ULL << index); (mark free)
+//
+// so, its probably kinda obvous why this one is ALREADY my favorite lol,
+// finding a free slot is a single intrinsic, allocating is one AND operator,
+// and freeing a spot is a single | operator, All O(1), all branchless, all
+// deterministic, and with a single uint64_t integer, you can track a WHOLE
+// GRADE A 64 SLOTS, for the price of a single register, isnt that amazing,
+// usually you can only get deals that good at costco, but here we are, god i
+// wish i could split this stuff into lines and snort it i love it so much,
+// imagine if you could do this in java lol, id probably pay atteniton in class,
+// so where i mentioned that its a single intrinsic, this basically compiles
+// down to a single tzcnt or bsf instruction, A SINGLE CYCLE to find a free slot
+// out of 64 WHOLE ASS MEMORY LOCATIONS, javas garbage collection would probably
+// be actually good if it used this kinda tech, but we know that will never
+// happen lul
+//
+//
+//
+//==================================================================================
+//==================================================================================
+//==================================================================================
 //==================================================================================
