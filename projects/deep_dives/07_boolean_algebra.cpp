@@ -331,6 +331,153 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // building, so while sign bits are icky for order packing, theyre actually
 // kinda useful when taking advnateg of bitmasks and gates
 //==============================================================================
+// [EDIT [28-02-26 02:37am]] I couldnt sleep so im gonna do a simple
+// multiplication trade to get familiar with it because its apparently wackier
+// than subtraction [TAG] [ Binary Multiplication ]
+//==============================================================================
+//
+// CANT SLEEP LOL
+//
+// so, in base-10 when you multiply to ints such as the equation 12 * 13, youre
+// basically doing something like this [(12 * 3) + (12 * 10)], where its split
+// into 2 simpler calculations, and then you add the results together, because
+// this is just genuinely easier to parse, than straight up doing 12*13, binary
+// is apparently kinda the same, but as state before, none of this is intuitive
+// lol, so im gonna do a quick example for myself here just using a single byte,
+// to kinda get familiar with it
+//
+// in this example, im gonna use 5 * 3, which is basically just 00000101 *
+// 00000011, so now MORE TABLES :D, so in base 10, this is easy, we know its
+// just 15, because were used to multiplication like that in our heads, but this
+// makes zero sense to me in base 2
+//
+//--------------------
+// 0 0 0 0 0 1 0 1 |
+// 0 0 0 0 0 0 1 1 | *
+// -------------------
+//
+// so apparently you wanna look at the multiplier first when doing this, which
+// is 0011, so since bit[0] is a 1, you want to keep the original value of 0101
+//
+// so now we have
+//
+// 0 1 0 1
+//       ^ <- keep because the bit 0 of the muliplier is 1
+//
+// so then because the bit[1] is a 1, you want to shift the origial value, by
+// the left 1 iteration so you get
+//
+// 0 1 0 1
+// 0 0 1 1
+//     ^ <- because this is a 1, you want to shift the top number to the left
+//     once
+//
+// 1 0 1 0
+//
+// then, we now have the two numbers in binary which are 1010 and 0101, and as
+// stated by the example of 12*13 before, we first do 2 simpler mulitplication
+// operations and then add the results, so now we just add them together
+//
+//-----------
+// 1 0 1 0|
+// 0 1 0 1| +
+// ----------
+// 1 1 1 1 = 15
+//
+// so im guessing this is because your basically multiplying the top number by
+// each number that the associated bit in the multiplier? bceause the bit[0]
+// being a 1, you multiply 0 1 0 1, by 1, so it basically stays then same, and
+// then for the bit[1] that represents 2, so you basically shift it to the left
+// once, because thats a multiplication operation by 2, and im guessing this
+// extrapolates across the others, so if you have a bit[2], you would shift left
+// twice, because thats basically multiplying by 4, by the nature of how left
+// shifts work, where each shift is essentially 2^n where n is the amount of
+// shifts you do
+//
+// so this is apparently called Booths multiplication Algorithm, or at least the
+// shift + add foundation of it, and the way described above is basically how
+// the ALU(arithmatic logic unit) handles all of this, and another neat insight
+// that was pointed out to me, is that in this way of thinking about
+// multiplication, multiplying by a power of 2 is just <<, always so like 2 4 8
+// 16 32, etc, are just associated left shifts, where as multiplying by a
+// constant like 7, is like (x << 3) - x, which i think is really neat, and then
+// i guess if you were multiplying by a constant like 10, you would do something
+// like (x << 3) + (x << 1), because 3 left shifts is 8, and then you wanna add
+// that with the total from a single left shift, because if you just did x << 4,
+// you would be multiplying by 16, wheras this way gives you the total of x << 3
+// which is (x * 8) + (x * 2), which is essentially what the imul instruction
+// was doing in a file with actual code where it was applying the risk gate all
+// at once instead of iterating through a loop using something like (1 << 16) +
+// (1 << 8), or something like that to get the number 65792, so i guess this is
+// a basic version of de-bruijn multiplication
+//
+// EDIT: so i may have been wrong about the thing using imul above, when i was
+// picking apart some asm code from another file, i noticed that this constant
+// was used for an imul instruction, while apparently the shifts can be used to
+// avoid calling the imul instruction which is higher latency, by like ~3 cycles
+// or so, but shifting is a single operaiton, so its basically 66% faster, also,
+// this is just a simplified shift + add operation, wheras booths algorithm is
+// more complex, Booth's is a refinement that handles signed integers, and it
+// can reduce the number of additions by encoding runs of 1's, so its
+// technically related, but its more advanced,
+//
+// I was also wrong about this being de-bruijn, that is more like using a
+// sequence as a perfect hash, de-bruijn typically shows up more in things like
+// ctz(), or __builtin_ctz() which are implementations for hardware that lacks
+// native bit instructions, so the thing below is more like just a constant is a
+// risk gate code for a standard strength reduction, sorry i get so much wrong,
+// im trying to learn as best i can, and its not like theres exactly a free
+// course for all this stuff, and its more fun to kinda figure it out as i go
+// tbh, ctz() is also a function to Count Trailing Zero's, just as a side note,
+// i think in my asm_reference.cpp file, i have a TODO to go over this, so its
+// on the agenda, i just havent gotten to it because im *sparkle emoji*F O L L O
+// W I N G  M Y  H E A R T*sparkle emoji* <3
+//
+//==============================================================================
+// [NEAT TRICK SHOWN TO ME]
+//==============================================================================
+//
+// bool isPowerOfTwo(unint32_t x) {
+// return x && !(x & (x - 1));
+// }
+//
+// this is basically saying return x assuming its not equal to the power of 2
+// check, because the x & (x -1) is the actual logic that checks for powers of
+// 2, using the example 8, which is 00001000, and 7 is 00000111, so 00001000 &
+// 00000111, returns 0, i kinda went over the logic of why this works in an
+// earlier file with actual code, but those are monoliths lol, so ill expalain
+// it here, when you use x where x is a power of 2, its always going to be a
+// single bit set, so like 2 is 10, 4 is 100, 8 is 1000, 16 is 10000, etc, now
+// when you do x - 1, you always get something like 01, 1, 011, 3, 0111, 7,
+// 01111,15, so when you do x & (x - 1), it will return a 0 if x is a power of
+// 2, because there wont be ANY bits that are the same, because it ends up
+// looking like this, and for this example im using x = 16
+//
+//-------------------
+// 0 0 0 1 0 0 0 0|
+// 0 0 0 0 1 1 1 1| &
+// ------------------
+// 0 0 0 0 0 0 0 0 = 0, because no bits line up, i figured i may as well add
+// this here even though its kinda basic because this is technically a reference
+// file
+//
+// so in the code example above my explanation was a little wrong, if it is 0,
+// it will return a 1, so x && 1, is basically just x, which means x is a power
+// of 2, in any other situation it will reutnr x && 0, which is 0, so not a
+// power of 2
+//
+// this would fail for non powers of 2, so lets use like 10 as an example:
+//
+//-------------------
+// 0 0 0 0 1 0 1 0|
+// 0 0 0 0 1 0 0 1| &
+// ------------------
+// 0 0 0 0 1 0 0 0 = 8, so then you get 10 & 8, which returns 8, which means 10
+// is not a power of 2
+//
+//==============================================================================
+//
+//==============================================================================
 //[TODO[0x077CB531, de-bruijn constant that lets you map a bit index to a has
 // table in a single multiply shift]]
 //==============================================================================
