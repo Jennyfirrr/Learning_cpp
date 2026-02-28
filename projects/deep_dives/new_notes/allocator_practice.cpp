@@ -142,5 +142,23 @@ uint64_t order_packing_8byte(const std::vector<uint8_t> &buy_side_orders,
 //
 // EDIT: holy crap this way is so much better lol, the nested for loop for order
 // packing was like, 2-4x the amount of instructions and had so many jumps lol,
-// crazy how actually thinking through this before can optimize it further
+// crazy how actually thinking through this before can optimize it further, so
+// one optimization that was pointed out to me is that trying to keep all this
+// in the same set of registers, looking at this, the main register holding the
+// output, is the %rdx register, with rax probably pulling in the data from the
+// vectors, because its the accumulator, and im guessing the edx register is
+// being used because its porbably not converting an 8bit int straight into a
+// 64bit int, because the registers with the prefix e, are 32bit registers, so
+// im guessing that its loading the actual byte from the order vectors, int a
+// 4byte register, then when it shifts the values, or the static cast happens,
+// it pushes it to a 8 byte register?, and apparently the movzbl + salq + orq
+// chains on independent bytes can overlap in the pipeline, so it apparently
+// isnt a 1:1 conversion of instructions to cycles, so that entire chain
+// basically becomes maybe 1 or 2 actual clock cycles
+//
+// EDIT2: so apparently the chain referenced above [movzbl + salq + orq] can run
+// on independent bytes simaultaneously, because of the CPU's out-of-order
+// engine, idk ill probably go over this more at some point, to explain it like
+// im stupid, each byte load shit or sequence is independent from the other
+// bytes being loaded,
 //=================================================================================
