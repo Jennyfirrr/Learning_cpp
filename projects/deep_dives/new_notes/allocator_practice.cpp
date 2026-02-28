@@ -139,4 +139,8 @@ uint64_t order_packing_8byte(const std::vector<uint8_t> &buy_side_orders,
 // instruction level parallelism, this will actually complete in ~10 cycles, i
 // would need to add timing to this, which ill probably go back and do once this
 // file is done, but this is kinda neat
+//
+// EDIT: holy crap this way is so much better lol, the nested for loop for order
+// packing was like, 2-4x the amount of instructions and had so many jumps lol,
+// crazy how actually thinking through this before can optimize it further
 //=================================================================================
