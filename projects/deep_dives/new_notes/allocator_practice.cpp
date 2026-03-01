@@ -214,6 +214,28 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 //=================================================================================
 // [RISK GATE] [TAG-risk_gate]
 //=================================================================================
+
+struct risk_gate {
+  uint8_t sell_side_risk;
+  uint8_t buy_side_risk;
+};
+static_assert(sizeof(risk_gate) == 2, "struct must be 2 bytes");
+
+uint64_t build_risk_gate(risk_gate sides) {
+  uint64_t built_risk_gate = 0;
+
+  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk);
+  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk) << 8;
+  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk) << 16;
+  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk) << 24;
+  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 32;
+  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 40;
+  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 48;
+  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 56;
+
+  return built_risk_gate;
+}
+
 //=================================================================================
 //[ORDER GENERATION] [TAG-order_gen]
 //=================================================================================
@@ -411,4 +433,38 @@ _Z21OrderPool_CountActivePK9OrderPool:
         .cfi_endproc
 */
 // im gonna go over this stuff later but it looks pretty clean and fast tbh
+//=================================================================================
+// [RISK GATE [ASM]]
+//=================================================================================
+// de-bruijn strikes again lmao, apparently the value 16843009 is literally just
+// 0x0101010101010101 LMAO, so like you could also do just a like 2 loc for the
+// same cursed shit i did, using like this format, i may go back and test that,
+// because i like that formatting more, but idk right now its like 5:37 am, and
+// i havent slept lmao
+/*
+uint64_t build_risk_gate(risk_gate sides) {
+  uint64_t buy = sides.buy_side_risk * 0x0101010101010101ULL;
+  uint64_t sell = sides.sell_side_risk * 0x0101010101010101ULL;
+  return (buy & 0x00000000FFFFFFFF) | (sell & 0xFFFFFFFF00000000);
+}
+*/
+/*
+        .cfi_startproc
+        movl	%edi, %ecx
+        movzbl	%dil, %eax
+        movzbl	%ch, %edi
+        movq	%rax, %rdx
+        movq	%rax, %rcx
+        imulq	$16843009, %rdi, %rdi
+        salq	$32, %rdx
+        salq	$40, %rcx
+        orq	%rdx, %rdi
+        movq	%rax, %rdx
+        salq	$56, %rax
+        orq	%rdi, %rcx
+        salq	$48, %rdx
+        orq	%rcx, %rdx
+        orq	%rdx, %rax
+        ret
+*/
 //=================================================================================
