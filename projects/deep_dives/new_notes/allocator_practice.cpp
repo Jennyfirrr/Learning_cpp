@@ -122,6 +122,45 @@ uint64_t order_packing_8byte(const std::vector<uint8_t> &buy_side_orders,
 // experience in SWE and hardware design, apparnetly i can write papers on this
 // stuff, but i cant actually code, makes sense though because im bad at this
 //=================================================================================
+// [POST IMPLEMENTATION]
+//=================================================================================
+// so i guess this was simpler than i thought, and i just like freak out when
+// learning new things but w/e, weve all been there, anyways, i guess you define
+// the actual slots within a struct, then you assign the bitmap using the same
+// integer as the slots, and then you use a 32bit int to ttrack the capacity,
+// because you arnt really using that to track anything else using bits, its
+// just a normal int just like me,
+//
+// the pool->slots is new syntax to me, but i also havent used structs much so i
+// guess im learning something new, writing about this stuff was easier than
+// this lol, but ive decided to have a vendetta against *sparkle emoji*J A V
+// A*sparkle emoji* so here we are, i guess that syntax is just declaring that
+// its the actual thing from the struct, instead of like just declaring it like
+// uint32_t or something, because the compiler likes structs for assigning
+// custom tags to variables, i still have no clue how to actually use this with
+// the order packing from above but im sure ill figure it out at some point, as
+// far as im aware, you woul first wanna generate the packed order, then
+// afterwards assign it to the OrderPool? idk, usage:
+//
+// 1. grab a slot
+// uint64_t *slot = OrderPool_Allocate(&pool);
+//
+// 2. pack orders and store in that slot
+// *slot = order_packing_8byte(buy_side_orders, sell_side_orders);
+//
+// that kinda makes sense, the *slot just derefernces the pointer, "write this
+// value into the location the slot points to", the pool gives you where to put
+// it, and the packing function gives you what to put there, to read it back
+// later, you just wanna do something like:
+//
+// uint64_t packed = *slot;
+//
+// so its just a slightly more complex way of shifting variables around i guess,
+// BUT HEY WE LEARNED TO USE CALLOC TODAY, AND POOL ALLOCATORS ARNT SCARY
+// ANYMORE, how about that, i couldnt really find a way to fit a playing with
+// your bits pun in this, but hey, this is WAY more interesting than the
+// language that shall not be named right? i think so
+//=================================================================================
 struct OrderPool {
   uint64_t *slots;
   uint64_t bitmap;
