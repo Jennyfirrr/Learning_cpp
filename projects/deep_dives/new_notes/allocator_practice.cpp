@@ -112,7 +112,15 @@ uint64_t order_packing_8byte(const std::vector<uint8_t> &buy_side_orders,
 // i have no idea how to actually implement this btw lol, this is all new to me,
 // but idk, maybe this is how i learn? i have like 0 hope for myself and i
 // constantly question why citadel and HRT actually sent my exams lol, like im
-// stoopid, but anyways, my curiosity wont let me stop so we doin this tonight
+// stoopid, but anyways, my curiosity wont let me stop so we doin this tonight,
+// ive never done this stuff before so its probably gonna be me using alot of
+// hand holding while i actually learn this lol, remember, im just a girl, and a
+// stupid one at that
+//
+// EDIT: I may not have what it takes to be a cs major lmao, this is so hard, i
+// feel like i should just intuitively know this stuff like i have 30 years of
+// experience in SWE and hardware design, apparnetly i can write papers on this
+// stuff, but i cant actually code, makes sense though because im bad at this
 //=================================================================================
 struct OrderPool {
   uint64_t *slots;
@@ -120,13 +128,27 @@ struct OrderPool {
   uint32_t capacity;
 };
 
-void OrderPool_init(OrderPool *pool, uint32_t capcity) {}
+void OrderPool_init(OrderPool *pool, uint32_t capacity) {
+  pool->slots = (uint64_t *)calloc(capacity, sizeof(uint64_t));
+  pool->bitmap = 0;
+  pool->capacity = capacity;
+}
 
-uint64_t *OrderPool_Allocate(OrderPool *pool) {}
+uint64_t *OrderPool_Allocate(OrderPool *pool) {
+  uint32_t index = __builtin_ctzll(~pool->bitmap);
+  pool->bitmap |= (1ULL << index);
+  return &pool->slots[index];
+}
 
-void OrderPool_Free(OrderPool *pool, uint64_t *slot_ptr) {}
+void OrderPool_Free(OrderPool *pool, uint64_t *slot_ptr) {
+  uint32_t index = (uint32_t)(slot_ptr - pool->slots);
+  pool->bitmap &= ~(1ULL << index);
+}
 
-uint32_t OrderPool_CountActive(const OrderPool *pool) {}
+uint32_t OrderPool_CountActive(const OrderPool *pool) {
+  uint32_t popcount = __builtin_popcountll(pool->bitmap);
+  return popcount;
+}
 //=================================================================================
 // [MAIN]
 //=================================================================================
