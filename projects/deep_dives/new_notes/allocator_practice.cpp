@@ -101,17 +101,23 @@ struct sell_side {
 };
 static_assert(sizeof(sell_side) == 4, "struct must be 4 bytes");
 
-uint64_t order_packing_8byte(buy_side buys, sell_side sells) {
+struct OrderPair {
+  buy_side buys;
+  sell_side sells;
+};
+static_assert(sizeof(OrderPair) == 8, "struct must be 8 bytes");
+
+uint64_t order_packing_8byte(OrderPair pair) {
   uint64_t packed_orders = 0;
 
-  packed_orders |= static_cast<uint64_t>(buys.order0b);
-  packed_orders |= static_cast<uint64_t>(buys.order1b) << 8;
-  packed_orders |= static_cast<uint64_t>(buys.order2b) << 16;
-  packed_orders |= static_cast<uint64_t>(buys.order3b) << 24;
-  packed_orders |= static_cast<uint64_t>(sells.order0s) << 32;
-  packed_orders |= static_cast<uint64_t>(sells.order1s) << 40;
-  packed_orders |= static_cast<uint64_t>(sells.order2s) << 48;
-  packed_orders |= static_cast<uint64_t>(sells.order3s) << 56;
+  packed_orders |= static_cast<uint64_t>(pair.buys.order0b);
+  packed_orders |= static_cast<uint64_t>(pair.buys.order1b) << 8;
+  packed_orders |= static_cast<uint64_t>(pair.buys.order2b) << 16;
+  packed_orders |= static_cast<uint64_t>(pair.buys.order3b) << 24;
+  packed_orders |= static_cast<uint64_t>(pair.sells.order0s) << 32;
+  packed_orders |= static_cast<uint64_t>(pair.sells.order1s) << 40;
+  packed_orders |= static_cast<uint64_t>(pair.sells.order2s) << 48;
+  packed_orders |= static_cast<uint64_t>(pair.sells.order3s) << 56;
 
   return packed_orders;
 }
@@ -192,26 +198,33 @@ uint64_t order_packing_8byte(buy_side buys, sell_side sells) {
 // patterns anyways, and i hate leetcode, id rather write 20k words for a
 // technical essay about hot path optimization than sit down and do a leetcode
 // medium for 15 minutes, but i guess we all have to do things we dont like
+//
+// EDIT2: N E W  U S A G E:
+//
+// OrderPair *slot = OrderPool_Allocate(&pool);
+// *slot = my_order_pair;
+// uint64_t packed = order_packing_8byte(*slot);
 //=================================================================================
 struct OrderPool {
-  uint64_t *slots;
+  OrderPair *slots;
   uint64_t bitmap;
   uint32_t capacity;
 };
+static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
 
 void OrderPool_init(OrderPool *pool, uint32_t capacity) {
-  pool->slots = (uint64_t *)calloc(capacity, sizeof(uint64_t));
+  pool->slots = (OrderPair *)calloc(capacity, sizeof(OrderPair));
   pool->bitmap = 0;
   pool->capacity = capacity;
 }
 
-uint64_t *OrderPool_Allocate(OrderPool *pool) {
+OrderPair *OrderPool_Allocate(OrderPool *pool) {
   uint32_t index = __builtin_ctzll(~pool->bitmap);
   pool->bitmap |= (1ULL << index);
   return &pool->slots[index];
 }
 
-void OrderPool_Free(OrderPool *pool, uint64_t *slot_ptr) {
+void OrderPool_Free(OrderPool *pool, OrderPair *slot_ptr) {
   uint32_t index = (uint32_t)(slot_ptr - pool->slots);
   pool->bitmap &= ~(1ULL << index);
 }
@@ -229,27 +242,44 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // would work better or using uint16_t or uint32_t im not sutre, movzbl is
 // basically free though, so this may not REALLY matter but we dont like wasted
 // clock cycles
+//
+// EDIT: to initialize this just use:
+// risk_gate gate = {
+// 		buy_risk, buy_risk, buy_risk, buy_risk,
+// 		sell_risk, sell_risk, sell_risk,sell_risk
+// };
+//
+// lmao,actually converts down to a single intruction XD, god java would never,
+// god i love c++, why tell the cpu how to arrange the data, when you can just
+// do it properly in the first place lmao, never tell a human to do what a cpu
+// does better, silicon > meat suits
 //=================================================================================
 
 struct risk_gate {
-  uint8_t sell_side_risk;
-  uint8_t buy_side_risk;
+  uint8_t buy_side_risk0;
+  uint8_t buy_side_risk1;
+  uint8_t buy_side_risk2;
+  uint8_t buy_side_risk3;
+  uint8_t sell_side_risk0;
+  uint8_t sell_side_risk1;
+  uint8_t sell_side_risk2;
+  uint8_t sell_side_risk3;
 };
-static_assert(sizeof(risk_gate) == 2, "struct must be 2 bytes");
+static_assert(sizeof(risk_gate) == 8, "struct must be 8 bytes");
 
 uint64_t build_risk_gate(risk_gate sides) {
-  uint64_t built_risk_gate = 0;
+  uint64_t risk_gate_built = 0;
 
-  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk);
-  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk) << 8;
-  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk) << 16;
-  built_risk_gate |= static_cast<uint64_t>(sides.buy_side_risk) << 24;
-  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 32;
-  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 40;
-  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 48;
-  built_risk_gate |= static_cast<uint64_t>(sides.sell_side_risk) << 56;
+  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk0);
+  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk1) << 8;
+  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk2) << 16;
+  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk3) << 24;
+  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk0) << 32;
+  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk1) << 40;
+  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk2) << 48;
+  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk3) << 56;
 
-  return built_risk_gate;
+  return risk_gate_built;
 }
 
 //=================================================================================
@@ -374,8 +404,19 @@ uint64_t build_risk_gate(risk_gate sides) {
 // i was using vectors like i actually wanted to code in java, then i thought
 // about using arrays, then i rememberd struct padding and data alignment, and
 // its like *galaxy brain*
+//
+// EDIT4: so, this new struct layout made the asm code just this, LMAO
+//
+/*
+.LFB9693:
+        .cfi_startproc
+        movq	%rdi, %rax
+        ret
+        .cfi_endproc
+*/
+// the compuler was really like, dont worry girl, i gotchu
 //=================================================================================
-// [ORDER POOL[ASM]]
+//[ORDER POOL[ASM]]
 //=================================================================================
 // im gonna tear this apart later, but it looks pretty clean, you can already
 // see the dwarf unwinders giving us that sweet, succulent free register instead
@@ -487,5 +528,34 @@ uint64_t build_risk_gate(risk_gate sides) {
         orq	%rcx, %rdx
         orq	%rdx, %rax
         ret
+*/
+//=================================================================================
+// yeah, that code snippet above, and reorganizing the layout of the struct made
+// this so much better, now its just 2 de-bruijn operations lol
+//=================================================================================
+
+/*
+.LFB9698:
+        .cfi_startproc
+        movabsq	$72340172838076673, %rdx
+        movl	%edi, %ecx
+        movzbl	%dil, %eax
+        movzbl	%ch, %edi
+        imull	%edx, %eax
+        imulq	%rdx, %rdi
+        movabsq	$-4294967296, %rdx
+        andq	%rdx, %rdi
+        orq	%rdi, %rax
+        ret
+        .cfi_endproc
+*/
+// annnnnnnnnnnddddddddd we won
+/*
+_Z15build_risk_gate9risk_gate:
+.LFB9698:
+        .cfi_startproc
+        movq	%rdi, %rax
+        ret
+        .cfi_endproc
 */
 //=================================================================================
