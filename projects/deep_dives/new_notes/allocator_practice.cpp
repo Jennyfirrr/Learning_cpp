@@ -115,7 +115,11 @@ uint64_t order_packing_8byte(buy_side buys, sell_side sells) {
 
   return packed_orders;
 }
-// this is fucking cursed LOL, the compiler likes this more though
+//=================================================================================
+// this is fucking cursed LOL, the compiler likes this more though, and theres
+// no risk of jumps, you can tell by how this would get you put on a PIP at a
+// normal dev job, this is faster though lol, like 24 -> 18 instrucitons vs 2
+// for loops, and probably like 10 -> 8 clock cycles
 //=================================================================================
 //[POOL ALLOCATOR] [TAG-pool_allocator]
 //=================================================================================
