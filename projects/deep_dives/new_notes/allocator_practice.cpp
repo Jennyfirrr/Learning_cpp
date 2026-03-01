@@ -94,6 +94,39 @@ uint64_t order_packing_8byte(const std::vector<uint8_t> &buy_side_orders,
   return packed_orders;
 }
 //=================================================================================
+//[POOL ALLOCATOR] [TAG-pool_allocator]
+//=================================================================================
+// first define the struct that holds the information for the orderpool, example
+// usage:
+//
+// OrderPool pool;
+// OrderPool_Init(&pool, 64);
+//
+// uint64_t* slot = OrderPool_Allocate(&pool);
+// *slot = order_packing_8byte(buy_orders, sell_orders);
+//
+// uint32_t active = OrderPool_CountActive(&pool);
+//
+// OrderPool_Free(&pool, slot);
+//
+// i have no idea how to actually implement this btw lol, this is all new to me,
+// but idk, maybe this is how i learn? i have like 0 hope for myself and i
+// constantly question why citadel and HRT actually sent my exams lol, like im
+// stoopid, but anyways, my curiosity wont let me stop so we doin this tonight
+//=================================================================================
+struct OrderPool {
+  uint64_t *slots;
+  uint64_t bitmap;
+  uint32_t capacity;
+};
+
+void OrderPool_init(OrderPool *pool, uint32_t capcity) {}
+
+uint64_t *OrderPool_Allocate(OrderPool *pool) {}
+
+void OrderPool_Free(OrderPool *pool, uint64_t *slot_ptr) {}
+
+uint32_t OrderPool_CountActive(const OrderPool *pool) {}
 //=================================================================================
 // [MAIN]
 //=================================================================================
