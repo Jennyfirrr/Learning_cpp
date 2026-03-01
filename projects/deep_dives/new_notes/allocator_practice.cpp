@@ -440,7 +440,12 @@ _Z21OrderPool_CountActivePK9OrderPool:
 // 0x0101010101010101 LMAO, so like you could also do just a like 2 loc for the
 // same cursed shit i did, using like this format, i may go back and test that,
 // because i like that formatting more, but idk right now its like 5:37 am, and
-// i havent slept lmao
+// i havent slept lmao, it really is a shame java was built from the ground up
+// to hide stuff like this from you, it takes all the fun out of programming
+// lol, like this is some hand crafted, artisinal, purpose built to fit in the
+// cpu hot paths, youd have to like go to a farmers market or something and pay
+// like a 400% markup for shit lke this, god i love how it makes me feel when i
+// snort a fat line of code like this
 /*
 uint64_t build_risk_gate(risk_gate sides) {
   uint64_t buy = sides.buy_side_risk * 0x0101010101010101ULL;
