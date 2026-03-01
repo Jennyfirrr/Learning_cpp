@@ -420,6 +420,108 @@
 // a sign bit in signed ints
 //
 //=================================================================================
-//[TODO] tzcnt, bsf instructions, intrinsics
+// [EDIT [01-03-26 01:56am]] OoO instruction execution, ILP
+//=================================================================================
+// so ILP is just like, how many instructions in a program can execute
+// simultaneously, as pointed out in the allocator practice file, the
+// order_packing loop got turned into about ~24 instrucitons, but would acutally
+// complete in about ~10 cycles, this is actually due the ILP lol, it kind of
+// overlaps instructions, and its determinied by data dependencies, which is
+// kinda just a fancy way to say, when one register clears, and there is another
+// int or variable, it can go ahead and load that into the register that just
+// cleared, this also needs to make sure that the instructions have no
+// interdependencies, similar to circular imports in python, so like, if youre
+// importing individual varibles from an array, and using the to pack into a
+// bit, packing the integer doesnt rely on like array[0] and array[1] having any
+// computations together, so it can execute and dispath these instructions in a
+// single clock cycle, but if you needed to do something like array[0] +
+// array[1] and then pack the result of that, it would have to execute the addq
+// instruction before doing the orq instruction, after 2 movzbl instructions
+//
+// OoO, is just Out of order execution, nd its the hardware mechanism that
+// dynamically extracts ILP at runtime, instead of slowing down or stopping when
+// a dependency is hit, the CPU looks ahead in the instruction stream, and finds
+// work that is NOT dependent on the current instructions to fill the gap, so
+// your cpu isnt just sitting there doing nothing for a few cycles, the way its
+// being described to me is like :
+//
+// [1] Fetch/decode - pull instructions in program order
+// [2] Rename - map architectural registers to a much larger pool of physical
+// registers, and elimiting false dependencies(WAR/WAW hazards)
+// [3] Dispatch - send to the reorder buffer and reserve stations
+// [4] Issue - when all operands are ready, fire the instruction to an execution
+// unit
+// [5] Retire/Commit - write results back in program order to maintain
+// architectural correctness
+//
+// so the renaming apparently kinda works like the following:
+// mov rax, [rbx] - load A
+// add rax, rcx   - use A
+// mov rax, [rdx] - load B <- WAW hazard on rax(false dependency)
+// add rax, rsi   - use B
+//
+// the cpu renames rax to different physical registers, like p17, p23(i dont
+// undestand this yet, ill probably add that to the todo list at the bottom),
+// anyways this breaks the false dependency so that both load-add pairs can
+// execute in parallel, this is neat lol wtf, computers are fucking amazing,
+// like there is so much to dig into lol
+//
+// The reorder buffer is key to this, so apparently even when instructons fire
+// off out of order, the ROB ensures that they retire in program order, this
+// means that Exceptions are precise(so you know exactly which instruction
+// faulted), Architectural state is A L W A Y S consistent, and from the
+// software's perspective, execution ALWAYS appears sequential, apparently on
+// modern intel cores the ROB is like ~500+ entries deep, so you can have
+// hundreds of instructions executing out of order and at the same time, this
+// shit is wild lol wtf, imagine being a professional java developer and NEVER
+// HAVING TO KNOW THIS, couldnt be me lmao, anyways, on latency critical
+// paths(hello jennifer, this applies to you), for things like (signal
+// generation computation), you wanna maximize this by intentionally breaking
+// dependency chains, for an example with a for loop:
+//
+// double sum_even = 0.0, sum_odd = 0.0;
+// for(size_t = 0; i < n; i += 2) {
+// 		sum_even += prices[i];
+// 		sum_odd += prices[i + 1];
+// }
+// double total = sum_even + sum_odd;
+//
+// oh shit this actually makes sense, so because this is essentially iterating
+// using 2 pointers, and adding to different variables at the same time, you can
+// execute multiple instrucitons this way, and this could be directly applied to
+// the order packing im like 99% sure lol, because like, shifting left by 8 bits
+// is gonna leave the lower 8 bits all 0's, you can execute multiple
+// instructions like that in a single clock cycle without using PDEP or PEXT,
+// although those are probably better to use in most situations, im trying to
+// understand how this actually works, because i apparently have instaiable
+// curiosity, literally out here writing love letters to the ISA and x86_64
+// architecture at night lmao, anyways the example above gives the OoO two
+// seperate chains to overlap, which double throughput, as a side not, to double
+// this, you would need to add another 2 instructions to overlap, so it doesnt
+// really scale linearly or exponentially, but its still hella useful for micro
+// optimizations, and it remains deterministic even if they fire off out of
+// order, because of the ROB guarentee, where the software will always see this
+// happening in the correct order because of the Reorder buffer, damn the people
+// who made computers are so fucking smart lol wtf, i wish i was this smart, but
+// im stuck learning java(I C K Y)
+//
+// EDIT: so i was wrong about scaling, its actually limited by execution port
+// availability, modern intel cpu's apparently have 2 FP add ports, so 2
+// accumulators saturates FP addition throughput, you could apparently go to 4
+// to 8 accumulators to hide latency, (FP add is like ~4 cycles, 0.5 cycle
+// throughput on recent chips), so the optimal unroll factor is often latency /
+// throughput = 8 accumulators, but you hit diminihsing returns past the point
+// where youve fully hidden latency, big sad :(
+//
+// apparently you still need to be careful with memory ordering across cores,
+// which is where std::atomic comes in, and you get to play "fix the race
+// conditions" but we arnt there yet class, and yes i am procrastinating on the
+// allocator_practice.cpp file lol, im T I R E D lol, this is demanding to take
+// notes that are this comprehensive, in like less than 10 days lmao, but
+// *sparkle emoji*T H I S  S H I T  I S  C O O L  A S  F U C K*sparkle emoji*
+//=================================================================================
+//=================================================================================
+//[TODO] tzcnt, bsf instructions, intrinsics, WAR/WAW hazards, Reorder
+// buffer/reserve stations, execution ports
 //=================================================================================
 //=================================================================================
