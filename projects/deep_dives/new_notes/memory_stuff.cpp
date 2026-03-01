@@ -350,8 +350,8 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 // [===USED=====|=======[Free Space]====================]
 //              ^
 //
-// [===USED=====|=======[Free Space]=USED|==============]
-// 										 ^
+// [===USED=====|=======USED=======|====[Free Space]====]
+// 							 	   ^
 //
 // see how simple that is, just like a sliding window or traversing a vector,
 // like its literally just pointer += size;, which i heard is something alot of
@@ -373,6 +373,10 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 // memory you want, incrementally ration it out as you need it, then once it
 // gets full, you clear it all at once in a single instruction, because the
 // pointer is essentially a single address in a register, and then start over
+//==================================================================================
+// [ARENA ALLOCATOR [example]]
+//==================================================================================
+//==================================================================================
 //
 // SO, now that we have that concept started, and we gotta let that sit and
 // fester in our minds for a bit, lets start on buddy allocators, and now bear
@@ -421,6 +425,10 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 // we accept, because we will do ANYTHING to avoid having to rely on the garbage
 // collector in a dead language like java
 //
+//==================================================================================
+// [BUDDY ALLOCATOR [example]]
+//==================================================================================
+//==================================================================================
 // so, within the context of HFT, which is what i love, alot of systems use a
 // hybrid approach apparently in actual production code bases, arena allocators
 // for the hot path, where youre processing batches of orders, allocate is
@@ -472,10 +480,55 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 // out of 64 WHOLE ASS MEMORY LOCATIONS, javas garbage collection would probably
 // be actually good if it used this kinda tech, but we know that will never
 // happen lul
-//
-//
-//
 //==================================================================================
+// [POOL ALLOCATOR[example]]
+//==================================================================================
+/*
+struct OrderPool {
+  uint64_t *slots;
+  uint64_t bitmap;
+  uint32_t capacity;
+};
+
+void OrderPool_init(OrderPool *pool, uint32_t capacity) {
+  pool->slots = (uint64_t *)calloc(capacity, sizeof(uint64_t));
+  pool->bitmap = 0;
+  pool->capacity = capacity;
+}
+
+uint64_t *OrderPool_Allocate(OrderPool *pool) {
+  uint32_t index = __builtin_ctzll(~pool->bitmap);
+  pool->bitmap |= (1ULL << index);
+  return &pool->slots[index];
+}
+
+void OrderPool_Free(OrderPool *pool, uint64_t *slot_ptr) {
+  uint32_t index = (uint32_t)(slot_ptr - pool->slots);
+  pool->bitmap &= ~(1ULL << index);
+}
+
+uint32_t OrderPool_CountActive(const OrderPool *pool) {
+  uint32_t popcount = __builtin_popcountll(pool->bitmap);
+  return popcount;
+}
+*/
+//==================================================================================
+// to use this you wanna do something like this
+//==================================================================================
+// 1. grab a slot
+// uint64_t *slot = OrderPool_Allocate(&pool);
+//
+// 2. pack orders and store in that slot
+// *slot = order_packing_8byte(buy_side_orders, sell_side_orders);
+//
+// that kinda makes sense, the *slot just derefernces the pointer, "write this
+// value into the location the slot points to", the pool gives you where to put
+// it, and the packing function gives you what to put there, to read it back
+// later, you just wanna do something like:
+//
+// uint64_t packed = *slot;
+//==================================================================================
+// [NEXT]
 //==================================================================================
 //==================================================================================
 //==================================================================================
