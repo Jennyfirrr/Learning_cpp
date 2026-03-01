@@ -186,7 +186,12 @@ uint64_t order_packing_8byte(buy_side buys, sell_side sells) {
 // BUT HEY WE LEARNED TO USE CALLOC TODAY, AND POOL ALLOCATORS ARNT SCARY
 // ANYMORE, how about that, i couldnt really find a way to fit a playing with
 // your bits pun in this, but hey, this is WAY more interesting than the
-// language that shall not be named right? i think so
+// language that shall not be named right? i think something
+//
+// EDIT: this may not even be needed for this, but i wanna get used to these
+// patterns anyways, and i hate leetcode, id rather write 20k words for a
+// technical essay about hot path optimization than sit down and do a leetcode
+// medium for 15 minutes, but i guess we all have to do things we dont like
 //=================================================================================
 struct OrderPool {
   uint64_t *slots;
