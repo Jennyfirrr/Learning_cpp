@@ -214,6 +214,11 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 //=================================================================================
 // [RISK GATE] [TAG-risk_gate]
 //=================================================================================
+// this struct may be bad because it would have to do a movzbl, and jump from a
+// 8 or 16bit register to 32 THEN to 64bit, im not sure about this optimization,
+// maybe combining it into a single uint64_t before passing it to the function
+// would work better or using uint16_t or uint32_t im not sutre
+//=================================================================================
 
 struct risk_gate {
   uint8_t sell_side_risk;
