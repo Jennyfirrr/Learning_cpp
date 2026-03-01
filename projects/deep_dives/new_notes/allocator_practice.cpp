@@ -191,6 +191,20 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 //=================================================================================
 // [MAIN]
 //=================================================================================
+// so for main, probably intializing a while loop, and then generation an order,
+// passing it through everything, then looping back to generating an order may
+// be the best move here, althoguht using the twister within the while loop may
+// introduce high latency, so genearting the order list before that may be the
+// best way to actually simulate order pass through, idk im tired lol,
+// apparently writing like 15-20k words like this in 8 days actually has a
+// cognitive tax lmao, so idk, im alos learning as i go, but ive kinda got the
+// asm breaking apart down now, so i gotta focus more on the actual other stuff
+// i guess, i just actually like picking through the asm to see what the
+// compiler does though, ALL HAIL THE COMPILER, we love the compiler, i may
+// start analyzing differences between -O2 and -O3 outputs, but that may come
+// later, i guess this has kind of turned into "build a branchless order system
+// with Jennifer" LOL, w/e, these notes are pretty good if i say so myself
+//=================================================================================
 //=================================================================================
 // [ASM BREAKDOWN]
 //=================================================================================
