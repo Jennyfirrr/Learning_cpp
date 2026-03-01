@@ -1,5 +1,7 @@
 # Deep Dives
 
+**TLDR: USE A STRUCT**
+
 Explorations of hardware/binary-level topics, low-level optimization, and how C++ actually compiles down to assembly. Started with bitwise operators and spiraled into branchless programming, bit packing for HFT order books, hand-tracing binary math, and annotating compiler-generated x86 assembly.
 
 ## Index
