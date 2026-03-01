@@ -549,7 +549,8 @@ uint64_t build_risk_gate(risk_gate sides) {
         ret
         .cfi_endproc
 */
-// annnnnnnnnnnddddddddd we won
+// annnnnnnnnnnddddddddd we won, L I T E R A L L Y just a move quad instruction
+// lol, wtf
 /*
 _Z15build_risk_gate9risk_gate:
 .LFB9698:
