@@ -71,28 +71,51 @@
 // the need to use a nested for loop, so it becomes O(n) instead of O(n^2), or
 // something like that, where you would have a single cycle per order id,
 // because we can just take advantage of shifting, using this method, 2 order
-// streams could be used as well, so i think ill do that for this
+// streams could be used as well, so i think ill do that for things
 //=================================================================================
+// [EDIT [01-03-26 05:04am]]
+//=================================================================================
+// *sparkle emoji*S T R U C T S*sparkle emoji*, because this way each struct
+// will fit in a single e** register, and avoid the heap and the need for
+// storing orders in slower memory, because registers are even faster than the
+// stack
 //=================================================================================
 // [ACTUAL CODE [FUNCTIONS]]
 //=================================================================================
 // [ORDER PACKING] [TAG-order_packing]
 //=================================================================================
-uint64_t order_packing_8byte(const std::vector<uint8_t> &buy_side_orders,
-                             const std::vector<uint8_t> sell_side_orders) {
+
+struct buy_side {
+  uint8_t order0b;
+  uint8_t order1b;
+  uint8_t order2b;
+  uint8_t order3b;
+};
+static_assert(sizeof(buy_side) == 4, "struct must be 4 bytes");
+
+struct sell_side {
+  uint8_t order0s;
+  uint8_t order1s;
+  uint8_t order2s;
+  uint8_t order3s;
+};
+static_assert(sizeof(sell_side) == 4, "struct must be 4 bytes");
+
+uint64_t order_packing_8byte(buy_side buys, sell_side sells) {
   uint64_t packed_orders = 0;
 
-  for (int i = 0; i < 4; i++) {
-    packed_orders |= static_cast<uint64_t>(buy_side_orders[i]) << (i * 8);
-  }
-
-  for (int i = 0; i < 4; i++) {
-    packed_orders |= static_cast<uint64_t>(sell_side_orders[i])
-                     << ((i * 8) + 32);
-  }
+  packed_orders |= static_cast<uint64_t>(buys.order0b);
+  packed_orders |= static_cast<uint64_t>(buys.order1b) << 8;
+  packed_orders |= static_cast<uint64_t>(buys.order2b) << 16;
+  packed_orders |= static_cast<uint64_t>(buys.order3b) << 24;
+  packed_orders |= static_cast<uint64_t>(sells.order0s) << 32;
+  packed_orders |= static_cast<uint64_t>(sells.order1s) << 40;
+  packed_orders |= static_cast<uint64_t>(sells.order2s) << 48;
+  packed_orders |= static_cast<uint64_t>(sells.order3s) << 56;
 
   return packed_orders;
 }
+// this is fucking cursed LOL, the compiler likes this more though
 //=================================================================================
 //[POOL ALLOCATOR] [TAG-pool_allocator]
 //=================================================================================
@@ -189,6 +212,13 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
   return popcount;
 }
 //=================================================================================
+// [RISK GATE] [TAG-risk_gate]
+//=================================================================================
+//=================================================================================
+//[ORDER GENERATION] [TAG-order_gen]
+//=================================================================================
+//=================================================================================
+//=================================================================================
 // [MAIN]
 //=================================================================================
 // so for main, probably intializing a while loop, and then generation an order,
@@ -268,5 +298,117 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // on independent bytes simaultaneously, because of the CPU's out-of-order
 // engine, idk ill probably go over this more at some point, to explain it like
 // im stupid, each byte load shit or sequence is independent from the other
-// bytes being loaded,
+// bytes being loaded
+//
+// EDIT3: this version was bad, the new version using structs is way better
+// because it doesnt have to derefernce the pointer that pointed to the vectors
+// i was using, and even with arrays, those still load from a stack call,
+// whereas the struct version both structs can fit directly into a register so
+// the order flow goes directly into the cpu, without having to be passed from a
+// list, like yeah it looks fucking cursed, and if you do this in a cs
+// assignemnt the professor is probably gonna wanna have friendly chat with you
+// about the fundamentals of clean code, but if your targeting the industry i
+// am, clean code is an after thought, were going for *sparkle emoji*M E C H A N
+// I C A L  S Y M P A T H Y*sparkle emoji*, this is basically a war crime in
+// java btw, dont let corporate devs see this, asm code for reference:
+/*
+        .cfi_startproc
+        movl	%esi, %ecx
+        movzbl	%sil, %eax
+        movl	%edi, %edi
+        movzbl	%ch, %edx
+        salq	$32, %rax
+        salq	$40, %rdx
+        orq	%rdx, %rax
+        orq	%rdi, %rax
+        movl	%esi, %edi
+        shrl	$16, %edi
+        movzbl	%dil, %edi
+        salq	$48, %rdi
+        orq	%rax, %rdi
+        movl	%esi, %eax
+        shrl	$24, %eax
+        salq	$56, %rax
+        orq	%rdi, %rax
+        ret
+*/
+// it brings a tear to my eye to see myself growing so much through these, first
+// i was using vectors like i actually wanted to code in java, then i thought
+// about using arrays, then i rememberd struct padding and data alignment, and
+// its like *galaxy brain*
+//=================================================================================
+// [ORDER POOL[ASM]]
+//=================================================================================
+// im gonna tear this apart later, but it looks pretty clean, you can already
+// see the dwarf unwinders giving us that sweet, succulent free register instead
+// of having to use it to track the base pointer location, thanks mr.compiler,
+// we love you btw <3
+/*
+        .cfi_startproc
+        pushq	%rbp
+        .cfi_def_cfa_offset 16
+        .cfi_offset 6, -16
+        pushq	%rbx
+        .cfi_def_cfa_offset 24
+        .cfi_offset 3, -24
+        movq	%rdi, %rbx
+        movl	%esi, %edi
+        movl	$8, %esi
+        movq	%rdi, %rbp
+        subq	$8, %rsp
+        .cfi_def_cfa_offset 32
+        call	calloc@PLT
+        movq	$0, 8(%rbx)
+        movq	%rax, (%rbx)
+        movl	%ebp, 16(%rbx)
+        addq	$8, %rsp
+        .cfi_def_cfa_offset 24
+        popq	%rbx
+        .cfi_def_cfa_offset 16
+        popq	%rbp
+        .cfi_def_cfa_offset 8
+        ret
+        .cfi_endproc
+.LFE9694:
+        .size	_Z14OrderPool_initP9OrderPoolj, .-_Z14OrderPool_initP9OrderPoolj
+        .p2align 4
+        .globl	_Z18OrderPool_AllocateP9OrderPool
+        .type	_Z18OrderPool_AllocateP9OrderPool, @function
+_Z18OrderPool_AllocateP9OrderPool:
+.LFB9695:
+        .cfi_startproc
+        movq	8(%rdi), %rdx
+        movq	%rdx, %rax
+        notq	%rax
+        rep bsfq	%rax, %rax
+        btsq	%rax, %rdx
+        cltq
+        movq	%rdx, 8(%rdi)
+        movq	(%rdi), %rdx
+        leaq	(%rdx,%rax,8), %rax
+        ret
+        .cfi_endproc
+.LFE9695:
+        .size	_Z18OrderPool_AllocateP9OrderPool,
+.-_Z18OrderPool_AllocateP9OrderPool .p2align 4 .globl
+_Z14OrderPool_FreeP9OrderPoolPm .type	_Z14OrderPool_FreeP9OrderPoolPm,
+@function _Z14OrderPool_FreeP9OrderPoolPm: .LFB9696: .cfi_startproc subq
+(%rdi), %rsi movq	$-2, %rax movq	%rsi, %rcx sarq	$3, %rcx rolq	%cl,
+%rax andq	%rax, 8(%rdi) ret .cfi_endproc .LFE9696: .size
+_Z14OrderPool_FreeP9OrderPoolPm, .-_Z14OrderPool_FreeP9OrderPoolPm .p2align 4
+        .globl	_Z21OrderPool_CountActivePK9OrderPool
+        .type	_Z21OrderPool_CountActivePK9OrderPool, @function
+_Z21OrderPool_CountActivePK9OrderPool:
+.LFB9697:
+        .cfi_startproc
+        subq	$8, %rsp
+        .cfi_def_cfa_offset 16
+        movq	8(%rdi), %rdi
+        call	__popcountdi2@PLT
+        addq	$8, %rsp
+        .cfi_def_cfa_offset 8
+        ret
+        .cfi_endproc
+*/
+// im gonna go over this stuff later but it looks pretty clean and fast tbh
 //=================================================================================
