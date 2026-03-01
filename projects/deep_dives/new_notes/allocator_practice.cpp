@@ -217,7 +217,9 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // this struct may be bad because it would have to do a movzbl, and jump from a
 // 8 or 16bit register to 32 THEN to 64bit, im not sure about this optimization,
 // maybe combining it into a single uint64_t before passing it to the function
-// would work better or using uint16_t or uint32_t im not sutre
+// would work better or using uint16_t or uint32_t im not sutre, movzbl is
+// basically free though, so this may not REALLY matter but we dont like wasted
+// clock cycles
 //=================================================================================
 
 struct risk_gate {
