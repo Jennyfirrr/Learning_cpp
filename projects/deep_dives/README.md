@@ -1,7 +1,7 @@
 # Deep Dives
 
 **TLDR: USE A STRUCT**
- - Thats literally what all these files conclude to, 51k words, to basically just say, yous a well written struct
+ - Thats literally what all these files conclude to, 45k words of prose + 5k words of annotated ASM, to basically just say, yous a well written struct
 
 Explorations of hardware/binary-level topics, low-level optimization, and how C++ actually compiles down to assembly. Started with bitwise operators and spiraled into branchless programming, bit packing for HFT order books, hand-tracing binary math, and annotating compiler-generated x86 assembly.
 
@@ -9,27 +9,27 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 
 ## Index
 
-| # | File | Words | Lines | Topics |
-|---|------|-------|-------|--------|
-| 01 | `01_bitwise_operators.cpp` | 947 | 159 | OR, XOR, and bit shift operators — setting, toggling, and reading individual bits, how each gate works at the binary level |
-| 02 | `02_bitmasking.cpp` | 2,149 | 201 | Bitmasking, bitfields, and bit shifts — storing 32 T/F flags in a single int, power-of-2 checks, L1/L2 cache benefits of compact data |
-| 03 | `03_branchless_programming.cpp` | 5,840 | 577 | Branchless clamp, two's complement, branch prediction penalties, chaining operations, ternary vs if/else at the CPU pipeline level |
-| 04 | `04_bit_state_checking.cpp` | 2,337 | 283 | Per-bit state extraction and normalization, kill switch logic using bitmasks, cmov vs jump compiler behavior, when if statements stay branchless vs trigger branch prediction |
-| 05 | `05_bit_packing_orders.cpp` | 6,732 | 1,305 | Packing multiple 8-bit order IDs into 32-bit ints, kill masks with de Bruijn-style multiplication, loop unrolling, delta encoding with XOR, signed vs unsigned pitfalls, extensively annotated ASM output for the entire program |
-| 06 | `06_kill_switch_asm.cpp` | 1,775 | 398 | Array-based kill switch using std::array, function-by-function ASM breakdown showing how the compiler converts bit operations to NOT+TEST+SETE, RDTSC cycle counting |
-| 07 | `07_boolean_algebra.cpp` | 5,138 | 485 | Mycroft trick (haszero/hasless macro), lane-by-lane binary subtraction with borrow logic, full hand-traced 32-bit operation table, POPCNT as a single silicon instruction |
-| 08 | `08_mycroft_implementation.cpp` | 6,934 | 1,386 | Mycroft trick implementation with 64-bit order packing, 4 buy + 4 sell per uint64, PDEP/PEXT bit deposit/extract, signed bit smearing pitfalls, BMI1/2 instructions |
-| 09 | `09_allocator_practice.cpp` | 4,971 | 956 | Pool/arena allocator for order tracking, de Bruijn masking, PDEP/PEXT with immintrin.h, IMUL magic number optimization, TZCNT/BSF bit scanning |
+| # | File | Prose | ASM | Lines | Topics |
+|---|------|-------|-----|-------|--------|
+| 01 | `01_bitwise_operators.cpp` | 929 | — | 159 | OR, XOR, and bit shift operators — setting, toggling, and reading individual bits, how each gate works at the binary level |
+| 02 | `02_bitmasking.cpp` | 2,145 | — | 201 | Bitmasking, bitfields, and bit shifts — storing 32 T/F flags in a single int, power-of-2 checks, L1/L2 cache benefits of compact data |
+| 03 | `03_branchless_programming.cpp` | 5,806 | 6 | 577 | Branchless clamp, two's complement, branch prediction penalties, chaining operations, ternary vs if/else at the CPU pipeline level |
+| 04 | `04_bit_state_checking.cpp` | 2,314 | 12 | 283 | Per-bit state extraction and normalization, kill switch logic using bitmasks, cmov vs jump compiler behavior, when if statements stay branchless vs trigger branch prediction |
+| 05 | `05_bit_packing_orders.cpp` | 4,914 | 1,768 | 1,305 | Packing multiple 8-bit order IDs into 32-bit ints, kill masks with de Bruijn-style multiplication, loop unrolling, delta encoding with XOR, signed vs unsigned pitfalls, extensively annotated ASM output for the entire program |
+| 06 | `06_kill_switch_asm.cpp` | 1,245 | 509 | 398 | Array-based kill switch using std::array, function-by-function ASM breakdown showing how the compiler converts bit operations to NOT+TEST+SETE, RDTSC cycle counting |
+| 07 | `07_boolean_algebra.cpp` | 5,049 | 4 | 485 | Mycroft trick (haszero/hasless macro), lane-by-lane binary subtraction with borrow logic, full hand-traced 32-bit operation table, POPCNT as a single silicon instruction |
+| 08 | `08_mycroft_implementation.cpp` | 4,915 | 1,941 | 1,386 | Mycroft trick implementation with 64-bit order packing, 4 buy + 4 sell per uint64, PDEP/PEXT bit deposit/extract, signed bit smearing pitfalls, BMI1/2 instructions |
+| 09 | `09_allocator_practice.cpp` | 3,990 | 922 | 956 | Pool/arena allocator for order tracking, de Bruijn masking, PDEP/PEXT with immintrin.h, IMUL magic number optimization, TZCNT/BSF bit scanning |
 
 ### Standalone / Reference Files
 
-| File | Words | Lines | Topics |
-|------|-------|-------|--------|
-| `asm_reference.cpp` | 5,172 | 538 | x86_64 ASM reference — registers (eax/rax/al), AT&T syntax ($literal, %register), instruction suffixes (b/w/l/q), condition codes, flags (ZF/CF/SF/OF), JNE/JE/JMP branch instructions |
-| `memory_reference.cpp` | 5,546 | 534 | Memory alignment, malloc internals, struct padding, alignas(64), cache hierarchy (L1/L2/L3), stack vs heap allocation, false sharing, buddy allocators, vector preallocation — why pre-reserving beats push_back |
-| `inline_asm_discovery.cpp` | 3,339 | 131 | The moment of discovering you can write ASM inline in C++ (and that Java definitely does not let you do this) |
-| `fixed_point_math.cpp` | 339 | 27 | COBOL-inspired fixed point arithmetic — storing decimals as integers for deterministic financial math, why floating point comparison is icky |
-| `FIX_protocol.cpp` | 18 | 6 | Placeholder for FIX protocol research |
+| File | Prose | ASM | Lines | Topics |
+|------|-------|-----|-------|--------|
+| `asm_reference.cpp` | 5,031 | 123 | 538 | x86_64 ASM reference — registers (eax/rax/al), AT&T syntax ($literal, %register), instruction suffixes (b/w/l/q), condition codes, flags (ZF/CF/SF/OF), JNE/JE/JMP branch instructions |
+| `memory_reference.cpp` | 5,509 | 10 | 534 | Memory alignment, malloc internals, struct padding, alignas(64), cache hierarchy (L1/L2/L3), stack vs heap allocation, false sharing, buddy allocators, vector preallocation — why pre-reserving beats push_back |
+| `inline_asm_discovery.cpp` | 3,339 | — | 131 | The moment of discovering you can write ASM inline in C++ (and that Java definitely does not let you do this) |
+| `fixed_point_math.cpp` | 339 | — | 27 | COBOL-inspired fixed point arithmetic — storing decimals as integers for deterministic financial math, why floating point comparison is icky |
+| `FIX_protocol.cpp` | 15 | — | 6 | Placeholder for FIX protocol research |
 
 ### `asm_outputs/`
 
