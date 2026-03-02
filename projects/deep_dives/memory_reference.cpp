@@ -483,6 +483,46 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 //==================================================================================
 // [POOL ALLOCATOR[example]]
 //==================================================================================
+// [EDIT [02-03-26 02:18am]]
+//==================================================================================
+// so, when using the example below, you can do something like replacing the
+// uint64_t *slots, with something else
+/*
+struct OrderPool {
+  OrderPair *slots;
+  uint64_t bitmap;
+  uint32_t capacity;
+};
+static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
+*/
+
+// so like you can see how I used another struct to make up part of this struct,
+// to pass the actual order values you would want to store right, and where you
+// would have the *, like in the example below, the pool->slots line, you would
+// replace the size of blocks, and the uint64_t * slots with OrderPair, idk just
+// an example of how to actually pass real order values to this, im eventually
+// gonna get around to storing real data, but thats probably a ways away, and
+// ill need to figure out a way to encode order values, and add a reading
+// harness where the orderstream data is actually read, and decisions are made,
+// this will probably start with basic startegies like SMA cross over, with
+// cutoff points like 30, and 70, or simple macd strategies just to serve as
+// examples, you would also replace the parts of the below where it says
+// uint64_t *slot_ptr, with the associated struc that contains the values you
+// wanna track, and in the example in file 09, im using a simple 8 byte struct
+// to track 4 buy and 4 sell orders, and there is a more indepth explanation in
+// the actual file, but i wanted to touch on that here, because this is gonna
+// lead up into the next file im gonna try, which is actually a primitive order
+// storage and tracking system that executes based on like 1- 2 different
+// variables or something, nothing too crazy, and definitely not actual full
+// blown models that like FoxML_Core would produce, but i have some things i
+// need to rework in that anyways, because ive had some new thoughts and stuff
+// and learned some new things after doing something else for a while, im also
+// probably gonna add exmaples of the arena allocator and the buddy allocator
+// here at some point, but i learn best when i acutally have a reason to try to
+// and learn these, instead of making an example an using it later, it just
+// sticks better when i Have a real reason to use it, which is what makes java
+// so hard lol, like cmon seriously? me? write java?, lets be for real
+//==================================================================================
 /*
 struct OrderPool {
   uint64_t *slots;
