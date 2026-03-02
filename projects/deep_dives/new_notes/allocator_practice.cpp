@@ -668,3 +668,275 @@ _Z15build_risk_gate9risk_gate:
         ret
 */
 //=================================================================================
+// [MAIN [ASM]] (its smaller than i thought)
+//=================================================================================
+/*
+main:
+.LFB11003:
+        .cfi_startproc
+        pushq	%r15
+        .cfi_def_cfa_offset 16
+        .cfi_offset 15, -16
+        leaq	_ZSt4cout(%rip), %rdi
+        pushq	%r14
+        .cfi_def_cfa_offset 24
+        .cfi_offset 14, -24
+        pushq	%r13
+        .cfi_def_cfa_offset 32
+        .cfi_offset 13, -32
+        pushq	%r12
+        .cfi_def_cfa_offset 40
+        .cfi_offset 12, -40
+        pushq	%rbp
+        .cfi_def_cfa_offset 48
+        .cfi_offset 6, -48
+        pushq	%rbx
+        .cfi_def_cfa_offset 56
+        .cfi_offset 3, -56
+        subq	$56, %rsp
+        .cfi_def_cfa_offset 112
+        movq	%fs:40, %rsi
+        movq	%rsi, 40(%rsp)
+        leaq	.LC5(%rip), %rsi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        leaq	32(%rsp), %rsi
+        leaq	_ZSt3cin(%rip), %rdi
+        call	_ZNSi10_M_extractImEERSiRT_@PLT
+        leaq	.LC6(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        leaq	28(%rsp), %rsi
+        leaq	_ZSt3cin(%rip), %rdi
+        call	_ZNSi10_M_extractIjEERSiRT_@PLT
+        movq	32(%rsp), %r14
+        testq	%r14, %r14
+        je	.L34
+        movzbl	28(%rsp), %eax
+        movq	2496+_ZL3rng(%rip), %r13
+        xorl	%r12d, %r12d
+        xorl	%ebx, %ebx
+        movabsq	$4311810305, %rcx
+        leaq	_ZL3rng(%rip), %rbp
+        movabsq	$6148914691236517205, %r15
+        imulq	%rax, %rcx
+        movq	%rax, %rsi
+        salq	$40, %rsi
+        orq	%rcx, %rsi
+        movq	%rax, %rcx
+        salq	$56, %rax
+        salq	$48, %rcx
+        orq	%rsi, %rcx
+        orq	%rcx, %rax
+        movq	%rax, 8(%rsp)
+        jmp	.L28
+        .p2align 4,,10
+        .p2align 3
+.L27:
+        leaq	1(%rax), %r13
+        movq	0(%rbp,%rax,8), %rax
+        movq	8(%rsp), %rdi
+        movabsq	$8202884508482404352, %rdx
+        movabsq	$-2270628950310912, %rcx
+        movq	%r13, 2496(%rbp)
+        movq	%rax, %rsi
+        shrq	$29, %rsi
+        andq	%r15, %rsi
+        xorq	%rsi, %rax
+        movq	%rax, %rsi
+        salq	$17, %rsi
+        andq	%rdx, %rsi
+        movabsq	$9187201950435737471, %rdx
+        xorq	%rsi, %rax
+        movq	%rax, %rsi
+        salq	$37, %rsi
+        andq	%rcx, %rsi
+        xorq	%rsi, %rax
+        movq	%rax, %rsi
+        shrq	$43, %rsi
+        xorq	%rsi, %rax
+        andq	%rdx, %rax
+        subq	%rax, %rdi
+        movabsq	$-9187201950435737472, %rax
+        andq	%rax, %rdi
+        call	__popcountdi2@PLT
+        cltq
+        subq	%rax, %rbx
+        addq	%rax, %r12
+        addq	$8, %rbx
+        subq	$1, %r14
+        movq	%r14, 32(%rsp)
+        je	.L26
+.L28:
+        movq	%r13, %rax
+        cmpq	$311, %r13
+        jbe	.L27
+        movq	%rbp, %rdi
+        call
+_ZNSt23mersenne_twister_engineImLm64ELm312ELm156ELm31ELm13043109905998158313ELm29ELm6148914691236517205ELm17ELm8202884508482404352ELm37ELm18444473444759240704ELm43ELm6364136223846793005EE11_M_gen_randEv
+        movq	2496(%rbp), %rax
+        jmp	.L27
+.L34:
+        xorl	%r12d, %r12d
+        xorl	%ebx, %ebx
+        .p2align 4
+        .p2align 3
+.L26:
+        leaq	.LC7(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        leaq	(%r12,%rbx), %rbp
+        movl	$24, %edx
+        leaq	.LC8(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call
+_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@PLT
+        movq	%rbp, %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZNSo9_M_insertImEERSoT_@PLT
+        leaq	.LC9(%rip), %rsi
+        movq	%rax, %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        leaq	.LC10(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        movl	$8, %edx
+        leaq	.LC11(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call
+_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@PLT
+        movq	%rbx, %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZNSo9_M_insertImEERSoT_@PLT
+        leaq	.LC9(%rip), %rsi
+        movq	%rax, %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        movl	$8, %edx
+        leaq	.LC12(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call
+_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@PLT
+        movq	%r12, %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZNSo9_M_insertImEERSoT_@PLT
+        leaq	.LC9(%rip), %rsi
+        movq	%rax, %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        leaq	.LC10(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        movl	$10, %edx
+        leaq	.LC13(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call
+_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@PLT
+        testq	%rbx, %rbx
+        js	.L29
+        pxor	%xmm0, %xmm0
+        cvtsi2ssq	%rbx, %xmm0
+.L30:
+        testq	%rbp, %rbp
+        js	.L31
+        pxor	%xmm1, %xmm1
+        cvtsi2ssq	%rbp, %xmm1
+.L32:
+        divss	%xmm1, %xmm0
+        leaq	_ZSt4cout(%rip), %rdi
+        mulss	.LC14(%rip), %xmm0
+        cvtss2sd	%xmm0, %xmm0
+        call	_ZNSo9_M_insertIdEERSoT_@PLT
+        leaq	.LC15(%rip), %rsi
+        movq	%rax, %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        leaq	.LC10(%rip), %rsi
+        leaq	_ZSt4cout(%rip), %rdi
+        call	_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc.isra.0
+        movq	40(%rsp), %rax
+        subq	%fs:40, %rax
+        jne	.L38
+        addq	$56, %rsp
+        .cfi_remember_state
+        .cfi_def_cfa_offset 56
+        xorl	%eax, %eax
+        popq	%rbx
+        .cfi_def_cfa_offset 48
+        popq	%rbp
+        .cfi_def_cfa_offset 40
+        popq	%r12
+        .cfi_def_cfa_offset 32
+        popq	%r13
+        .cfi_def_cfa_offset 24
+        popq	%r14
+        .cfi_def_cfa_offset 16
+        popq	%r15
+        .cfi_def_cfa_offset 8
+        ret
+.L29:
+        .cfi_restore_state
+        movq	%rbx, %rax
+        andl	$1, %ebx
+        pxor	%xmm0, %xmm0
+        shrq	%rax
+        orq	%rbx, %rax
+        cvtsi2ssq	%rax, %xmm0
+        addss	%xmm0, %xmm0
+        jmp	.L30
+.L31:
+        movq	%rbp, %rax
+        andl	$1, %ebp
+        pxor	%xmm1, %xmm1
+        shrq	%rax
+        orq	%rbp, %rax
+        cvtsi2ssq	%rax, %xmm1
+        addss	%xmm1, %xmm1
+        jmp	.L32
+.L38:
+        call	__stack_chk_fail@PLT
+        .cfi_endproc
+.LFE11003:
+        .size	main, .-main
+        .p2align 4
+        .type	_GLOBAL__sub_I__Z19order_packing_8byte9OrderPair, @function
+_GLOBAL__sub_I__Z19order_packing_8byte9OrderPair:
+.LFB11750:
+        .cfi_startproc
+        movq	$125124, _ZL3rng(%rip)
+        movl	$125124, %ecx
+        movl	$1, %edx
+        leaq	_ZL3rng(%rip), %rdi
+        movabsq	$6364136223846793005, %rsi
+        .p2align 6
+        .p2align 4
+        .p2align 3
+.L40:
+        movq	%rcx, %rax
+        shrq	$62, %rax
+        xorq	%rcx, %rax
+        imulq	%rsi, %rax
+        leaq	(%rax,%rdx), %rcx
+        movq	%rcx, (%rdi,%rdx,8)
+        addq	$1, %rdx
+        cmpq	$312, %rdx
+        jne	.L40
+        movq	$312, 2496+_ZL3rng(%rip)
+        ret
+        .cfi_endproc
+.LFE11750:
+        .size	_GLOBAL__sub_I__Z19order_packing_8byte9OrderPair,
+.-_GLOBAL__sub_I__Z19order_packing_8byte9OrderPair .section	.init_array,"aw"
+        .align 8
+        .quad	_GLOBAL__sub_I__Z19order_packing_8byte9OrderPair
+        .local	_ZL3rng
+        .comm	_ZL3rng,2504,32
+        .section	.rodata.cst16,"aM",@progbits,16
+        .align 16
+.LC3:
+        .quad	-5403634167711393303
+        .quad	-5403634167711393303
+        .section	.rodata.cst4,"aM",@progbits,4
+        .align 4
+.LC14:
+        .long	1120403456
+        .globl	__popcountdi2
+        .ident	"GCC: (GNU) 15.2.1 20260103"
+        .section	.note.GNU-stack,"",@progbits
+*/
