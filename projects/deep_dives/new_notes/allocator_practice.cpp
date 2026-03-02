@@ -6,11 +6,13 @@
 //=================================================================================
 // included libraries
 //=================================================================================
-#include <array>
 #include <cstdint>
 #include <immintrin.h>
 #include <iostream>
-#include <vector>
+#include <random>
+
+static std::mt19937_64 rng(125124);
+
 //=================================================================================
 // [GOALS and PLAN]
 //=================================================================================
@@ -79,6 +81,15 @@
 // will fit in a single e** register, and avoid the heap and the need for
 // storing orders in slower memory, because registers are even faster than the
 // stack
+//=================================================================================
+// [EDIT [01-03-26 07:50pm]]
+//=================================================================================
+// so to actually use the struct you wanna do something like this:
+//
+// OrderPair = {
+// 		{10, 20, 30, 40},
+// 		{50, 60, 70, 80}
+// }
 //=================================================================================
 // [ACTUAL CODE [FUNCTIONS]]
 //=================================================================================
@@ -254,6 +265,20 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // do it properly in the first place lmao, never tell a human to do what a cpu
 // does better, silicon > meat suits
 //=================================================================================
+// [EDIT [01-03-26 08:06om]]
+//=================================================================================
+// so, this way has edge cases where it doesnt work if the order ID is above
+// 127, im thinking through this because the full mycroft trick would work for
+// things that are 0 -> 255, but this only works with 0 ->127, like maybe if
+// this used like, the MSB to indicate something eles? idk, because 0x82 - 0x80
+// is an edge case, apparently doing it this way leaves the MSB as a kill bit,
+// so if an order has anything that is 0x8XXXXXXX, then that means its a dead
+// order, you dont lose any meaningful information because the MSB still can
+// communicate information as a kill bit, so youre still technically using all 8
+// bits for information, this is just reserving one by implicit definition, this
+// way if breach returns 0, then every lane passed, if it doesnt, then the MSB
+// tells you exactly which lanes failed
+//=================================================================================
 
 struct risk_gate {
   uint8_t buy_side_risk0;
@@ -282,9 +307,19 @@ uint64_t build_risk_gate(risk_gate sides) {
   return risk_gate_built;
 }
 
+uint64_t risk_gate_check(uint64_t packed_order, uint64_t risk_gate) {
+  uint64_t breach = (packed_order - risk_gate) & 0x8080808080808080ULL;
+  return breach;
+}
+
 //=================================================================================
 //[ORDER GENERATION] [TAG-order_gen]
 //=================================================================================
+OrderPair order_generation() {
+  uint64_t generated_order = rng();
+  generated_order &= 0x7F7F7F7F7F7F7F7FULL;
+  return *reinterpret_cast<OrderPair *>(&generated_order);
+}
 //=================================================================================
 //=================================================================================
 // [MAIN]
@@ -302,7 +337,62 @@ uint64_t build_risk_gate(risk_gate sides) {
 // start analyzing differences between -O2 and -O3 outputs, but that may come
 // later, i guess this has kind of turned into "build a branchless order system
 // with Jennifer" LOL, w/e, these notes are pretty good if i say so myself
+//
+// EDIT: idk why i did the pool allocator, ill probably learn to use it in a
+// seperate one, once i start adding logic to track states for buying/selling,
+// instead of just simulated direct order flow with no state tracking
 //=================================================================================
+int main() {
+  uint64_t duration;
+  uint32_t risk_id;
+  std::cout << "Please select how long to run this: ";
+  std::cin >> duration;
+
+  std::cout << "Please select risk gate id [0-127]: ";
+  std::cin >> risk_id;
+
+  uint8_t risk_val = static_cast<uint8_t>(risk_id);
+
+  risk_gate risk_gate_id = {risk_val, risk_val, risk_val, risk_val,
+                            risk_val, risk_val, risk_val, risk_val};
+
+  uint64_t risk = build_risk_gate(risk_gate_id);
+  uint64_t passed = 0;
+  uint64_t total_failed = 0;
+
+  while (duration > 0) {
+
+    OrderPair order = order_generation();
+    uint64_t packed = order_packing_8byte(order);
+    uint64_t breach = risk_gate_check(packed, risk);
+    uint64_t failed = __builtin_popcountll(breach);
+
+    passed += 8 - failed;
+    total_failed += failed;
+
+    duration--;
+  }
+
+  std::cout
+      << "\n==============================================================="
+         "=======\n";
+  std::cout << "Total Orders Generated: " << passed + total_failed << "\n";
+  std::cout << "==============================================================="
+               "=======\n";
+
+  std::cout << "Passed: " << passed << "\n";
+  std::cout << "Failed: " << total_failed << "\n";
+  std::cout << "==============================================================="
+               "=======\n";
+
+  std::cout << "Passed %: "
+            << (static_cast<float>(passed) / (passed + total_failed)) * 100
+            << "%\n";
+  std::cout << "==============================================================="
+               "=======\n";
+
+  return 0;
+}
 //=================================================================================
 // [ASM BREAKDOWN]
 //=================================================================================
@@ -558,5 +648,21 @@ _Z15build_risk_gate9risk_gate:
         movq	%rdi, %rax
         ret
         .cfi_endproc
+*/
+//=================================================================================
+// [RISK GATE CHECK [ASM]]
+//=================================================================================
+// just lmao, like what the fuck, you build the packed order in 1 instruction,
+// build the risk gate in 1 instruction, and then check the order against the
+// risk gate in 3 instructions, thats like, 2-3 cycles, to do all this, like 30
+// lines of code, and it takes like 3 clock cycles, *sparkle emoji*W H A T  T H
+// E  F U C K*sparkle emoji*
+/*
+.LFB9699:
+        .cfi_startproc
+        movabsq	$-9187201950435737472, %rax
+        subq	%rsi, %rdi
+        andq	%rdi, %rax
+        ret
 */
 //=================================================================================
