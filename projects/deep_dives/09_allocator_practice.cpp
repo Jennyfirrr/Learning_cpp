@@ -304,7 +304,12 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // the above struct, i just didnt format it with 2 seeperate structs because im
 // lazy, and theres really no need since its all the same value right now
 // anyways, check usage in main, idk this way saves like 4 instruction counts
-// lol, so like 60-80% reduction in cycle count
+// lol, so like 60-80% reduction in cycle count, this is kinda handwavey, but it
+// kinda explains the concept well enough, basically we dont wanna end up
+// jumping from like an 8 or 16bit register, to a 32bit to a 64bit register,
+// because thats wasted instruction counts that could be spent doing something
+// important, like uploading my technical manifesto against java to git hub, or
+// like, verifying orders against a risk gate for a hypothetical use case
 //=================================================================================
 
 struct risk_gate {
