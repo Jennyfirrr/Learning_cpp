@@ -56,6 +56,10 @@ projects/leetcode/matrix_diagnol_sum
 projects/leetcode/shuffle_array
 projects/leetcode/smaller_than_cur_atmpt1
 projects/leetcode/unordered_set_practice
+projects/deep_dives/08_mycroft_implementation
+projects/deep_dives/09_allocator_practice
+projects/deep_dives/backup/new_notes_backup_20260302/allocator_practice
+projects/deep_dives/backup/new_notes_backup_20260302/mycroft_implementation
 
 # log files
 *.log
