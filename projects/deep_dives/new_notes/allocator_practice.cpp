@@ -95,6 +95,20 @@ static std::mt19937_64 rng(125124);
 //=================================================================================
 // [ORDER PACKING] [TAG-order_packing]
 //=================================================================================
+// below is an example of GOOD code, this is GOOD code because the 34ish lines
+// you see below this, compile down to a single movq %rdi, rax -> ret
+// instruction, its literally just a proof for the compiler so the compiler can
+// be like, yup this is true, no further work needed, idk wtf the makers of java
+// were thinking because this is the peak of computer science, literally a
+// SINGLE INSTRUCTION, the fastest code is the code you never write lmao, i
+// actually understand that now, like idk wtf java is fucking doing, like youve
+// got the JIT(java is trash compiler) the JVM(i cant think of how to make this
+// say java is bad tbh, maybe someone can help me out with that, my brain is  T
+// O A S T E D, after discovering this converted to a single instruction today),
+// like 40 lines of code to print 'Hello world', and c++ is like, hey, you like
+// performance? OH WE GOT PERFORMANCE, just tell us how your data structure is
+// true, and we gotchu
+//=================================================================================
 
 struct buy_side {
   uint8_t order0b;
