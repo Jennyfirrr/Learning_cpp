@@ -277,7 +277,9 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // communicate information as a kill bit, so youre still technically using all 8
 // bits for information, this is just reserving one by implicit definition, this
 // way if breach returns 0, then every lane passed, if it doesnt, then the MSB
-// tells you exactly which lanes failed
+// tells you exactly which lanes failed, im gonna need to think about this logic
+// more because right now its just, forany lane that matches the risk gate,
+// allow it through i think, idk my brain feels like mush, java bad, im tired
 //=================================================================================
 
 struct risk_gate {
@@ -308,7 +310,7 @@ uint64_t build_risk_gate(risk_gate sides) {
 }
 
 uint64_t risk_gate_check(uint64_t packed_order, uint64_t risk_gate) {
-  uint64_t breach = (packed_order - risk_gate) & 0x8080808080808080ULL;
+  uint64_t breach = (risk_gate - packed_order) & 0x8080808080808080ULL;
   return breach;
 }
 
