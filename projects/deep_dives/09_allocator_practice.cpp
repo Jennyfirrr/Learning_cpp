@@ -293,7 +293,18 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // way if breach returns 0, then every lane passed, if it doesnt, then the MSB
 // tells you exactly which lanes failed, im gonna need to think about this logic
 // more because right now its just, forany lane that matches the risk gate,
-// allow it through i think, idk my brain feels like mush, java bad, im tired
+// allow it through i think, idk my brain feels like mush, java bad, im tired,
+//=================================================================================
+// [EDIT [02-03-26 02:28am]]
+//=================================================================================
+// this struct is just repeating the same value 8 times so it loads directly
+// from the register and just becomes a movq %rdi, %rax instead of something
+// like %si -> %edi -> %rdi -> %rax, because thats just ineffecient, and were
+// already using the register anyways, it basically just functions the same as
+// the above struct, i just didnt format it with 2 seeperate structs because im
+// lazy, and theres really no need since its all the same value right now
+// anyways, check usage in main, idk this way saves like 4 instruction counts
+// lol, so like 60-80% reduction in cycle count
 //=================================================================================
 
 struct risk_gate {
