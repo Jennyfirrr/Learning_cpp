@@ -1,3 +1,13 @@
+//=================================================================================
+// [ASM REFERENCE DOC]
+//=================================================================================
+// The compiler can be thought of as avery complex assert statement where its
+// trying to find the equivalnet asm code that matches your garbage higher level
+// code, all it literally does is like an assert x == y, and if x != y, thats
+// why you get unoptimized code, so when you have a 2 line function that gets
+// converted to like 24 lines with 2 jump instructions, youre just writing bad
+// code
+//=================================================================================
 // This is gonna serve as permenant ASM notes for how the cpp compiler compiles
 // the code down into the specific asm portions because this stuff is I M P O R
 // T A N T for avoidng branch prediciton(I C K Y), also because im gonna
