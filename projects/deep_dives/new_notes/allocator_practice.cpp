@@ -668,7 +668,7 @@ _Z15build_risk_gate9risk_gate:
         ret
 */
 //=================================================================================
-// [MAIN [ASM]] (its smaller than i thought)
+// [MAIN [ASM]] [Im gonna annotate this tomorrow during the lecture]
 //=================================================================================
 /*
 main:
