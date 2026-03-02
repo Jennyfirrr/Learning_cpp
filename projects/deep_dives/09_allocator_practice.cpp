@@ -10,8 +10,9 @@
 #include <immintrin.h>
 #include <iostream>
 #include <random>
+#include <x86intrin.h>
 
-static std::mt19937_64 rng(125124);
+static std::mt19937_64 rng(123456);
 
 //=================================================================================
 // [GOALS and PLAN]
@@ -375,13 +376,16 @@ OrderPair order_generation() {
 // instead of just simulated direct order flow with no state tracking
 //=================================================================================
 int main() {
-  uint64_t duration;
+  uint64_t duration, start, end;
   uint32_t risk_id;
+
   std::cout << "Please select how long to run this: ";
   std::cin >> duration;
 
   std::cout << "Please select risk gate id [0-127]: ";
   std::cin >> risk_id;
+
+  const uint64_t total_duration = duration;
 
   uint8_t risk_val = static_cast<uint8_t>(risk_id);
 
@@ -392,18 +396,53 @@ int main() {
   uint64_t passed = 0;
   uint64_t total_failed = 0;
 
-  while (duration > 0) {
+  uint64_t cycles_gen = 0;
+  uint64_t cycles_pack = 0;
+  uint64_t cycles_gate = 0;
 
+  while (duration > 0) {
+    __asm__ volatile("mfence" ::: "memory");
+    uint64_t s1 = __rdtsc();
     OrderPair order = order_generation();
+    uint64_t e1 = __rdtsc();
+    __asm__ volatile("mfence" ::: "memory");
+
+    uint64_t s2 = __rdtsc();
     uint64_t packed = order_packing_8byte(order);
+    uint64_t e2 = __rdtsc();
+    __asm__ volatile("mfence" ::: "memory");
+
+    uint64_t s3 = __rdtsc();
     uint64_t breach = risk_gate_check(packed, risk);
     uint64_t failed = __builtin_popcountll(breach);
+    uint64_t e3 = __rdtsc();
+    __asm__ volatile("mfence" ::: "memory");
+
+    cycles_gen += (e1 - s1);
+    cycles_pack += (e2 - s2);
+    cycles_gate += (e3 - s3);
 
     passed += 8 - failed;
     total_failed += failed;
 
     duration--;
   }
+  // apparently these function are too fast and the overhead is just rdtsc
+  // overhead lol, rdtsc is basically ~30 cycles lol, so this basically comes
+  // out to 5 cycles for all those functions lol
+
+  std::cout
+      << "\n==============================================================="
+         "=======\n";
+
+  std::cout << "Average cycle count gen: "
+            << static_cast<float>(cycles_gen) / total_duration << "\n";
+
+  std::cout << "Average cycle count pack: "
+            << static_cast<float>(cycles_pack) / total_duration << "\n";
+
+  std::cout << "Average cycle count gate: "
+            << static_cast<float>(cycles_gate) / total_duration << "\n";
 
   std::cout
       << "\n==============================================================="
