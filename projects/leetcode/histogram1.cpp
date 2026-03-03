@@ -31,3 +31,26 @@ int largestRectangleArea(vector<int> &heights) {
   return ans;
 }
 // not time optimal
+//=============================================================================
+// so apparently this works because you discard taller bars only when you
+// guarentee that they cant form a taller bar, vector can be slightly faster
+// because its contiguous in memory, this is more cache friendly
+
+int largestRectangleArea(vector<int> &heights) {
+  vector<int> st;
+  // i guess you can use a vector similar to stack with pop and pushbacks
+  st.clear();
+  // not sure about this
+  int ans = INT_MIN;
+  heights.push_back(0);
+  for (int i = 0; i < heights.size(); i++) {
+    while (!st.empty() && heights[st.back()] > heights[i]) {
+      int right = i;
+      int h = heights[st.back()];
+      st.pop_back();
+      int left = st.empty() ? -1 : st.back();
+      ans = max(ans, (right - left - 1) * h);
+    }
+    st.push_back(i);
+  }
+  return ans == INT_MIN ? 0 : ans;
