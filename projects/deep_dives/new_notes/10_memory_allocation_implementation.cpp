@@ -324,6 +324,17 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // public, part of me feels like other people who are bored in class may like
 // this, idk, i wonder if anyone actually enjoys reading and learning from these
 //==============================================================================
+// [EDIT [04-03-26 02:10pm]]
+//==============================================================================
+// this may not even be needed, like it may just be faster to use the order pool
+// to track buy/sels imlpicitly, like, its a buy order if its added to the order
+// pool, and when it resides in there, then it becomes a sell order waiting for
+// the right conditions, like, since were using the 7th bit, we would need a way
+// to flag that once conditions are met because the sell gate is tracking the
+// position 0X000000, and we need to way to flag the X0000000 bit when its
+// supposed to buy, and these could probably be converted to a simple bool
+// value, using a watcher function, im still kinda trying to figure that out
+//==============================================================================
 uint64_t order_packing_8_byte(OrderPair pair) {
   uint64_t packed_orders = 0;
 
