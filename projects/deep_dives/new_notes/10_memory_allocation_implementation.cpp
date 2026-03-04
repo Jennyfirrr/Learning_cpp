@@ -397,10 +397,17 @@ uint64_t risk_gate_check_buy_side(uint64_t packed_order,
 uint64_t risk_gate_check_sell_side(uint64_t packed_order,
                                    uint64_t risk_gate_sell_side) {
   uint64_t breach_sell =
-      (risk_gate_sell_side - packed_order) & 0x8080808080808080ULL;
+      (risk_gate_sell_side - packed_order) & 0x7070707070707070ULL;
   return breach_sell;
 }
 
+//==============================================================================
+// [SCHEMA]
+//==============================================================================
+// X0000000 where x is the buy bit, and then 0X000000, where x is the sell
+// trigger, hmmm more thinking :), probably kinda of dumb to leave this public
+// and stuff, but its pretty basic lol, and i kinda like the engagement, it
+// makes life a little more colorful, plus id be bored if i didnt
 //==============================================================================
 // [MAIN]
 //==============================================================================
