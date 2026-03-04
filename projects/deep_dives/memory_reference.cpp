@@ -428,37 +428,144 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 //==================================================================================
 // [BUDDY ALLOCATOR [example]]
 //==================================================================================
+// so apparently this is like a whole ass seperate file you would include
+// or something or like an import lol, wtf is this shit, whatever i chose this
+// path lmao, and LEARNING IS FUN(java gives me a visceral physical pain)
+//
+// EDIT: *sparkle emoji*W H A T  T H E  F U C K  I S  T H I S  L M A O*sparkle
+// emoji*, like what the fuck did i sign up for, lmao, im stting here actually
+// thinking "maybe java isnt so bad", and other lies like that, that my brain
+// tells me when im learning something new, LOL APPARENTLY THIS IS A SIMPLE
+// VERSION AND STUFF LIKE jemalloc or tcmalloc are like tens of thousands of
+// lines lmao, why am i doing this, what is wrong with me, W H Y, do i give up
+// on my dreams, do i learn to like java(lmao lets be real), do i play "whos
+// that pokemon", who knows lol, i actually didnt expect to get this far lmao,
+// like what the actual fuck is this
 //==================================================================================
-// so, within the context of HFT, which is what i love, alot of systems use a
-// hybrid approach apparently in actual production code bases, arena allocators
-// for the hot path, where youre processing batches of orders, allocate is
-// always forward, never free individually, reset when the batch is done, and
-// this actually makes sense, because every operation, including the reset, is
-// O(1), wheras the buddy system is O(log n), just like a binary search, and you
-// could probably kinda think of this like a binary serch for the actual memory
-// needed, then a reverse binary search when freeing it, so while fast, its not
-// SUPER fast, but it works for avoid the icky heap, some examples of what to
-// track within this is like position tracking, or connection state, you wanna
-// store longer lived objects here, that need individual lifetime managment
+#include <array>
+#include <bit>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+//==================================================================================
+// [CONSTANTS]
+//==================================================================================
+static constexpr uint32_t BUDDY_MIN_ORDER = 4;  // 16 bytes min block
+static constexpr uint32_t BUDDY_MAX_ORDER = 20; // 1MB max block
+static constexpr uint32_t BUDDY_NUM_ORDERS =
+    BUDDY_MAX_ORDER - BUDDY_MIN_ORDER + 1;
+static constexpr uint32_t BUDDY_POOL_SIZE_BYTES = (1u << BUDDY_MAX_ORDER);
+static constexpr uint32_t BUDDY_SENTINEL = 0xFFFFFFFFu;
+
+//==================================================================================
+// [TYPES]
+//==================================================================================
+struct BuddyFreeNode {
+  uint32_t next_offset;
+  uint32_t prev_offset;
+};
+
+struct BuddyAllocatorState {
+  alignas(64) uint8_t pool[BUDDY_POOL_SIZE_BYTES];
+  uint32_t free_lists[BUDDY_NUM_ORDERS];
+  uint8_t split_bitmap[BUDDY_POOL_SIZE_BYTES / (1 << BUDDY_MIN_ORDER) / 8];
+  uint8_t alloc_bitmap[BUDDY_POOL_SIZE_BYTES / (1 << BUDDY_MIN_ORDER) / 8];
+  uint64_t total_alloc_bytes;
+  uint64_t total_free_bytes;
+  uint32_t alloc_count;
+  uint32_t free_count;
+};
+
+//==================================================================================
+// [INTERNAL HELPERS] (buddy_internal_*)
+//==================================================================================
+[[nodiscard]] static inline uint32_t
+buddy_internal_size_to_order(size_t const size) noexcept {
+  uint32_t const min_size = (size < (1u << BUDDY_MIN_ORDER))
+                                ? (1u << BUDDY_MIN_ORDER)
+                                : static_cast<uint32_t>(size);
+  // round up to the next power of 2
+  uint32_t const rounded = std::bit_ceil(min_size);
+  return static_cast<uint32_t>(std::countr_zero(rounded));
+}
+
+[[nodiscard]] static inline uint32_t
+buddy_internal_order_to_size(uint32_t const order) noexcept {
+  return 1u < order;
+}
+
+[[nodiscard]] static inline uint32_t
+buddy_internal_buddy_offset(uint32_t const offset,
+                            uint32_t const order) noexcept {
+  return offset ^ buddy_internal_size_to_order(order);
+}
+
+[[nodiscard]] static inline uint32_t
+buddy_internal_bitmap_index(uint32_t const offset,
+                            uint32_t const order) noexcept {
+  return (offset >> order);
+}
+
+[[nodiscard]] static inline uint32_t
+buddy_internal_bitmap_set(uint8_t *const bitmap, uint32_t const idx) noexcept {
+  bitmap[idx >> 3] |= static_cast<uint8_t>(1u << (idx & 7u));
+}
+
+static inline void buddy_internal_bitmap_clear(uint8_t *const bitmap,
+                                               uint32_t const idx) noexcept {
+  bitmap[idx >> 3] &= static_cast<uint8_t>(~(1u << (idx & 7u)));
+}
+
+[[nodiscard]] static inline bool
+buddy_internal_bitmap_test(uint8_t const *const bitmap,
+                           uint32_t const idx) noexcept {
+  return (bitmap[idx >> 3] >> (idx & 7u)) & 1u;
+}
+
+//==================================================================================
+// [FREE LIST OPS] (buddy_freelist_*)
+//==================================================================================
+
+//==================================================================================
+//==================================================================================
+//==================================================================================
+//==================================================================================
+
+//==================================================================================
+//==================================================================================
+// so, within the context of HFT, which is what i love, alot of systems use
+// a hybrid approach apparently in actual production code bases, arena
+// allocators for the hot path, where youre processing batches of orders,
+// allocate is always forward, never free individually, reset when the batch
+// is done, and this actually makes sense, because every operation,
+// including the reset, is O(1), wheras the buddy system is O(log n), just
+// like a binary search, and you could probably kinda think of this like a
+// binary serch for the actual memory needed, then a reverse binary search
+// when freeing it, so while fast, its not SUPER fast, but it works for
+// avoid the icky heap, some examples of what to track within this is like
+// position tracking, or connection state, you wanna store longer lived
+// objects here, that need individual lifetime managment
 //
 // one key note is to pick which allocator to use is based on the lifetime
-// patter of your data, and not just size(similar to guys), orders that live for
-// microseconds? A R E N A, Positions that live for hours? B U D D Y or a P O O
-// L allocator, the schema that you define for your data dictates which
-// allocator is a better selection
+// patter of your data, and not just size(similar to guys), orders that live
+// for microseconds? A R E N A, Positions that live for hours? B U D D Y or
+// a P O O L allocator, the schema that you define for your data dictates
+// which allocator is a better selection
 //
-// now, we gonna talk about pool allocators because i know we all love the pool,
-// and i was told this one would feel natural to me, because ive been using a
-// similar concept to pack orders into integers, anyways a pool alocator is for
-// when you have a bunch of objects that are the same size, kind of like a
-// parking lot, or order ID's, because theyre *sparkle* A L W A Y S 8 bits, but
-// anyways the reason they are all the same size, is so you can beasically check
-// if one is used by using a single bit to track the state of it, you pre
-// allocate a large block of memory, and divide it into N equal sized slots, so
-// you get something that kinda looks like this,
+// now, we gonna talk about pool allocators because i know we all love the
+// pool, and i was told this one would feel natural to me, because ive been
+// using a similar concept to pack orders into integers, anyways a pool
+// alocator is for when you have a bunch of objects that are the same size,
+// kind of like a parking lot, or order ID's, because theyre *sparkle* A L W
+// A Y S 8 bits, but anyways the reason they are all the same size, is so
+// you can beasically check if one is used by using a single bit to track
+// the state of it, you pre allocate a large block of memory, and divide it
+// into N equal sized slots, so you get something that kinda looks like
+// this,
 //
-// Slots: [0][1][2][3][4][5][6][7][8][9]
-// bitmap: 1  1  1  1  1  1  1  1  1  1  (ones represent free here)
+// Slots: [0][1][2][3][4][5][6][7]
+// bitmap: 1  1  1  1  1  1  1  1  (ones represent free here)
 //
 // Allocate slot:
 // index = __builtin_cztll(bitmap); (find first free)
@@ -468,18 +575,18 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 // bitmap |= (1ULL << index); (mark free)
 //
 // so, its probably kinda obvous why this one is ALREADY my favorite lol,
-// finding a free slot is a single intrinsic, allocating is one AND operator,
-// and freeing a spot is a single | operator, All O(1), all branchless, all
-// deterministic, and with a single uint64_t integer, you can track a WHOLE
-// GRADE A 64 SLOTS, for the price of a single register, isnt that amazing,
-// usually you can only get deals that good at costco, but here we are, god i
-// wish i could split this stuff into lines and snort it i love it so much,
-// imagine if you could do this in java lol, id probably pay atteniton in class,
-// so where i mentioned that its a single intrinsic, this basically compiles
-// down to a single tzcnt or bsf instruction, A SINGLE CYCLE to find a free slot
-// out of 64 WHOLE ASS MEMORY LOCATIONS, javas garbage collection would probably
-// be actually good if it used this kinda tech, but we know that will never
-// happen lul
+// finding a free slot is a single intrinsic, allocating is one AND
+// operator, and freeing a spot is a single | operator, All O(1), all
+// branchless, all deterministic, and with a single uint64_t integer, you
+// can track a WHOLE GRADE A 64 SLOTS, for the price of a single register,
+// isnt that amazing, usually you can only get deals that good at costco,
+// but here we are, god i wish i could split this stuff into lines and snort
+// it i love it so much, imagine if you could do this in java lol, id
+// probably pay atteniton in class, so where i mentioned that its a single
+// intrinsic, this basically compiles down to a single tzcnt or bsf
+// instruction, A SINGLE CYCLE to find a free slot out of 64 WHOLE ASS
+// MEMORY LOCATIONS, javas garbage collection would probably be actually
+// good if it used this kinda tech, but we know that will never happen lul
 //==================================================================================
 // [POOL ALLOCATOR[example]]
 //==================================================================================
@@ -496,32 +603,34 @@ struct OrderPool {
 static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
 */
 
-// so like you can see how I used another struct to make up part of this struct,
-// to pass the actual order values you would want to store right, and where you
-// would have the *, like in the example below, the pool->slots line, you would
-// replace the size of blocks, and the uint64_t * slots with OrderPair, idk just
-// an example of how to actually pass real order values to this, im eventually
-// gonna get around to storing real data, but thats probably a ways away, and
-// ill need to figure out a way to encode order values, and add a reading
-// harness where the orderstream data is actually read, and decisions are made,
-// this will probably start with basic startegies like SMA cross over, with
-// cutoff points like 30, and 70, or simple macd strategies just to serve as
-// examples, you would also replace the parts of the below where it says
-// uint64_t *slot_ptr, with the associated struc that contains the values you
-// wanna track, and in the example in file 09, im using a simple 8 byte struct
-// to track 4 buy and 4 sell orders, and there is a more indepth explanation in
-// the actual file, but i wanted to touch on that here, because this is gonna
-// lead up into the next file im gonna try, which is actually a primitive order
-// storage and tracking system that executes based on like 1- 2 different
-// variables or something, nothing too crazy, and definitely not actual full
-// blown models that like FoxML_Core would produce, but i have some things i
-// need to rework in that anyways, because ive had some new thoughts and stuff
-// and learned some new things after doing something else for a while, im also
-// probably gonna add exmaples of the arena allocator and the buddy allocator
-// here at some point, but i learn best when i acutally have a reason to try to
-// and learn these, instead of making an example an using it later, it just
-// sticks better when i Have a real reason to use it, which is what makes java
-// so hard lol, like cmon seriously? me? write java?, lets be for real
+// so like you can see how I used another struct to make up part of this
+// struct, to pass the actual order values you would want to store right,
+// and where you would have the *, like in the example below, the
+// pool->slots line, you would replace the size of blocks, and the uint64_t
+// * slots with OrderPair, idk just an example of how to actually pass real
+// order values to this, im eventually gonna get around to storing real
+// data, but thats probably a ways away, and ill need to figure out a way to
+// encode order values, and add a reading harness where the orderstream data
+// is actually read, and decisions are made, this will probably start with
+// basic startegies like SMA cross over, with cutoff points like 30, and 70,
+// or simple macd strategies just to serve as examples, you would also
+// replace the parts of the below where it says uint64_t *slot_ptr, with the
+// associated struc that contains the values you wanna track, and in the
+// example in file 09, im using a simple 8 byte struct to track 4 buy and 4
+// sell orders, and there is a more indepth explanation in the actual file,
+// but i wanted to touch on that here, because this is gonna lead up into
+// the next file im gonna try, which is actually a primitive order storage
+// and tracking system that executes based on like 1- 2 different variables
+// or something, nothing too crazy, and definitely not actual full blown
+// models that like FoxML_Core would produce, but i have some things i need
+// to rework in that anyways, because ive had some new thoughts and stuff
+// and learned some new things after doing something else for a while, im
+// also probably gonna add exmaples of the arena allocator and the buddy
+// allocator here at some point, but i learn best when i acutally have a
+// reason to try to and learn these, instead of making an example an using
+// it later, it just sticks better when i Have a real reason to use it,
+// which is what makes java so hard lol, like cmon seriously? me? write
+// java?, lets be for real
 //==================================================================================
 /*
 struct OrderPool {
@@ -561,14 +670,14 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // 2. pack orders and store in that slot
 // *slot = order_packing_8byte(buy_side_orders, sell_side_orders);
 //
-// that kinda makes sense, the *slot just derefernces the pointer, "write this
-// value into the location the slot points to", the pool gives you where to put
-// it, and the packing function gives you what to put there, to read it back
-// later, you just wanna do something like:
+// that kinda makes sense, the *slot just derefernces the pointer, "write
+// this value into the location the slot points to", the pool gives you
+// where to put it, and the packing function gives you what to put there, to
+// read it back later, you just wanna do something like:
 //
 // uint64_t packed = *slot;
 //==================================================================================
-// [NEXT]
+// [NEXT] [filling this in as i go]
 //==================================================================================
 //==================================================================================
 //==================================================================================
