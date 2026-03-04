@@ -441,6 +441,10 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 // on my dreams, do i learn to like java(lmao lets be real), do i play "whos
 // that pokemon", who knows lol, i actually didnt expect to get this far lmao,
 // like what the actual fuck is this
+//
+// EDIT2: im gonna finish this, just like give me a minute im having a whole ass
+// existential crises and looking back on my life to figure out the exact
+// choices that have led to me dsicovering buddy allocators lol
 //==================================================================================
 #include <array>
 #include <bit>
