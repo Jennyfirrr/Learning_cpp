@@ -40,7 +40,9 @@ static std::mt19937_64 rng(123124);
 // [Data stream read] -> [data meets criteria] -> [stores simulated buy] ->
 // [data stream read] -> [sell condition met] -> [clear slot in pool allocator]
 // -> [loop]
-//
+//==============================================================================
+//==============================================================================
+//==============================================================================
 // and were gonna try to store something like 8 orders or something, and
 // actually start getting into encoding data within the actualy bytes since weve
 // gotten familiar with that practice right? so, within this, im gonna try to
@@ -233,6 +235,18 @@ struct sell_lanes {
 };
 static_assert(sizeof(sell_lanes) == 8, "struct must be 8 bytes");
 
+struct TrackedOrders {
+  uint8_t order0;
+  uint8_t order1;
+  uint8_t order2;
+  uint8_t order3;
+  uint8_t order4;
+  uint8_t order5;
+  uint8_t order6;
+  uint8_t order7;
+};
+static_assert(sizeof(TrackedOrders) == 8, "struct must be 8 bytes");
+
 struct CurrentOrder {
   uint8_t current_order;
 };
@@ -263,9 +277,9 @@ struct RiskGate_SellSide {
 static_assert(sizeof(RiskGate_BuySide) == 8, "struct must by 8 bytes");
 
 struct OrderPool {
-  CurrentOrder *slots;
   uint64_t bitmap;
   uint32_t capacity;
+  CurrentOrder *slots;
 };
 static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
 
@@ -336,19 +350,21 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // value, using a watcher function, im still kinda trying to figure that out,
 // and if we track orders that way, then the entire orderpacking may not be
 // necessary because were simply tracking stuff via the risk gates, so the
-// struct for orders, as well as the function below may not even be needed
+// struct for orders, as well as the function below may not even be needed,
+// maybe the packed orders would be needed though, because we have to have a way
+// to load them as a uint64_t to actually compare them to the risk gate, idk
 //==============================================================================
-uint64_t order_packing_8_byte(OrderPair pair) {
+uint64_t order_packing_8_byte(TrackedOrders pair) {
   uint64_t packed_orders = 0;
 
-  packed_orders |= static_cast<uint64_t>(pair.buys.buy0);
-  packed_orders |= static_cast<uint64_t>(pair.buys.buy1) << 8;
-  packed_orders |= static_cast<uint64_t>(pair.buys.buy2) << 16;
-  packed_orders |= static_cast<uint64_t>(pair.buys.buy3) << 24;
-  packed_orders |= static_cast<uint64_t>(pair.sells.sell0) << 32;
-  packed_orders |= static_cast<uint64_t>(pair.sells.sell1) << 40;
-  packed_orders |= static_cast<uint64_t>(pair.sells.sell2) << 48;
-  packed_orders |= static_cast<uint64_t>(pair.sells.sell3) << 56;
+  packed_orders |= static_cast<uint64_t>(pair.order0);
+  packed_orders |= static_cast<uint64_t>(pair.order1) << 8;
+  packed_orders |= static_cast<uint64_t>(pair.order2) << 16;
+  packed_orders |= static_cast<uint64_t>(pair.order3) << 24;
+  packed_orders |= static_cast<uint64_t>(pair.order4) << 32;
+  packed_orders |= static_cast<uint64_t>(pair.order5) << 40;
+  packed_orders |= static_cast<uint64_t>(pair.order6) << 48;
+  packed_orders |= static_cast<uint64_t>(pair.order7) << 56;
 
   return packed_orders;
 }
@@ -424,7 +440,9 @@ uint64_t risk_gate_check_sell_side(uint64_t packed_order,
 // makes life a little more colorful, plus id be bored if i didnt, if youre
 // reading this for the first time, the code looks weird because its optimal,
 // just like the ideal body for peak male performance, if you want an
-// explanation, check out file 09_allocator_practice.cpp
+// explanation, check out file 09_allocator_practice.cpp, maybe need a seperate
+// buddy allocator or seperate pool allocator to store risk gate values, so they
+// dont have to be rebuilt every cycle
 //==============================================================================
 // [MAIN]
 //==============================================================================
