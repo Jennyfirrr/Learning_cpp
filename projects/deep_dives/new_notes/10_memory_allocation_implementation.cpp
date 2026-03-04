@@ -318,9 +318,11 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // DONT OPEN THIS FILE AFTER YOU SLEEP AND IGNORE THE ABOVE MESSAGE OR I SWEAR
 // TO GOD WERE GONNA HAVE WORDS]
 //==============================================================================
-// [EDIT [04-03-26 12:59am]]
+// [EDIT [04-03-26 12:59pm]]
 //==============================================================================
-// this one may be uneeded with the new risk gate layout
+// this one may be uneeded with the new risk gate layout, idk why im making this
+// public, part of me feels like other people who are bored in class may like
+// this, idk, i wonder if anyone actually enjoys reading and learning from these
 //==============================================================================
 uint64_t order_packing_8_byte(OrderPair pair) {
   uint64_t packed_orders = 0;
