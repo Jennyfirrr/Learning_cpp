@@ -3,7 +3,6 @@
 //==============================================================================
 // this is just the math to explain and understand the function below and how it
 // can be useful in the context of a risk gate
-//
 /*
 uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
   uint32_t diff = packed_order ^ broadcast_mask;
@@ -130,9 +129,6 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // code editor tbh
 
 //==============================================================================
-
-//
-//
 //-------------------------------------------------------------------
 //      lane 3    |    lane 2     |    lane 1     |     lane 0    |
 //-------------------------------------------------------------------
@@ -438,9 +434,7 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 // [NEAT TRICK SHOWN TO ME]
 //==============================================================================
 //
-// bool isPowerOfTwo(unint32_t x) {
-// return x && !(x & (x - 1));
-// }
+bool isPowerOfTwo(uint32_t x) { return x && !(x & (x - 1)); }
 //
 // this is basically saying return x assuming its not equal to the power of 2
 // check, because the x & (x -1) is the actual logic that checks for powers of
@@ -480,6 +474,8 @@ uint32_t calc_laneMatchCount(uint32_t packed_order, uint32_t broadcast_mask) {
 //
 //==============================================================================
 //[TODO[0x077CB531, de-bruijn constant that lets you map a bit index to a has
-// table in a single multiply shift]]
+// table in a single multiply shift]] more booths probably, divions is probably
+// just shift operations and adding similar to multiplication, with just
+// cascading powers of 2 shifts from largest -> least, iterating through
 //==============================================================================
 //==============================================================================
