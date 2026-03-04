@@ -455,6 +455,9 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+
+namespace fox_ml {
+namespace mem {
 //==================================================================================
 // [CONSTANTS]
 //==================================================================================
@@ -496,6 +499,7 @@ buddy_internal_size_to_order(size_t const size) noexcept {
   uint32_t const rounded = std::bit_ceil(min_size);
   return static_cast<uint32_t>(std::countr_zero(rounded));
 }
+// gonna fix the errors here in a min
 
 [[nodiscard]] static inline uint32_t
 buddy_internal_order_to_size(uint32_t const order) noexcept {
@@ -533,13 +537,237 @@ buddy_internal_bitmap_test(uint8_t const *const bitmap,
 //==================================================================================
 // [FREE LIST OPS] (buddy_freelist_*)
 //==================================================================================
+static inline void buddy_freelist_push(BuddyAllocatorState *const state,
+                                       uint32_t const order,
+                                       uint32_t const offset) noexcept {
+  uint32_t const list_idx = order - BUDDY_MIN_ORDER;
+  BuddyFreeNode *const node =
+      reinterpret_cast<BuddyFreeNode *>(state->pool + offset);
+
+  node->prev_offset = BUDDY_SENTINEL;
+  node->next_offset = state->free_lists[list_idx];
+
+  if (state->free_lists[list_idx] != BUDDY_SENTINEL) {
+    BuddyFreeNode *const head = reinterpret_cast<BuddyFreeNode *>(
+        state->pool + state->free_lists[list_idx]);
+    head->prev_offset = offset;
+  }
+
+  state->free_lists[list_idx] = offset;
+}
+
+static inline void buddy_freelist_remove(BuddyAllocatorState *const state,
+                                         uint32_t const order,
+                                         uint32_t const offset) noexcept {
+  uint32_t const list_idx = order - BUDDY_MIN_ORDER;
+  BuddyFreeNode *const node =
+      reinterpret_cast<BuddyFreeNode *>(state->pool + offset);
+
+  if (node->prev_offset != BUDDY_SENTINEL) {
+    BuddyFreeNode *const prev =
+        reinterpret_cast<BuddyFreeNode *>(state->pool + node->prev_offset);
+    prev->next_offset = node->next_offset;
+  } else {
+    state->free_lists[list_idx] = node->next_offset;
+  }
+
+  if (node->next_offset != BUDDY_SENTINEL) {
+    BuddyFreeNode *const next =
+        reinterpret_cast<BuddyFreeNode *>(state->pool + node->next_offset);
+
+    next->prev_offset = node->prev_offset;
+  }
+}
+
+[[nodiscard]] static inline uint32_t
+buddy_freelist_pop(BuddyAllocatorState *const state,
+                   uint32_t const order) noexcept {
+  uint32_t const list_idx = order - BUDDY_MIN_ORDER;
+  uint32_t const offset = state->free_lists[list_idx];
+
+  if (offset == BUDDY_SENTINEL)
+    return BUDDY_SENTINEL;
+
+  buddy_freelist_remove(state, order, offset);
+  return offset;
+}
 
 //==================================================================================
+// [PUBLIC API]
 //==================================================================================
-//==================================================================================
-//==================================================================================
+void buddy_init_state(BuddyAllocatorState *const state) noexcept {
+  memset(state, 0, sizeof(BuddyAllocatorState));
+
+  for (uint32_t i = 0; i < BUDDY_NUM_ORDERS; ++i) {
+    state->free_lists[i] = BUDDY_SENTINEL;
+  }
+
+  buddy_freelist_push(state, BUDDY_MAX_ORDER, 0u);
+  state->total_free_bytes = BUDDY_POOL_SIZE_BYTES;
+}
+
+[[nodiscard]] void *buddy_alloc_bytes(BuddyAllocatorState *const state,
+                                      size_t const size) noexcept {
+  if (size == 0 || size > BUDDY_POOL_SIZE_BYTES)
+    return nullptr;
+
+  uint32_t const target_order = buddy_internal_size_to_order(size);
+
+  if (target_order > BUDDY_MAX_ORDER)
+    return nullptr;
+
+  uint32_t found_order = BUDDY_MAX_ORDER + 1;
+  for (uint32_t ord = target_order; ord <= BUDDY_MAX_ORDER; ++ord) {
+    uint32_t const list_idx = ord - BUDDY_MIN_ORDER;
+    if (state->free_lists[list_idx] != BUDDY_SENTINEL) {
+      found_order = ord;
+      break;
+    }
+  }
+
+  if (found_order > BUDDY_MAX_ORDER)
+    return nullptr;
+
+  uint32_t offset = buddy_freelist_pop(state, found_order);
+
+  while (found_order > target_order) {
+    --found_order;
+    uint32_t const buddy_off =
+        offset + buddy_internal_order_to_size(found_order);
+
+    buddy_internal_bitmap_set(
+        state->split_bitmap,
+        buddy_internal_bitmap_index(offset, found_order + 1));
+
+    buddy_freelist_push(state, found_order, buddy_off);
+  }
+
+  buddy_internal_bitmap_set(state->alloc_bitmap,
+                            buddy_internal_bitmap_index(offset, target_order));
+
+  uint32_t const block_size = buddy_internal_order_to_size(target_order);
+  state->total_alloc_bytes += block_size;
+  state->total_free_bytes -= block_size;
+  ++state->alloc_count;
+
+  return state->pool + offset;
+}
+
+void buddy_free_ptr(BuddyAllocatorState *const state, void *const ptr,
+                    size_t const size) noexcept {
+  if (!ptr || size == 0)
+    return;
+
+  uint32_t offset =
+      static_cast<uint32_t>(reinterpret_cast<uint8_t *>(ptr) - state->pool);
+
+  uint32_t const target_order = buddy_internal_size_to_order(size);
+
+  buddy_internal_bitmap_clear(
+      state->alloc_bitmap, buddy_internal_bitmap_index(offset, target_order));
+
+  uint32_t const block_size = buddy_internal_order_to_size(target_order);
+  state->total_alloc_bytes -= block_size;
+  state->total_free_bytes += block_size;
+  ++state->free_count;
+
+  uint32_t order = target_order;
+  while (order < BUDDY_MAX_ORDER) {
+    uint32_t const buddy_off = buddy_internal_buddy_offset(offset, order);
+
+    uint32_t const parent_idx = buddy_internal_bitmap_index(
+        offset & ~(buddy_internal_order_to_size(order)), order + 1);
+
+    bool const parent_is_split =
+        buddy_internal_bitmap_test(state->split_bitmap, parent_idx);
+
+    if (!parent_is_split)
+      break;
+
+    uint32_t buddy_alloc_idx = buddy_internal_bitmap_index(buddy_off, order);
+    if (buddy_internal_bitmap_test(state->alloc_bitmap, buddy_alloc_idx))
+      break;
+
+    buddy_freelist_remove(state, order, buddy_off);
+
+    buddy_internal_bitmap_clear(state->split_bitmap, parent_idx);
+
+    offset = (offset < buddy_off) ? offset : buddy_off;
+    ++order;
+  }
+
+  buddy_freelist_push(state, order, offset);
+}
 
 //==================================================================================
+// [DIAGNOSTICS]
+//==================================================================================
+struct BuddyDiagSnapshot {
+  uint64_t total_alloc_bytes;
+  uint64_t total_free_bytes;
+  uint32_t alloc_count;
+  uint32_t free_count;
+  uint32_t free_blocks_per_order[BUDDY_NUM_ORDERS];
+};
+
+BuddyDiagSnapshot
+buddy_diag_snapshot(BuddyAllocatorState const *const state) noexcept {
+  BuddyDiagSnapshot snap{};
+  snap.total_alloc_bytes = state->total_alloc_bytes;
+  snap.total_free_bytes = state->total_free_bytes;
+  snap.alloc_count = state->alloc_count;
+  snap.free_count = state->free_count;
+
+  for (uint32_t i = 0; i < BUDDY_NUM_ORDERS; ++i) {
+    uint32_t count = 0;
+    uint32_t offset = state->free_lists[i];
+    while (offset != BUDDY_SENTINEL) {
+      ++count;
+      BuddyFreeNode const *const node =
+          reinterpret_cast<BuddyFreeNode const *>(state->pool + offset);
+      offset = node->next_offset;
+    }
+    snap.free_blocks_per_order[i] = count;
+  }
+  return snap;
+}
+
+} // namespace mem
+} // namespace fox_ml
+
+//==================================================================================
+// [USAGE EXAMPLE]
+//==================================================================================
+// fox_ml::mem::BuddyAllocatorState allocator;
+// fox_ml::mem::buddy_init_state(&allocator);
+//
+// void* pos = fox_ml::mem::buddy_alloc_bytes(&allocator,
+// sizeof(PositionState)); new (pos) PositionState{};
+//
+// use position
+//
+// static_cast<PositionState*>(pos)->~PositionState();
+// fox_ml::mem::buddy_free_ptr(&allocator, pos, sizeof(PositionState));
+//==================================================================================
+// EDIT3: what the fuck have i gotten myself into, like seriously, what the
+// actual fuck lmao, one day you sit down because you wanna make a trading
+// pipeline, becausd you dont want a normal job, next thing you know youve
+// written nearly a small book about c++ and bitwise operators and asm
+// annotation, and spent 3k hours over 8 months learning about modeling
+// pipelines lmao, and you STILL cant do anything like this in java lmao, im
+// actually questioning my sanity right now though lol, like, what HAVE I DONE,
+// like, im just some person, who has made alot of bad decisions, and somehow,
+// writing my notes like an open journal, with zero filter, and making a fool of
+// myself on linkedin, actually worked out? kinda? maybe? idk yet, like what the
+// fuck is this buddy allocator lmao, like who the actual fuck, sat down, and
+// designed one of these, that is 10k lines, before ai lmao, whoever invented
+// this shit is far smarter than i am lol, anyways, im gonna go rethink my life
+// after typing this out lol, because seriously what the fuck is all that
+//
+// STILL BETTER THAN THE GARBAGE COLLECTOR IN JAVA, NEVER GIVE UP, NEVER
+// SURRENDER, FREEDOM, MURICA
+//==================================================================================
+// [END OF BUDDY ALLOCATOR EXAMPLE] [fml]
 //==================================================================================
 // so, within the context of HFT, which is what i love, alot of systems use
 // a hybrid approach apparently in actual production code bases, arena
