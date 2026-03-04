@@ -333,7 +333,10 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // to flag that once conditions are met because the sell gate is tracking the
 // position 0X000000, and we need to way to flag the X0000000 bit when its
 // supposed to buy, and these could probably be converted to a simple bool
-// value, using a watcher function, im still kinda trying to figure that out
+// value, using a watcher function, im still kinda trying to figure that out,
+// and if we track orders that way, then the entire orderpacking may not be
+// necessary because were simply tracking stuff via the risk gates, so the
+// struct for orders, as well as the function below may not even be needed
 //==============================================================================
 uint64_t order_packing_8_byte(OrderPair pair) {
   uint64_t packed_orders = 0;
