@@ -235,22 +235,22 @@ struct sell_lanes {
 };
 static_assert(sizeof(sell_lanes) == 8, "struct must be 8 bytes");
 
-struct TrackedOrders {
-  uint8_t order0;
-  uint8_t order1;
-  uint8_t order2;
-  uint8_t order3;
-  uint8_t order4;
-  uint8_t order5;
-  uint8_t order6;
-  uint8_t order7;
-};
-static_assert(sizeof(TrackedOrders) == 8, "struct must be 8 bytes");
-
 struct CurrentOrder {
   uint8_t current_order;
 };
 static_assert(sizeof(CurrentOrder) == 1, "struct must be 1 byte");
+
+struct TrackedOrders {
+  CurrentOrder order0;
+  CurrentOrder order1;
+  CurrentOrder order2;
+  CurrentOrder order3;
+  CurrentOrder order4;
+  CurrentOrder order5;
+  CurrentOrder order6;
+  CurrentOrder order7;
+};
+static_assert(sizeof(TrackedOrders) == 8, "struct must be 8 bytes");
 
 struct RiskGate_BuySide {
   uint8_t buyside_risk0;
