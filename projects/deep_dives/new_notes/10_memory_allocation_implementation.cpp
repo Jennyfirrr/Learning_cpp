@@ -407,7 +407,10 @@ uint64_t risk_gate_check_sell_side(uint64_t packed_order,
 // X0000000 where x is the buy bit, and then 0X000000, where x is the sell
 // trigger, hmmm more thinking :), probably kinda of dumb to leave this public
 // and stuff, but its pretty basic lol, and i kinda like the engagement, it
-// makes life a little more colorful, plus id be bored if i didnt
+// makes life a little more colorful, plus id be bored if i didnt, if youre
+// reading this for the first time, the code looks weird because its optimal,
+// just like the ideal body for peak male performance, if you want an
+// explanation, check out file 09_allocator_practice.cpp
 //==============================================================================
 // [MAIN]
 //==============================================================================
