@@ -6,6 +6,7 @@
 //=================================================================================
 // included libraries
 //=================================================================================
+#include <bit>
 #include <cstdint>
 #include <immintrin.h>
 #include <iostream>
@@ -354,6 +355,23 @@ OrderPair order_generation() {
   return *reinterpret_cast<OrderPair *>(&generated_order);
 }
 //=================================================================================
+// [XOR SHIFT] [Order gen not using twister]
+//=================================================================================
+// randomization algorithm i found that i may use later
+//=================================================================================
+/*
+uint64_t xorshift256(uint64_t s[4]) {
+  uint64_t result = _rotl(s[1] * 5, 7) * 9;
+  uint64_t t = s[1] << 17;
+  s[2] ^= s[0];
+  s[3] ^= s[1];
+  s[1] ^= s[2];
+  s[0] ^= s[3];
+  s[2] ^= t;
+  s[3] = _rotl(s[3], 45);
+  return result;
+}
+*/
 //=================================================================================
 // [MAIN]
 //=================================================================================
@@ -402,6 +420,7 @@ int main() {
 
   while (duration > 0) {
     __asm__ volatile("mfence" ::: "memory");
+    // this just seperates the different __rdtsc calls
     uint64_t s1 = __rdtsc();
     OrderPair order = order_generation();
     uint64_t e1 = __rdtsc();
