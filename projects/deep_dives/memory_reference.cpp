@@ -444,7 +444,10 @@ void *sst_allocate_aligned(size_t alignment, size_t size) {
 //
 // EDIT2: im gonna finish this, just like give me a minute im having a whole ass
 // existential crises and looking back on my life to figure out the exact
-// choices that have led to me dsicovering buddy allocators lol
+// choices that have led to me dsicovering buddy allocators lol, like pool
+// allocators, 20 lines no problem, but WHAT THE FUCK IS THIS, and its a simple
+// one lmao, like i need time to *sparkle emoji*P R O C E S S  T H I S*sparkle
+// emoji*
 //==================================================================================
 #include <array>
 #include <bit>
