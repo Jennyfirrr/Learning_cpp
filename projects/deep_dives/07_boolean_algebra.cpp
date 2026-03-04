@@ -471,8 +471,6 @@ bool isPowerOfTwo(uint32_t x) { return x && !(x & (x - 1)); }
 // is not a power of 2
 //
 //==============================================================================
-//
-//==============================================================================
 //[TODO[0x077CB531, de-bruijn constant that lets you map a bit index to a has
 // table in a single multiply shift]] more booths probably, divions is probably
 // just shift operations and adding similar to multiplication, with just
