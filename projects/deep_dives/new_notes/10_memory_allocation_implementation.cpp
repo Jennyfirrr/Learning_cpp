@@ -364,7 +364,7 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // just like not even try like a certain grumpy walrus we all know and love,
 // saying crazy lies like "no one like navigating by terminal", and "people like
 // java", like sir, are you ok? do you need help? stop spreading lies and
-// propaganda like that
+// propaganda like that <3
 //==============================================================================
 uint64_t order_packing_8_byte(TrackedOrders pair) {
   uint64_t packed_orders = 0;
