@@ -393,6 +393,24 @@ uint64_t order_packing_8_byte(TrackedOrders pair) {
 // note that there will be a seperate buy/sell gate, so all 8 lanes are
 // dedicated to a single process, as outlined above
 //==============================================================================
+// [EDIT [04-03-26 07:06pm]]
+//==============================================================================
+// im not sure if a buddy allocator or something shoudl be used for this, like
+// for practice files keeping it in main is like whatever, but in a real system,
+// you would want better persistance, and shifting it to the heap to be stored
+// after initialization would probably work better than keeping it always taking
+// up 2 whole registers, but it gets transferred there anyways i think, but
+// using a memory allocation solution like a seperate pool or buddy allocator,
+// or maybe even arena, would probably be ideal when the system gets more
+// complex, to manage multiple states and order streams, idk im just thinking
+// outloud here, i guess a buddy allocator would be more useful when managing
+// more order states and data streams than a pool allocator would allow, because
+// then you could perfectly chunk down to 8bytes per block, and store however
+// many times you can fit 8 into the max allocation size, but that would be WAY
+// more complex, and this is just like a demo to kinda highlight my work style,
+// i should probably add a sanitized version for HR types, i doubt they would
+// appreciate the unfilted stream of concious
+//==============================================================================
 uint64_t build_risk_gate_buy(RiskGate_BuySide sides) {
   uint64_t risk_gate_built_buy_side = 0;
 
