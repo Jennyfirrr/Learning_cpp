@@ -353,18 +353,28 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // struct for orders, as well as the function below may not even be needed,
 // maybe the packed orders would be needed though, because we have to have a way
 // to load them as a uint64_t to actually compare them to the risk gate, idk
+//
+// EDIT: this shoudl work, because each order[i] is tracked using the struct,
+// just better ogranizational, and allows type to be tracked and moved around to
+// suppliment the watcher per lane, allowing for better SWAR operations *sparkle
+// emoji*I F  Y O U  A I N T  F I R S T  Y O U R  L A S T*sparkle emoji*,
+// because registers are ricky bobby fast, yeah im old deal with it, i could
+// just like not even try like a certain grumpy walrus we all know and love,
+// saying crazy lies like "no one like navigating by terminal", and "people like
+// java", like sir, are you ok? do you need help? stop spreading lies and
+// propaganda like that
 //==============================================================================
 uint64_t order_packing_8_byte(TrackedOrders pair) {
   uint64_t packed_orders = 0;
 
-  packed_orders |= static_cast<uint64_t>(pair.order0);
-  packed_orders |= static_cast<uint64_t>(pair.order1) << 8;
-  packed_orders |= static_cast<uint64_t>(pair.order2) << 16;
-  packed_orders |= static_cast<uint64_t>(pair.order3) << 24;
-  packed_orders |= static_cast<uint64_t>(pair.order4) << 32;
-  packed_orders |= static_cast<uint64_t>(pair.order5) << 40;
-  packed_orders |= static_cast<uint64_t>(pair.order6) << 48;
-  packed_orders |= static_cast<uint64_t>(pair.order7) << 56;
+  packed_orders |= static_cast<uint64_t>(pair.order0.current_order);
+  packed_orders |= static_cast<uint64_t>(pair.order1.current_order) << 8;
+  packed_orders |= static_cast<uint64_t>(pair.order2.current_order) << 16;
+  packed_orders |= static_cast<uint64_t>(pair.order3.current_order) << 24;
+  packed_orders |= static_cast<uint64_t>(pair.order4.current_order) << 32;
+  packed_orders |= static_cast<uint64_t>(pair.order5.current_order) << 40;
+  packed_orders |= static_cast<uint64_t>(pair.order6.current_order) << 48;
+  packed_orders |= static_cast<uint64_t>(pair.order7.current_order) << 56;
 
   return packed_orders;
 }
