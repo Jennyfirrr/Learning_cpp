@@ -409,7 +409,12 @@ uint64_t order_packing_8_byte(TrackedOrders pair) {
 // many times you can fit 8 into the max allocation size, but that would be WAY
 // more complex, and this is just like a demo to kinda highlight my work style,
 // i should probably add a sanitized version for HR types, i doubt they would
-// appreciate the unfilted stream of concious
+// appreciate the unfilted stream of concious, i may kinda take a break from
+// working on this for a day or 2 because i have school assignments to do and im
+// a *sparkle emoji*G O O D  S T U D E N T*sparkl emoji* who gives my
+// assignments the best i can :), i even sat in the front of class today AND
+// wore a belt AND pants, imagine that, i got dressed up in my professional
+// attire
 //==============================================================================
 uint64_t build_risk_gate_buy(RiskGate_BuySide sides) {
   uint64_t risk_gate_built_buy_side = 0;
