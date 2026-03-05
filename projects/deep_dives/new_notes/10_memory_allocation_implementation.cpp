@@ -353,8 +353,10 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // struct for orders, as well as the function below may not even be needed,
 // maybe the packed orders would be needed though, because we have to have a way
 // to load them as a uint64_t to actually compare them to the risk gate, idk
-//
-// EDIT: this shoudl work, because each order[i] is tracked using the struct,
+//==============================================================================
+// [EDIT [04-03-26 07:03pm]]
+//==============================================================================
+// this shoudl work, because each order[i] is tracked using the struct,
 // just better ogranizational, and allows type to be tracked and moved around to
 // suppliment the watcher per lane, allowing for better SWAR operations *sparkle
 // emoji*I F  Y O U  A I N T  F I R S T  Y O U R  L A S T*sparkle emoji*,
