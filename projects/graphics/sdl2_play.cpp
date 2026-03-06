@@ -59,14 +59,14 @@ int main(int argc, char *argv[]) {
         double zx = 0, zy = 0;
         int iter = 0;
 
-        while (zx * zx + zy * zy < 4.0 && iter < 100) {
+        while (zx * zx + zy * zy < 4.0 && iter < 1000) {
           double new_zx = zx * zx - zy * zy + cx;
           zy = 2 * zx * zy + cy;
           zx = new_zx;
           iter++;
         }
 
-        if (iter == 100) {
+        if (iter == 1000) {
           SDL_SetRenderDrawColor(render, 10, 10, 26, 255);
         } else {
           SDL_SetRenderDrawColor(render, iter * 3 % 255, iter * 6 % 255,
