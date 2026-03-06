@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
 
+// java bad
+
 int main(int argc, char *argv[]) {
 
   bool running = true;
