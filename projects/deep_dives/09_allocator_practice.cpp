@@ -446,9 +446,6 @@ int main() {
 
     duration--;
   }
-  // apparently these function are too fast and the overhead is just rdtsc
-  // overhead lol, rdtsc is basically ~30 cycles lol, so this basically comes
-  // out to 5 cycles for all those functions lol
 
   std::cout
       << "\n==============================================================="
