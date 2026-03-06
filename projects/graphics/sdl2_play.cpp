@@ -69,8 +69,8 @@ int main(int argc, char *argv[]) {
         if (iter == 100) {
           SDL_SetRenderDrawColor(render, 10, 10, 26, 255);
         } else {
-          SDL_SetRenderDrawColor(render, iter * 5 % 255, iter * 3 % 255,
-                                 iter * 7 % 255, 255);
+          SDL_SetRenderDrawColor(render, iter * 3 % 255, iter * 6 % 255,
+                                 iter * 9 % 255, 255);
         }
         SDL_RenderDrawPoint(render, px, py);
       }
