@@ -211,30 +211,6 @@ static std::mt19937_64 rng(123124);
 // no folds, smooth, good brain, 200iq, 200 years of collective design
 // experience
 //==============================================================================
-struct buy_lanes {
-  uint8_t buy0;
-  uint8_t buy1;
-  uint8_t buy2;
-  uint8_t buy3;
-  uint8_t buy4;
-  uint8_t buy5;
-  uint8_t buy6;
-  uint8_t buy7;
-};
-static_assert(sizeof(buy_lanes) == 8, "struct must be 8 bytes");
-
-struct sell_lanes {
-  uint8_t sell0;
-  uint8_t sell1;
-  uint8_t sell2;
-  uint8_t sell3;
-  uint8_t sell4;
-  uint8_t sell5;
-  uint8_t sell6;
-  uint8_t sell7;
-};
-static_assert(sizeof(sell_lanes) == 8, "struct must be 8 bytes");
-
 struct CurrentOrder {
   uint8_t current_order;
 };
