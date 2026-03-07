@@ -336,11 +336,7 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // just better ogranizational, and allows type to be tracked and moved around to
 // suppliment the watcher per lane, allowing for better SWAR operations *sparkle
 // emoji*I F  Y O U  A I N T  F I R S T  Y O U R  L A S T*sparkle emoji*,
-// because registers are ricky bobby fast, yeah im old deal with it, i could
-// just like not even try like a certain grumpy walrus we all know and love,
-// saying crazy lies like "no one like navigating by terminal", and "people like
-// java", like sir, are you ok? do you need help? stop spreading lies and
-// propaganda like that <3
+// because registers are ricky bobby fast
 //==============================================================================
 uint64_t order_packing_8_byte(TrackedOrders pair) {
   uint64_t packed_orders = 0;
