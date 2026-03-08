@@ -217,6 +217,52 @@ static std::mt19937_64 rng(123124);
 // no folds, smooth, good brain, 200iq, 200 years of collective design
 // experience
 //==============================================================================
+// [EDIT [07-03-26 08:26pm]]
+//==============================================================================
+// SO, i was doing some thinking(that should scare you), and i think i have a
+// solution for how to track the individual orders using the structs, im not
+// exactly sure how to isolate the individual bits quickly but im probably gonna
+// read over my notes some and something will click, but this is probably part
+// of how it will work, each one will probably be like a uint8 or something, im
+// not too sure, but im trying to figure out a way to compress and extract the
+// actual information contained in the buy/sell id's, its kinda hard, but im
+// thinking about it
+//
+struct Order {
+  uint8_t p;  // price
+  uint8_t e;  // expirery
+  uint8_t n;  // notational
+  uint8_t i;  // instrument id
+  uint8_t s;  // side
+  uint8_t l;  // limit
+  uint8_t o;  // order size
+  uint8_t l2; // lot size
+};
+static_assert(sizeof(Order) == 8, "struct must be 8 bytes");
+
+// so like you can see the current order below, where its set to a single byte,
+// which in theory would work assuming that your only usnig 1 ticker per set up
+// like this, if your doing cross sectional trading you would need something
+// like the struct above to actually track things because you cant just assing
+// t/f values, but for a single ticker the below would probably be more
+// effecient, the design above is for a more robust cross sectional system,
+// because there is more to track, and i cant really think of a way to encode
+// all the needed information into a single byte, so thats just like a rough
+// draft im kinda toying around with in my head, its 8x larger than the single
+// ticker order routing and execution system ive been drafting, but for more
+// complex order states, you cant really avoid this, and it still fits in a
+// single register, so it saves on clock cycles but would need actual SIMD/AVX
+// instructions to parse these, i just wanted to get these thoughts down on
+// paper before i forgot them, and just analyzing the tradeoffs between single
+// ticker order flows, and cross sectional flows, because in a single ticker
+// operation like below, alot of the information is implicit and doesnt need to
+// be tracked, which HEAVILY reduces the amount of information you actually
+// need, and as stated above, it can mostly fit into a single byte, but cs needs
+// like the ticker ID, which is a byte, order amount, which can be reduced to a
+// byte using the order size with the notational value, etc, idk this is just a
+// thought, because i cant just turn my brain off apparently
+//
+//==============================================================================
 struct CurrentOrder {
   uint8_t current_order;
 };
