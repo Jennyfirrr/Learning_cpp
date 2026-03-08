@@ -5,11 +5,11 @@
 **IF YOURE FROM HR, JUST FORWARD THIS TO YOUR LEAD ENGINEER SO YOU DONT HAVE AN ANYUERISM READING IT, I PROMISE I KNOW WHAT IM TALKING ABOUT, BUT THE PROSE IN THESE FILES WILL MAKE YOU HAVE A HEADACHE THAT LASTS FOR 6+ MONTHS**
 
 **TLDR: USE A STRUCT**
- - Thats literally what all these files conclude to, 41k words of prose + 5k words of annotated ASM, to basically just say, yous a well written struct
+ - Thats literally what all these files conclude to, 44k words of prose + 5k words of annotated ASM, to basically just say, yous a well written struct
 
 Explorations of hardware/binary-level topics, low-level optimization, and how C++ actually compiles down to assembly. Started with bitwise operators and spiraled into branchless programming, bit packing for HFT order books, hand-tracing binary math, and annotating compiler-generated x86 assembly.
 
-**Java hate counter: 55 mentions across 12 files** (memory_reference.cpp leads with 13, tied for second: 05_bit_packing_orders.cpp and 09_allocator_practice.cpp with 10 each)
+**Java hate counter: 76 mentions across 15 files** (memory_reference.cpp leads with 21, tied for second: 05_bit_packing_orders.cpp and 09_allocator_practice.cpp with 11 each)
 
 ## Index
 
@@ -21,19 +21,23 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 | 04 | `04_bit_state_checking.cpp` | 2,231 | 12 | 283 | Per-bit state extraction and normalization, kill switch logic using bitmasks, cmov vs jump compiler behavior, when if statements stay branchless vs trigger branch prediction |
 | 05 | `05_bit_packing_orders.cpp` | 4,757 | 1,768 | 1,305 | Packing multiple 8-bit order IDs into 32-bit ints, kill masks with de Bruijn-style multiplication, loop unrolling, delta encoding with XOR, signed vs unsigned pitfalls, extensively annotated ASM output for the entire program |
 | 06 | `06_kill_switch_asm.cpp` | 1,245 | 509 | 398 | Array-based kill switch using std::array, function-by-function ASM breakdown showing how the compiler converts bit operations to NOT+TEST+SETE, RDTSC cycle counting |
-| 07 | `07_boolean_algebra.cpp` | 4,991 | 4 | 485 | Mycroft trick (haszero/hasless macro), lane-by-lane binary subtraction with borrow logic, full hand-traced 32-bit operation table, POPCNT as a single silicon instruction |
+| 07 | `07_boolean_algebra.cpp` | 3,358 | — | 479 | Mycroft trick (haszero/hasless macro), lane-by-lane binary subtraction with borrow logic, full hand-traced 32-bit operation table, POPCNT as a single silicon instruction |
 | 08 | `08_mycroft_implementation.cpp` | 4,874 | 1,941 | 1,386 | Mycroft trick implementation with 64-bit order packing, 4 buy + 4 sell per uint64, PDEP/PEXT bit deposit/extract, signed bit smearing pitfalls, BMI1/2 instructions |
-| 09 | `09_allocator_practice.cpp` | 3,942 | 922 | 956 | Pool/arena allocator for order tracking, de Bruijn masking, PDEP/PEXT with immintrin.h, IMUL magic number optimization, TZCNT/BSF bit scanning |
+| 09 | `09_allocator_practice.cpp` | 3,151 | 1,048 | 1,027 | Pool/arena allocator for order tracking, de Bruijn masking, PDEP/PEXT with immintrin.h, IMUL magic number optimization, TZCNT/BSF bit scanning |
+| 10 | `10_memory_allocation_implementation.cpp` | 3,577 | — | 527 | Pool allocator order tracking, buy/sell risk gates, 8-lane order packing, branchless order routing, struct-based state machine design for single-ticker and cross-sectional flows |
 
 ### Standalone / Reference Files
 
 | File | Prose | ASM | Lines | Topics |
 |------|-------|-----|-------|--------|
 | `asm_reference.cpp` | 4,954 | 123 | 538 | x86_64 ASM reference — registers (eax/rax/al), AT&T syntax ($literal, %register), instruction suffixes (b/w/l/q), condition codes, flags (ZF/CF/SF/OF), JNE/JE/JMP branch instructions |
-| `memory_reference.cpp` | 5,412 | 10 | 534 | Memory alignment, malloc internals, struct padding, alignas(64), cache hierarchy (L1/L2/L3), stack vs heap allocation, false sharing, buddy allocators, vector preallocation — why pre-reserving beats push_back |
+| `memory_reference.cpp` | 5,654 | — | 918 | Memory alignment, malloc internals, struct padding, alignas(64), cache hierarchy (L1/L2/L3), stack vs heap allocation, false sharing, buddy allocators, vector preallocation — why pre-reserving beats push_back |
 | `inline_asm_discovery.cpp` | 1,419 | — | 131 | The moment of discovering you can write ASM inline in C++ (and that Java definitely does not let you do this) |
 | `fixed_point_math.cpp` | 339 | — | 27 | COBOL-inspired fixed point arithmetic — storing decimals as integers for deterministic financial math, why floating point comparison is icky |
 | `FIX_protocol.cpp` | 15 | — | 6 | Placeholder for FIX protocol research |
+| `buddy_allocator_ref.cpp` | 60 | — | 305 | Buddy allocator reference — power-of-2 block splitting, free list ops, bitmap tracking, coalescing on free, diagnostics snapshot |
+| `data_structures.cpp` | 511 | — | 78 | Linear structures (arrays/vectors/linked lists), trees (BST, in-order/pre-order/post-order traversals), graphs and hash maps (stubs) |
+| `lock_free_reference.cpp` | 975 | — | 110 | Lock-free concurrency, CAS (compare_exchange_weak vs strong), spin loops, cmpxchg on x86, mutex vs lock-free tradeoffs |
 
 ### `asm_outputs/`
 
@@ -62,6 +66,7 @@ Things I'm probably gonna eventually add here:
     - buddy/pool allocators
 - Lock Free Concurrency[this is important]
     - to put in memory_stuff or not to put it there, that is the question
+    - basic reference file added (CAS, spin loops, weak vs strong)
 - Branchless Backtester[already kind of have the logic laid out]
     - idk how useful this would be
 - FPGA/kernal bypasses
