@@ -1,6 +1,20 @@
 //=============================================================================
 // [MEMORY ALLOCATION IMPLEMENTED]
 //==============================================================================
+// [EDIT [08-03-26 05:11pm]]
+//==============================================================================
+// SO, with the discovery that for actual order routing would  probably require
+// more than a single bit to convery information in a CS setup, im probably
+// gonna abandon this attempt and take what was learned and try to scaffold a
+// more robust order system, because while this works with single stocks,
+// because alot of the information is implcit, simply based on the fact that its
+// a single stock, you could theoretically fit all the reuiqred information into
+// 8 bits, but no one is interested in a single stock trading algorithm like
+// this, SO, were gonna move to a more robust system, and im trying to decide if
+// making that public is worth or not, ill probably still make it OSS, because
+// why not, and it makes a killer portfolio piece, but who knows, until then
+// *sparkle emoji*T O O D L E S*sparkle emoji*
+//==============================================================================
 // [NOTE [07-03-26 07:38pm]]
 //==============================================================================
 // im incredibly tired after writing nearly 50k words in 2 weeks, im gonna kinda
