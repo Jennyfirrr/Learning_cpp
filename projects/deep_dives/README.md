@@ -48,44 +48,38 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 | `08_mycroft_implementation.s` | Generated from `08_mycroft_implementation.cpp` |
 | `09_allocator_practice.s` | Generated from `09_allocator_practice.cpp` |
 
-## Future Deep Dives
+## Deep Dive Progress
 
-Things I'm probably gonna eventually add here:
+### Done / Mostly Done
 
-- SIMD/AVX-512[still need more on this]
-- Bitset class[idk if i did this or not]
-- Branchless programming[alot of this is done]
-    - basics for this are mostly covered I think
-    - need to add more advanced implementations, like the mycroft trick, and using techniques for memory managment
-    - basic mycroft implementation done, why its not ideal in some cases, why signed bits are bad for order packing
-- Memory alignment[probably gonna need to know more about asm]
-    - this will probably cover things like malloc, heap, stack, and other stuff like that[these are pretty fleshed out]
-    - Partially done, malloc, alignas, cachelines, etc, need to cover implementation more[mostly done, need use cases/examples]
-    - heap and stack need more indepth notes, only briefly covered[updated]
-    - maybe optimal ASM inline implementations if im really bored
-    - buddy/pool allocators
-- Lock Free Concurrency[this is important]
-    - to put in memory_stuff or not to put it there, that is the question
-    - basic reference file added (CAS, spin loops, weak vs strong)
-- Branchless Backtester[already kind of have the logic laid out]
-    - idk how useful this would be
-- FPGA/kernal bypasses
-    - nust pure curiosity, would mostly be writing about, not actual code
-- Inline ASM
-    - definiely need to know this
-- ASM[registers, DOD, lower level optimizations]
-    - being able to write all asm not as important, but DOD(data oriented design), big important
-    - understandnig how ASM works is very important, especially manual pointer managment
-    - need more references for how cpp converts to asm at compile time
-    - added inline asm notes to point out registers for better explanations
-    - added todo's[DWARF unwinder, @PLT, more suffix/instruction]
-- Centralized time keeping
-    - not hugely important, just a curisoty for node based trading systems
-- ML library design, although the guy that made databricks or whatever it is has a great thing for that, like Matei Zaharia is his name or something i think, i may just follow that, idk I saw a link for something that covered the fundamentals of that and it looked interesting
-- Actual cpu design[lol ambitious i know]
-    - probably more related to FPGA
-- BMI1/BMI2[bit manipulation instructions]
-    - this will probably be under branchless programming or bitset class
-    - gonna group PDEP/PEXT in which this because WHY NOT LOL[briefly covered, probably more indepth in a new reference file for hardware instructions or microcode calls]
+- **Branchless programming** — basics, two's complement, branch prediction, cmov vs jump, mycroft trick, signed bit pitfalls (03, 04, 07, 08)
+- **Bitwise operators & bitmasking** — gates, shifts, bitfields, flags, power-of-2 checks (01, 02)
+- **Bit packing & order encoding** — 8-bit order IDs packed into 32/64-bit ints, kill masks, delta encoding, SWAR (05, 08, 09, 10)
+- **ASM reference** — x86_64 registers, AT&T syntax, instruction suffixes, condition codes, flags, branch instructions (asm_reference.cpp)
+- **Memory alignment & allocation** — malloc internals, struct padding, alignas(64), cache hierarchy, stack vs heap, false sharing, vector preallocation (memory_reference.cpp)
+- **Pool/arena allocators** — pool allocator for order tracking, bitmap-based slot management, TZCNT/BSF bit scanning (09, 10)
+- **Buddy allocator** — reference implementation with power-of-2 splitting, free lists, coalescing (buddy_allocator_ref.cpp)
+- **BMI1/BMI2** — PDEP/PEXT bit deposit/extract, IMUL magic numbers, de Bruijn masking (08, 09)
+- **Inline ASM** — discovery and basic usage, register annotations (inline_asm_discovery.cpp)
+- **Fixed point math** — COBOL-inspired integer storage for deterministic financial math (fixed_point_math.cpp)
+- **Data structures** — linear structures, BST, tree traversals (data_structures.cpp)
+
+### In Progress / Continuing
+
+- **Lock free concurrency** — basic reference file added (CAS, spin loops, weak vs strong), still need memory ordering (relaxed/acquire/release/seq_cst), false sharing, cache line implications (lock_free_reference.cpp)
+- **Order routing & execution** — pool allocator state machine, buy/sell risk gates, branchless order routing, single-ticker done, cross-sectional flow design in progress (10)
+- **ASM breakdowns** — function-by-function annotated ASM for 05, 06, 08, 09, need more coverage for newer files
+- **Branchless backtester** — logic mostly laid out in 10, need actual implementation with data stream reading
+
+### Not Started / Future
+
+- SIMD/AVX-512
+- Bitset class
+- FPGA/kernel bypasses — pure curiosity, mostly writing not code
+- Centralized time keeping — curiosity for node based trading systems
+- ML library design
+- Actual CPU design — probably more related to FPGA
+- FIX protocol — placeholder exists (FIX_protocol.cpp)
+- ASM deep dive — DWARF unwinder, @PLT, DOD (data oriented design), more instruction coverage
 
 **Keep in mind that these are more like things I wanna study, there isnt like a guarentee or anything ill every actually get to these or push anything about them, there just a list of things that im currently interested in**
