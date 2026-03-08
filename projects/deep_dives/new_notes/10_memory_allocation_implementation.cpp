@@ -1,6 +1,12 @@
 //=============================================================================
 // [MEMORY ALLOCATION IMPLEMENTED]
 //==============================================================================
+// [NOTE [07-03-26 07:38pm]]
+//==============================================================================
+// im incredibly tired after writing nearly 50k words in 2 weeks, im gonna kinda
+// relax some over spring break, and the continue where this left off, im not
+// quitting, im just tired lmao, like really tired
+//==============================================================================
 // [TAGS] [Pool_Allocator] [State_tracking] [Order_parsing]
 // [Decision_Engine] [Java-bad] [Data_stream_reading]
 //==============================================================================
