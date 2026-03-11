@@ -167,6 +167,16 @@ struct SellConditions {
 };
 static_assert(sizeof(SellConditions) == 8, "SellConditions should be 8 bytes");
 
+struct SellGateBuilt {
+  uint64_t packed_conditions;
+};
+static_assert(sizeof(SellGateBuilt) == 8, "SellGateBuilt should best 8 bytes");
+
+struct BuyGateBuilt {
+  uint64_t packed_conditions;
+};
+static_assert(sizeof(BuyGateBuilt) == 8, "BuyGateBuilt should be 8 bytes");
+
 //=============================================================================
 // [FUNCTIONS]
 //=============================================================================
@@ -192,6 +202,27 @@ void OrderPool_Free(OrderPool *pool, OrderInformation *slot_ptr) {
 uint32_t OrderPool_CountActive(const OrderPool *pool) {
   uint32_t popcount = __builtin_popcountll(pool->bitmap);
   return popcount;
+}
+//=============================================================================
+// [CONDITIONS]
+//============================================================================
+// standard build conditions, i probably need a more robust way to split off
+// which side actually gets added to the orderpool, probably like 4 check
+// functions, with each one outputting a different OrderInformation struct, so
+// it may actually be bad to use SWAR techniques, im not really sure
+//=============================================================================
+BuyGateBuilt build_buy_conditions(BuyConditions *conditions) {
+  uint64_t packed_conditions = 0;
+  packed_conditions |= ((uint64_t)conditions->condition_0 << 32);
+  packed_conditions |= conditions->condition_1;
+  return {packed_conditions};
+}
+
+SellGateBuilt build_sell_conditions(SellConditions *conditions) {
+  uint64_t packed_conditions = 0;
+  packed_conditions |= ((uint64_t)conditions->condition_0 << 32);
+  packed_conditions |= conditions->condition_1;
+  return {packed_conditions};
 }
 
 //=============================================================================
