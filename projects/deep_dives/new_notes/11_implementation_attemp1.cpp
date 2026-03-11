@@ -168,12 +168,12 @@ struct SellSideGateConditions {
 static_assert(sizeof(SellSideGateConditions) == 8, "SellSideGateConditions");
 
 struct SellGateBuilt {
-  uint64_t packed_conditions;
+  uint64_t packed_conditions_sell;
 };
 static_assert(sizeof(SellGateBuilt) == 8, "SellGateBuilt should best 8 bytes");
 
 struct BuyGateBuilt {
-  uint64_t packed_conditions;
+  uint64_t packed_conditions_buy;
 };
 static_assert(sizeof(BuyGateBuilt) == 8, "BuyGateBuilt should be 8 bytes");
 
@@ -234,11 +234,11 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // think, and should probably be a void, because its not returning anything its
 // just watching the data stream to see if an order should be added
 //=============================================================================
-void check_buy_lane0(const BuyGateBuilt *buy_gate, uint64_t data_stream,
-                     OrderPool *pool) {
-  uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
-  if ((data_stream & condition_0) == condition_0) {
-    OrderInformation *slot = OrderPool_Allocate(&pool);
+void check_buy_lane0(const BuyGateBuilt *packed_conditions,
+                     uint64_t data_stream, OrderPool *pool) {
+
+  if (data_stream == packed_conditions->packed_conditions_buy) {
+    OrderInformation *slot = OrderPool_Allocate(pool);
     *((uint64_t *)slot) = data_stream;
   }
 }
