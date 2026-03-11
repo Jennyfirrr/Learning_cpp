@@ -230,26 +230,10 @@ SellGateBuilt build_sell_conditions(SellConditions *conditions) {
 //=============================================================================
 // the bool being returned probably isnt necessary, too many jumps in the asm
 // code, the actual order information check below it has no jump but i think it
-// could be optimized further
+// could be optimized further, this needs to add the order to the orderpool i
+// think, and should probably be a void, because its not returning anything its
+// just watching the data stream to see if an order should be added
 //=============================================================================
-bool check_buy_lane0_and_add(const BuyGateBuilt *buy_gate, uint64_t data_stream,
-                             OrderPool *pool) {
-  uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
-
-  if ((data_stream & condition_0) == condition_0) {
-    if (OrderPool_CountActive(pool) < pool->capacity) {
-      OrderInformation *slot = OrderPool_Allocate(pool);
-      if (slot != nullptr) {
-        slot->price.price = 100;
-        slot->volume.volume = 10;
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 OrderInformation check_buy_lane0(const BuyGateBuilt *buy_gate,
                                  uint64_t data_stream) {
   uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
@@ -264,27 +248,7 @@ OrderInformation check_buy_lane0(const BuyGateBuilt *buy_gate,
 //=============================================================================
 // [USAGE EXAMPLE]
 //=============================================================================
-int main() {
-  OrderPool pool;
-  OrderPool_init(&pool, 64);
-
-  BuyConditions buy_conds = {0x0000FFFF, 0xF0F0F0F0};
-  BuyGateBuilt buy_gate = build_buy_conditions(&buy_conds);
-
-  uint64_t data_stream = 0x0000FFFFF0F0F0F0;
-
-  bool success = check_buy_lane0_and_add(&buy_gate, data_stream, &pool);
-
-  if (success) {
-    std::cout << "Order added! Active orders: " << OrderPool_CountActive(&pool)
-              << std::endl;
-  } else {
-    std::cout << "Failed to add order" << std::endl;
-  }
-
-  free(pool.slots);
-  return 0;
-}
+int main() { return 0; }
 //=============================================================================
 // [ASM BREAKDOWN]
 //=============================================================================
