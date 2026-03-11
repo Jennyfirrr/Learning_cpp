@@ -21,9 +21,6 @@
 //=============================================================================
 // [ORDER INFORMATION STRUCTS]
 //=============================================================================
-// im still figuring out the OrderInformation struct, im not sure if im gonna do
-// the penislol2 method from the last file, but something similar no doubt
-//=============================================================================
 struct OrderID {
   uint8_t ID;
 };
