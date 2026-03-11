@@ -143,20 +143,21 @@ static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
 //=============================================================================
 // [RISK GATE STRUCTS]
 //=============================================================================
-// im still undecided on these, i feel like im forgetting something
+// im still undecided on these, i feel like im forgetting something, it may be
+// better to just use the entire 64 bits for a single order, but idk, im bored
+// and experiementing, IDK
 //=============================================================================
-struct RiskGateInflow {
-  uint32_t lane_id_inflow_0;
-  uint32_t lane_id_inflow_1;
+struct BuyConditions {
+  uint32_t condition_0;
+  uint32_t condition_1;
 };
-static_assert(sizeof(RiskGateInflow) == 8, "RiskGateInflow should be 8 bytes");
+static_assert(sizeof(BuyConditions) == 8, "BuyConditions should be 8 bytes");
 
-struct RiskGateOutflow {
-  uint32_t lane_id_outflow_0;
-  uint32_t lane_id_outflow_1;
+struct SellConditions {
+  uint32_t condition_0;
+  uint32_t condition_1;
 };
-static_assert(sizeof(RiskGateOutflow) == 8,
-              "RiskGateOutflow should be 8 bytes");
+static_assert(sizeof(SellConditions) == 8, "SellConditions should be 8 bytes");
 
 //=============================================================================
 // [FUNCTIONS]
