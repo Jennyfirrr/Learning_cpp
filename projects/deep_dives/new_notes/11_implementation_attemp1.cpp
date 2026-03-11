@@ -229,7 +229,8 @@ SellGateBuilt build_sell_conditions(SellConditions *conditions) {
 // [DATA STREAM READING]
 //=============================================================================
 // the bool being returned probably isnt necessary, too many jumps in the asm
-// code
+// code, the actual order information check below it has no jump but i think it
+// could be optimized further
 //=============================================================================
 bool check_buy_lane0_and_add(const BuyGateBuilt *buy_gate, uint64_t data_stream,
                              OrderPool *pool) {
