@@ -213,28 +213,84 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 //=============================================================================
 BuyGateBuilt build_buy_conditions(BuyConditions *conditions) {
   uint64_t packed_conditions = 0;
-  packed_conditions |= ((uint64_t)conditions->condition_0 << 32);
-  packed_conditions |= conditions->condition_1;
+  packed_conditions |= ((uint64_t)conditions->condition_1 << 32);
+  packed_conditions |= conditions->condition_0;
   return {packed_conditions};
 }
 
 SellGateBuilt build_sell_conditions(SellConditions *conditions) {
   uint64_t packed_conditions = 0;
-  packed_conditions |= ((uint64_t)conditions->condition_0 << 32);
-  packed_conditions |= conditions->condition_1;
+  packed_conditions |= ((uint64_t)conditions->condition_1 << 32);
+  packed_conditions |= conditions->condition_0;
   return {packed_conditions};
 }
 
 //=============================================================================
 // [DATA STREAM READING]
 //=============================================================================
+//
+//=============================================================================
+// Returns true if order was successfully added to pool, false otherwise
+bool check_buy_lane0_and_add(const BuyGateBuilt *buy_gate, uint64_t data_stream,
+                             OrderPool *pool) {
+  uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
+
+  if ((data_stream & condition_0) == condition_0) {
+    // Check if pool has capacity (bitmap not full)
+    if (OrderPool_CountActive(pool) < pool->capacity) {
+      OrderInformation *slot = OrderPool_Allocate(pool);
+      if (slot != nullptr) {
+        slot->price.price = 100;  // Your price logic here
+        slot->volume.volume = 10; // Your volume logic here
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// Alternative: Keep original function for testing/flexibility
+OrderInformation check_buy_lane0(const BuyGateBuilt *buy_gate,
+                                 uint64_t data_stream) {
+  uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
+
+  if ((data_stream & condition_0) == condition_0) {
+    return {{100}, {10}}; // Fixed initialization syntax
+  }
+
+  return {{0}, {0}};
+}
 
 //=============================================================================
+// [USAGE EXAMPLE]
 //=============================================================================
-//=============================================================================
-//=============================================================================
-// [MAIN]
-//=============================================================================
+int main() {
+  // Initialize order pool
+  OrderPool pool;
+  OrderPool_init(&pool, 64); // 64-slot capacity (matches bitmap size)
+
+  // Set up buy conditions
+  BuyConditions buy_conds = {0x0000FFFF, 0xF0F0F0F0};
+  BuyGateBuilt buy_gate = build_buy_conditions(&buy_conds);
+
+  // Simulate data stream
+  uint64_t data_stream = 0x0000FFFFF0F0F0F0; // Matches condition_0
+
+  // Test the order addition
+  bool success = check_buy_lane0_and_add(&buy_gate, data_stream, &pool);
+
+  if (success) {
+    std::cout << "Order added! Active orders: " << OrderPool_CountActive(&pool)
+              << std::endl;
+  } else {
+    std::cout << "Failed to add order" << std::endl;
+  }
+
+  // Clean up
+  free(pool.slots);
+  return 0;
+}
 //=============================================================================
 // [ASM BREAKDOWN]
 //=============================================================================
