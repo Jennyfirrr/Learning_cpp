@@ -119,6 +119,10 @@ struct OrderAmount {
   uint16_t order_amount;
 };
 static_assert(sizeof(OrderAmount) == 2, "OrderAmount should be 2 bytes");
+//=============================================================================
+// i may compact this to a single byte and just have something else to encode
+// vaalues using a dynamic multiplier idk
+//=============================================================================
 
 struct Padding {
   uint8_t padding;
