@@ -65,7 +65,10 @@
 // until i realize it needs something else, this is just the preplanning stage
 // really, and im realizing all the gaps from the other files, but those were
 // mostly me getting used to this and building a mental model of what all goes
-// into it
+// into it, this way would allow 2 strategies to be ran side by side though
+// using SWAR techniques, but its probably bad for actual production use cases,
+// idk, ive never worked at an HFT firm before, this stuff is just H E L L A
+// interesting
 //=============================================================================
 struct OrderPrice {
   uint16_t price;
