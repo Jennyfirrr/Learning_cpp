@@ -28,7 +28,18 @@
 // limit the actual model thats watching the data stream for HFT purposes,
 // unless of course your doing it on larger intervals like minute or 5 minute
 // decisions, then models trained on larger universes would be more effecient,
-// but im not interested in those atm
+// but im not interested in those atm, im also using like 2 bytes for price
+// because that should give a large enough number that no single price for an
+// individual or fractional stock should ever cap it out, and it can be
+// converted to actual trade size later using a simple multiplication
+// conversion, which would only add like a few clock cycles at most, and could
+// probably actually avoid the main hot path too, because thats just for human
+// readability, im not 100% sure about the size, it could be limited to a single
+// byte, but the the amount of orders you can send at once is limited to 256,
+// unless you use a conversion method downstream, and the ideal here is to pack
+// all the needed info into 8 bytes so it all stays in a single register, in a
+// single stocks trading pipeline, you could generally avoid the Ticker field,
+// and free up a byte for something else
 //=============================================================================
 struct OrderID {
   uint8_t ID;
@@ -44,6 +55,11 @@ struct OrderTicker {
   uint8_t ticker;
 };
 static_assert(sizeof(OrderTicker) == 1, "OrderTicker should be 1 byte");
+
+struct OrderSize {
+  int16_t amount;
+};
+static_assert(sizeof(OrderSize) == 2, "OrderSize should be 2 bytes");
 
 struct OrderInformation {
   OrderID id;
