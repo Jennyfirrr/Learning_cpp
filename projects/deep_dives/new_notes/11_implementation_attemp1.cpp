@@ -42,34 +42,37 @@
 // and free up a byte for something else, copilot in nvim is SUPER nice too lol,
 // way better than vscode(I C K Y)
 //=============================================================================
-struct OrderID {
-  uint8_t ID;
-};
-static_assert(sizeof(OrderID) == 1, "OrderID should be 1 byte");
-
+// [EDIT [11-03-26 05:20am]]
+//=============================================================================
+// i guess since time stamp is bundled with the data in tick data, and you could
+// simply grab that whenever a trade is placed and stuff and because its just
+// meta data, you could really just ignore that for the order packing, because
+// you arnt really trying to place it at a certain time, just placing it when
+// like X condition is specified right?, im probably just gonna do this one with
+// a single symbol in mind, so that the "symbol" or ticker field can be ignored,
+// idk im not really sure about this tbh, becuase there is alot of information
+// that could be left out, and you could simply ignore alot of stuff until the
+// actual order is place i think, so really you just need like volume, price,
+// and amount, and those can be compacted down using like a set multiplier, or
+// an associated left shift probably, because that could be done in a single
+// operation
+//=============================================================================
 struct OrderPrice {
   uint16_t price;
 };
 static_assert(sizeof(OrderPrice) == 2, "OrderPrice should be 2 bytes");
 
-struct OrderTicker {
-  uint8_t ticker;
+struct Volume {
+  uint16_t volume;
 };
-static_assert(sizeof(OrderTicker) == 1, "OrderTicker should be 1 byte");
-
-struct OrderSize {
-  int16_t amount;
-};
-static_assert(sizeof(OrderSize) == 2, "OrderSize should be 2 bytes");
+static_assert(sizeof(Volume) == 2, "Volume should be 2 bytes");
 
 struct OrderInformation {
-  OrderID id;
   OrderPrice price;
-  OrderTicker ticker;
-  OrderSize size;
+  Volume volume;
 };
-static_assert(sizeof(OrderInformation) == 8,
-              "OrderInformation should be 8 bytes");
+static_assert(sizeof(OrderInformation) == 4,
+              "OrderInformation should be 4 bytes");
 //=============================================================================
 // [ORDER POOL STRUCTS]
 //=============================================================================
@@ -82,28 +85,10 @@ static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
 //=============================================================================
 // [RISK GATE STRUCTS]
 //=============================================================================
-struct RiskGateInflow {
-  uint8_t lane0;
-  uint8_t lane1;
-  uint8_t lane2;
-  uint8_t lane3;
-  uint8_t lane4;
-  uint8_t lane5;
-  uint8_t lane6;
-  uint8_t lane7;
-};
+struct RiskGateInflow {};
 static_assert(sizeof(RiskGateInflow) == 8, "RiskGateInflow should be 8 bytes");
 
-struct RiskGateOutflow {
-  uint8_t lane0;
-  uint8_t lane1;
-  uint8_t lane2;
-  uint8_t lane3;
-  uint8_t lane4;
-  uint8_t lane5;
-  uint8_t lane6;
-  uint8_t lane7;
-};
+struct RiskGateOutflow {};
 static_assert(sizeof(RiskGateOutflow) == 8,
               "RiskGateOutflow should be 8 bytes");
 
