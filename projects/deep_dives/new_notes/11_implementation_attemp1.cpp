@@ -86,6 +86,38 @@ struct OrderInformation {
 };
 static_assert(sizeof(OrderInformation) == 4,
               "OrderInformation should be 4 bytes");
+//=============================================================================
+// [METADATA STRUCTS]
+//=============================================================================
+// this stuff can be tracked at the same time using a different thread i think,
+// so that when an order is added to the orderpool initially, it can just
+// identify what happens when so the actual execution isnt using uneeded bloat,
+// and allows 2 simaltaneous operations using SWAR
+//=============================================================================
+struct Timestamp {
+  uint64_t timestamp;
+};
+static_assert(sizeof(Timestamp) == 8, "Timestamp should be 8 bytes");
+
+struct Symbol {
+  uint16_t symbol;
+};
+static_assert(sizeof(Symbol) == 2, "Symbol should be 2 bytes");
+
+struct OrderType {
+  uint8_t order_type;
+};
+static_assert(sizeof(OrderType) == 1, "OrderType should be 1 byte");
+
+struct OrderAmount {
+  uint16_t order_amount;
+};
+static_assert(sizeof(OrderAmount) == 2, "OrderAmount should be 2 bytes");
+
+struct Padding {
+  uint8_t padding;
+};
+static_assert(sizeof(Padding) == 1, "Padding should be 1 byte");
 
 struct OrderMetaData {
   uint64_t timestamp;
@@ -150,7 +182,9 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 }
 
 //=============================================================================
+// [DATA STREAM READING]
 //=============================================================================
+
 //=============================================================================
 //=============================================================================
 //=============================================================================
