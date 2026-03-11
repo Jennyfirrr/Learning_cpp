@@ -39,7 +39,8 @@
 // unless you use a conversion method downstream, and the ideal here is to pack
 // all the needed info into 8 bytes so it all stays in a single register, in a
 // single stocks trading pipeline, you could generally avoid the Ticker field,
-// and free up a byte for something else
+// and free up a byte for something else, copilot in nvim is SUPER nice too lol,
+// way better than vscode(I C K Y)
 //=============================================================================
 struct OrderID {
   uint8_t ID;
@@ -65,6 +66,7 @@ struct OrderInformation {
   OrderID id;
   OrderPrice price;
   OrderTicker ticker;
+  OrderSize size;
 };
 static_assert(sizeof(OrderInformation) == 8,
               "OrderInformation should be 8 bytes");
