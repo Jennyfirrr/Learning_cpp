@@ -71,21 +71,21 @@
 // interesting
 //=============================================================================
 struct OrderPrice {
-  uint16_t price;
+  uint32_t price;
 };
-static_assert(sizeof(OrderPrice) == 2, "OrderPrice should be 2 bytes");
+static_assert(sizeof(OrderPrice) == 4, "OrderPrice should be 4 bytes");
 
 struct Volume {
-  uint16_t volume;
+  uint32_t volume;
 };
-static_assert(sizeof(Volume) == 2, "Volume should be 2 bytes");
+static_assert(sizeof(Volume) == 4, "Volume should be 4 bytes");
 
 struct OrderInformation {
   OrderPrice price;
   Volume volume;
 };
-static_assert(sizeof(OrderInformation) == 4,
-              "OrderInformation should be 4 bytes");
+static_assert(sizeof(OrderInformation) == 8,
+              "OrderInformation should be 8 bytes");
 //=============================================================================
 // [METADATA STRUCTS]
 //=============================================================================
@@ -131,9 +131,9 @@ static_assert(sizeof(Padding) == 1, "Padding should be 1 byte");
 
 struct OrderMetaData {
   uint64_t timestamp;
+  uint32_t order_amount;
+  uint32_t price;
   uint16_t symbol;
-  uint16_t order_amount;
-  uint16_t price;
   uint8_t order_type;
   uint8_t padding;
 };
@@ -155,17 +155,17 @@ static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
 // better to just use the entire 64 bits for a single order, but idk, im bored
 // and experiementing, IDK
 //=============================================================================
-struct BuyConditions {
-  uint32_t condition_0;
-  uint32_t condition_1;
+struct BuySideGateConditions {
+  uint32_t price;
+  uint32_t volume;
 };
-static_assert(sizeof(BuyConditions) == 8, "BuyConditions should be 8 bytes");
+static_assert(sizeof(BuySideGateConditions) == 8, "BuySideGateConditions");
 
-struct SellConditions {
-  uint32_t condition_0;
-  uint32_t condition_1;
+struct SellSideGateConditions {
+  uint32_t price;
+  uint32_t volume;
 };
-static_assert(sizeof(SellConditions) == 8, "SellConditions should be 8 bytes");
+static_assert(sizeof(SellSideGateConditions) == 8, "SellSideGateConditions");
 
 struct SellGateBuilt {
   uint64_t packed_conditions;
@@ -211,17 +211,17 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // functions, with each one outputting a different OrderInformation struct, so
 // it may actually be bad to use SWAR techniques, im not really sure
 //=============================================================================
-BuyGateBuilt build_buy_conditions(BuyConditions *conditions) {
+BuyGateBuilt build_buy_conditions(BuySideGateConditions *conditions) {
   uint64_t packed_conditions = 0;
-  packed_conditions |= ((uint64_t)conditions->condition_1 << 32);
-  packed_conditions |= conditions->condition_0;
+  packed_conditions |= conditions->price;
+  packed_conditions |= ((uint64_t)conditions->volume << 32);
   return {packed_conditions};
 }
 
-SellGateBuilt build_sell_conditions(SellConditions *conditions) {
+SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
   uint64_t packed_conditions = 0;
-  packed_conditions |= ((uint64_t)conditions->condition_1 << 32);
-  packed_conditions |= conditions->condition_0;
+  packed_conditions |= conditions->price;
+  packed_conditions |= ((uint64_t)conditions->volume << 32);
   return {packed_conditions};
 }
 
@@ -234,15 +234,13 @@ SellGateBuilt build_sell_conditions(SellConditions *conditions) {
 // think, and should probably be a void, because its not returning anything its
 // just watching the data stream to see if an order should be added
 //=============================================================================
-OrderInformation check_buy_lane0(const BuyGateBuilt *buy_gate,
-                                 uint64_t data_stream) {
+void check_buy_lane0(const BuyGateBuilt *buy_gate, uint64_t data_stream,
+                     OrderPool *pool) {
   uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
-
   if ((data_stream & condition_0) == condition_0) {
-    return {{100}, {10}};
+    OrderInformation *slot = OrderPool_Allocate(&pool);
+    *((uint64_t *)slot) = data_stream;
   }
-
-  return {{0}, {0}};
 }
 
 //=============================================================================
