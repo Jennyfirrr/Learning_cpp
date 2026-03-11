@@ -266,18 +266,14 @@ OrderInformation check_buy_lane0(const BuyGateBuilt *buy_gate,
 // [USAGE EXAMPLE]
 //=============================================================================
 int main() {
-  // Initialize order pool
   OrderPool pool;
-  OrderPool_init(&pool, 64); // 64-slot capacity (matches bitmap size)
+  OrderPool_init(&pool, 64);
 
-  // Set up buy conditions
   BuyConditions buy_conds = {0x0000FFFF, 0xF0F0F0F0};
   BuyGateBuilt buy_gate = build_buy_conditions(&buy_conds);
 
-  // Simulate data stream
-  uint64_t data_stream = 0x0000FFFFF0F0F0F0; // Matches condition_0
+  uint64_t data_stream = 0x0000FFFFF0F0F0F0;
 
-  // Test the order addition
   bool success = check_buy_lane0_and_add(&buy_gate, data_stream, &pool);
 
   if (success) {
@@ -287,7 +283,6 @@ int main() {
     std::cout << "Failed to add order" << std::endl;
   }
 
-  // Clean up
   free(pool.slots);
   return 0;
 }
