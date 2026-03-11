@@ -105,6 +105,10 @@ struct Symbol {
   uint16_t symbol;
 };
 static_assert(sizeof(Symbol) == 2, "Symbol should be 2 bytes");
+//=============================================================================
+// im just gonna have this use a hashID based on the symbol, so it has like 65k
+// availble options or whatever because its 2 bytes
+//=============================================================================
 
 struct OrderType {
   uint8_t order_type;
