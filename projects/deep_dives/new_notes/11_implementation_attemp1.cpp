@@ -141,6 +141,8 @@ static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
 //=============================================================================
 // [RISK GATE STRUCTS]
 //=============================================================================
+// im still undecided on these, i feel like im forgetting something
+//=============================================================================
 struct RiskGateInflow {
   uint32_t lane_id_inflow_0;
   uint32_t lane_id_inflow_1;
