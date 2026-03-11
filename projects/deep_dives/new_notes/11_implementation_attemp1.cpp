@@ -230,18 +230,16 @@ SellGateBuilt build_sell_conditions(SellConditions *conditions) {
 //=============================================================================
 //
 //=============================================================================
-// Returns true if order was successfully added to pool, false otherwise
 bool check_buy_lane0_and_add(const BuyGateBuilt *buy_gate, uint64_t data_stream,
                              OrderPool *pool) {
   uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
 
   if ((data_stream & condition_0) == condition_0) {
-    // Check if pool has capacity (bitmap not full)
     if (OrderPool_CountActive(pool) < pool->capacity) {
       OrderInformation *slot = OrderPool_Allocate(pool);
       if (slot != nullptr) {
-        slot->price.price = 100;  // Your price logic here
-        slot->volume.volume = 10; // Your volume logic here
+        slot->price.price = 100;
+        slot->volume.volume = 10;
         return true;
       }
     }
@@ -250,13 +248,12 @@ bool check_buy_lane0_and_add(const BuyGateBuilt *buy_gate, uint64_t data_stream,
   return false;
 }
 
-// Alternative: Keep original function for testing/flexibility
 OrderInformation check_buy_lane0(const BuyGateBuilt *buy_gate,
                                  uint64_t data_stream) {
   uint64_t condition_0 = (buy_gate->packed_conditions >> 32) & 0xFFFFFFFF;
 
   if ((data_stream & condition_0) == condition_0) {
-    return {{100}, {10}}; // Fixed initialization syntax
+    return {{100}, {10}};
   }
 
   return {{0}, {0}};
