@@ -21,6 +21,15 @@
 //=============================================================================
 // [ORDER INFORMATION STRUCTS]
 //=============================================================================
+// im probably gonna use some quick hashing method to convert ticker symbols
+// into like a single byte or something, that would give the ability to track
+// like 256 tickers in a songle byte, which for whatever my purposes are,
+// because massive symbol watching has huge inference costs, probably best to
+// limit the actual model thats watching the data stream for HFT purposes,
+// unless of course your doing it on larger intervals like minute or 5 minute
+// decisions, then models trained on larger universes would be more effecient,
+// but im not interested in those atm
+//=============================================================================
 struct OrderID {
   uint8_t ID;
 };
