@@ -57,6 +57,16 @@
 // an associated left shift probably, because that could be done in a single
 // operation
 //=============================================================================
+// [EDIT [11-03-26 05:55am]]
+//=============================================================================
+// the OrderMetaData wont be needed for placing orders, its just kind of a place
+// holder while i plan out what is actually needed for order tracking and stuff,
+// the actual execution stuff will just use the OrderInformation struct for now,
+// until i realize it needs something else, this is just the preplanning stage
+// really, and im realizing all the gaps from the other files, but those were
+// mostly me getting used to this and building a mental model of what all goes
+// into it
+//=============================================================================
 struct OrderPrice {
   uint16_t price;
 };
@@ -73,6 +83,17 @@ struct OrderInformation {
 };
 static_assert(sizeof(OrderInformation) == 4,
               "OrderInformation should be 4 bytes");
+
+struct OrderMetaData {
+  uint64_t timestamp;
+  uint16_t symbol;
+  uint16_t order_amount;
+  uint16_t price;
+  uint8_t order_type;
+  uint8_t padding;
+};
+static_assert(sizeof(OrderMetaData) == 16, "OrderMetaData should be 16");
+
 //=============================================================================
 // [ORDER POOL STRUCTS]
 //=============================================================================
@@ -85,10 +106,16 @@ static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
 //=============================================================================
 // [RISK GATE STRUCTS]
 //=============================================================================
-struct RiskGateInflow {};
+struct RiskGateInflow {
+  uint32_t lane_id_inflow_0;
+  uint32_t lane_id_inflow_1;
+};
 static_assert(sizeof(RiskGateInflow) == 8, "RiskGateInflow should be 8 bytes");
 
-struct RiskGateOutflow {};
+struct RiskGateOutflow {
+  uint32_t lane_id_outflow_0;
+  uint32_t lane_id_outflow_1;
+};
 static_assert(sizeof(RiskGateOutflow) == 8,
               "RiskGateOutflow should be 8 bytes");
 
