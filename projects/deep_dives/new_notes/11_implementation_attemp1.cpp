@@ -92,7 +92,9 @@ static_assert(sizeof(OrderInformation) == 4,
 // this stuff can be tracked at the same time using a different thread i think,
 // so that when an order is added to the orderpool initially, it can just
 // identify what happens when so the actual execution isnt using uneeded bloat,
-// and allows 2 simaltaneous operations using SWAR
+// and allows 2 simaltaneous operations using SWAR, these mainly just exist for
+// order tracking for looking at the actions taken during the day, not the
+// actualy execution path
 //=============================================================================
 struct Timestamp {
   uint64_t timestamp;
