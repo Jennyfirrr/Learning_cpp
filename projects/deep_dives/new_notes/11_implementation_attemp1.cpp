@@ -251,7 +251,7 @@ void check_buy_lane0(const BuyGateBuilt *packed_conditions,
   uint32_t price_pass =
       price <= (packed_conditions->packed_conditions_buy & 0xFFFFFFFF);
   uint32_t volume_pass =
-      volume <= (packed_conditions->packed_conditions_buy >> 32);
+      volume >= (packed_conditions->packed_conditions_buy >> 32);
 
   uint32_t pass = price_pass & volume_pass;
 
