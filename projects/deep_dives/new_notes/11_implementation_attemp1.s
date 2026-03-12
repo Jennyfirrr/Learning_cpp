@@ -119,7 +119,7 @@ _Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool:
 	movl	12(%rdx), %r8d
 	movq	16(%rdx), %rdi
 	cmpl	%eax, %esi
-	setnb	%r9b
+	setbe	%r9b
 	shrq	$32, %rax
 	shrq	$32, %r10
 	cmpq	%rax, %r10
@@ -133,17 +133,44 @@ _Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool:
 	.cfi_endproc
 .LFE11180:
 	.size	_Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool, .-_Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool
+	.p2align 4
+	.globl	_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool
+	.type	_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool, @function
+_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool:
+.LFB11181:
+	.cfi_startproc
+	movq	%rdx, %rcx
+	movq	(%rdi), %rdx
+	movq	%rsi, %r10
+	movl	12(%rcx), %r8d
+	movq	16(%rcx), %rdi
+	cmpl	%edx, %esi
+	setnb	%r9b
+	shrq	$32, %rdx
+	movq	%r8, %rax
+	shrq	$32, %r10
+	cmpq	%r10, %rdx
+	setnb	%dl
+	movzbl	%dl, %edx
+	andl	%r9d, %edx
+	subl	%edx, %eax
+	movl	%eax, 12(%rcx)
+	movq	%rsi, (%rdi,%r8,8)
+	ret
+	.cfi_endproc
+.LFE11181:
+	.size	_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool, .-_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool
 	.section	.text.startup,"ax",@progbits
 	.p2align 4
 	.globl	main
 	.type	main, @function
 main:
-.LFB11181:
+.LFB11182:
 	.cfi_startproc
 	xorl	%eax, %eax
 	ret
 	.cfi_endproc
-.LFE11181:
+.LFE11182:
 	.size	main, .-main
 	.globl	__popcountdi2
 	.ident	"GCC: (GNU) 15.2.1 20260209"

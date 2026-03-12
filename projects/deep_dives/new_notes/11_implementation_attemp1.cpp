@@ -241,7 +241,9 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // so it does it wihtout  emitting 2 branches, this way has no jumps, just
 // always try to add to the pool, and add based of the 1 or 0 emitted by the
 // pass variable, so if its 0 it doesnt add, just like i wrote before but forgot
-// because idk,
+// because idk, these both have 0 jumps but theyre still like 18 instructions
+// each, it cacn probably be optimized further idk, good start though removing
+// the jumps i guess, and its not java(I C K Y)
 //=============================================================================
 void check_buy_lane0(const BuyGateBuilt *packed_conditions,
                      uint64_t data_stream, OrderPool *pool) {
@@ -257,6 +259,24 @@ void check_buy_lane0(const BuyGateBuilt *packed_conditions,
 
   OrderInformation *slot = &pool->slots[pool->count];
   pool->count += pass;
+  slot->price.price = price;
+  slot->volume.volume = volume;
+}
+
+void check_sell_lane0(const SellGateBuilt *packed_conditions,
+                      uint64_t data_stream, OrderPool *pool) {
+  uint32_t price = (int32_t)(data_stream & 0xFFFFFFFF);
+  uint32_t volume = (int32_t)(data_stream >> 32);
+
+  uint32_t price_pass =
+      price >= (packed_conditions->packed_conditions_sell & 0xFFFFFFFF);
+  uint32_t volume_pass =
+      volume <= (packed_conditions->packed_conditions_sell >> 32);
+
+  uint32_t pass = price_pass & volume_pass;
+
+  OrderInformation *slot = &pool->slots[pool->count];
+  pool->count -= pass;
   slot->price.price = price;
   slot->volume.volume = volume;
 }
