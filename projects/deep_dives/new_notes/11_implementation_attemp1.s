@@ -109,57 +109,76 @@ _Z21build_sell_conditionsP22SellSideGateConditions:
 .LFE11179:
 	.size	_Z21build_sell_conditionsP22SellSideGateConditions, .-_Z21build_sell_conditionsP22SellSideGateConditions
 	.p2align 4
-	.globl	_Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool
-	.type	_Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool, @function
-_Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool:
+	.globl	_Z15check_buy_lane0PK12BuyGateBuiltPK10DataStreamP9OrderPool
+	.type	_Z15check_buy_lane0PK12BuyGateBuiltPK10DataStreamP9OrderPool, @function
+_Z15check_buy_lane0PK12BuyGateBuiltPK10DataStreamP9OrderPool:
 .LFB11180:
 	.cfi_startproc
 	movq	(%rdi), %rax
-	movq	%rsi, %r10
-	movl	12(%rdx), %r8d
-	movq	16(%rdx), %rdi
+	movq	(%rdx), %rdi
+	movq	(%rsi), %xmm0
+	movq	%rdi, %rcx
+	movd	%xmm0, %esi
+	notq	%rcx
+	pshufd	$0xe5, %xmm0, %xmm1
+	rep bsfq	%rcx, %rcx
 	cmpl	%eax, %esi
-	setbe	%r9b
+	movd	%xmm1, %esi
+	setbe	%r8b
 	shrq	$32, %rax
-	shrq	$32, %r10
-	cmpq	%rax, %r10
+	cmpq	%rax, %rsi
 	setnb	%al
 	movzbl	%al, %eax
-	andl	%r9d, %eax
-	addl	%r8d, %eax
-	movl	%eax, 12(%rdx)
-	movq	%rsi, (%rdi,%r8,8)
+	andq	%r8, %rax
+	salq	%cl, %rax
+	movslq	%ecx, %rcx
+	orq	%rdi, %rax
+	movq	%rax, (%rdx)
+	movq	16(%rdx), %rax
+	movq	%xmm0, (%rax,%rcx,8)
 	ret
 	.cfi_endproc
 .LFE11180:
-	.size	_Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool, .-_Z15check_buy_lane0PK12BuyGateBuiltmP9OrderPool
+	.size	_Z15check_buy_lane0PK12BuyGateBuiltPK10DataStreamP9OrderPool, .-_Z15check_buy_lane0PK12BuyGateBuiltPK10DataStreamP9OrderPool
 	.p2align 4
-	.globl	_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool
-	.type	_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool, @function
-_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool:
+	.globl	_Z16check_sell_lane0PK13SellGateBuiltP10DataStreamP9OrderPoolPK12ProfitTarget
+	.type	_Z16check_sell_lane0PK13SellGateBuiltP10DataStreamP9OrderPoolPK12ProfitTarget, @function
+_Z16check_sell_lane0PK13SellGateBuiltP10DataStreamP9OrderPoolPK12ProfitTarget:
 .LFB11181:
 	.cfi_startproc
-	movq	%rdx, %rcx
-	movq	(%rdi), %rdx
-	movq	%rsi, %r10
-	movl	12(%rcx), %r8d
-	movq	16(%rcx), %rdi
-	cmpl	%edx, %esi
-	setnb	%r9b
-	shrq	$32, %rdx
-	movq	%r8, %rax
-	shrq	$32, %r10
-	cmpq	%r10, %rdx
-	setnb	%dl
-	movzbl	%dl, %edx
-	andl	%r9d, %edx
-	subl	%edx, %eax
-	movl	%eax, 12(%rcx)
-	movq	%rsi, (%rdi,%r8,8)
+	movq	%rsi, %rax
+	movq	(%rdx), %rsi
+	movq	%rdx, %r10
+	testq	%rsi, %rsi
+	je	.L11
+	movl	(%rax), %r9d
+	movl	(%rcx), %edi
+	movq	16(%rdx), %r8
+	movq	%rsi, %rdx
+	.p2align 6
+	.p2align 4
+	.p2align 3
+.L13:
+	xorl	%ecx, %ecx
+	rep bsfq	%rdx, %rcx
+	movslq	%ecx, %rax
+	movl	(%r8,%rax,8), %r11d
+	xorl	%eax, %eax
+	addl	%edi, %r11d
+	cmpl	%r11d, %r9d
+	setnb	%al
+	salq	%cl, %rax
+	notq	%rax
+	andq	%rax, %rsi
+	leaq	-1(%rdx), %rax
+	andq	%rax, %rdx
+	jne	.L13
+	movq	%rsi, (%r10)
+.L11:
 	ret
 	.cfi_endproc
 .LFE11181:
-	.size	_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool, .-_Z16check_sell_lane0PK13SellGateBuiltmP9OrderPool
+	.size	_Z16check_sell_lane0PK13SellGateBuiltP10DataStreamP9OrderPoolPK12ProfitTarget, .-_Z16check_sell_lane0PK13SellGateBuiltP10DataStreamP9OrderPoolPK12ProfitTarget
 	.section	.text.startup,"ax",@progbits
 	.p2align 4
 	.globl	main

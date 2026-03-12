@@ -263,10 +263,40 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // off, its probably dumb as hell to make this stuff OSS, but who knows maybe
 // someone will hire me
 //=============================================================================
+// [EDIT [12-03-26 04:11am]]
+//=============================================================================
+// so i made some updates for actual order tracking, im probably gonna sway the
+// order pool thing to be a .h file at some point because ive seen people doing
+// that stuff, but for now i like to have all the logic in the file, its easier
+// for me to see how it all works, but this is a rough check for order tracking
+// and only seeling currently held orders, this has 2 jumps, i thought it would
+// only have 1, so im gonna have to investigate this, the buy side is fine, it
+// doesnt have any jump, and i expected the sell side to have a single jump but
+// it has 2?
+//
+// so apparently the reason the 2 jumps in the sell side function are acceptable
+// are because its data dependent, and not a branch prediciton, because it exits
+// early if there is nothing in the pool, and simply does a while loop while the
+// pool has things in it, apparently this can be avoided using using popcountll
+// to get the iteration count upfront, and use a counted for loop, but this
+// shouldnt introduce branch predcition paths like and if/else jump would cause,
+// so it probably doesnt introduce problematic latency variance
+//=============================================================================
+struct DataStream {
+  uint32_t price;
+  uint32_t volume;
+};
+static_assert(sizeof(DataStream) == 8, "DataStream should be 8 bytes");
+
+struct ProfitTarget {
+  uint32_t profit_target;
+};
+static_assert(sizeof(ProfitTarget) == 4, "ProfitTarget should be 4 bytes");
+
 void check_buy_lane0(const BuyGateBuilt *packed_conditions,
-                     uint64_t data_stream, OrderPool *pool) {
-  uint32_t price = (int32_t)(data_stream & 0xFFFFFFFF);
-  uint32_t volume = (int32_t)(data_stream >> 32);
+                     const DataStream *stream, OrderPool *pool) {
+  uint32_t price = stream->price;
+  uint32_t volume = stream->volume;
 
   uint32_t price_pass =
       price <= (packed_conditions->packed_conditions_buy & 0xFFFFFFFF);
@@ -275,16 +305,18 @@ void check_buy_lane0(const BuyGateBuilt *packed_conditions,
 
   uint32_t pass = price_pass & volume_pass;
 
-  OrderInformation *slot = &pool->slots[pool->count];
-  pool->count += pass;
-  slot->price.price = price;
-  slot->volume.volume = volume;
+  uint64_t mask = (uint64_t)(-(int64_t)pass);
+  uint32_t index = __builtin_ctzll(~pool->bitmap);
+  pool->bitmap |= (mask & (1ULL << index));
+  pool->slots[index].price.price = price;
+  pool->slots[index].volume.volume = volume;
 }
 
 void check_sell_lane0(const SellGateBuilt *packed_conditions,
-                      uint64_t data_stream, OrderPool *pool) {
-  uint32_t price = (int32_t)(data_stream & 0xFFFFFFFF);
-  uint32_t volume = (int32_t)(data_stream >> 32);
+                      DataStream *stream, OrderPool *pool,
+                      const ProfitTarget *profit_target_struct) {
+  uint32_t price = stream->price;
+  uint32_t volume = stream->volume;
 
   uint32_t price_pass =
       price >= (packed_conditions->packed_conditions_sell & 0xFFFFFFFF);
@@ -293,10 +325,16 @@ void check_sell_lane0(const SellGateBuilt *packed_conditions,
 
   uint32_t pass = price_pass & volume_pass;
 
-  OrderInformation *slot = &pool->slots[pool->count];
-  pool->count -= pass;
-  slot->price.price = price;
-  slot->volume.volume = volume;
+  uint64_t active = pool->bitmap;
+  while (active) {
+    uint32_t idx = __builtin_ctzll(active);
+    uint32_t entry_price = pool->slots[idx].price.price;
+    uint32_t exit_pass =
+        (price >= entry_price + profit_target_struct->profit_target);
+    uint64_t clear_mask = (uint64_t)(-(int64_t)exit_pass) & (1ULL << idx);
+    pool->bitmap &= ~clear_mask;
+    active &= active - 1;
+  }
 }
 
 //=============================================================================
