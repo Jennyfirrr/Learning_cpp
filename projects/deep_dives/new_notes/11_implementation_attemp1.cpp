@@ -137,7 +137,7 @@ struct OrderMetaData {
   uint8_t order_type;
   uint8_t padding;
 };
-static_assert(sizeof(OrderMetaData) == 16, "OrderMetaData should be 16");
+static_assert(sizeof(OrderMetaData) == 24, "OrderMetaData should be 16");
 
 //=============================================================================
 // [ORDER POOL STRUCTS]
@@ -145,6 +145,7 @@ static_assert(sizeof(OrderMetaData) == 16, "OrderMetaData should be 16");
 struct OrderPool {
   uint64_t bitmap;
   uint32_t capacity;
+  uint32_t count;
   OrderInformation *slots;
 };
 static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
@@ -234,13 +235,30 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // think, and should probably be a void, because its not returning anything its
 // just watching the data stream to see if an order should be added
 //=============================================================================
+// [EDIT [11-03-26 11:50pm]]
+//=============================================================================
+// has 2 jumps so ITS BAD, im gonna have to figure out a mask to use for this,
+// so it does it wihtout  emitting 2 branches, this way has no jumps, just
+// always try to add to the pool, and add based of the 1 or 0 emitted by the
+// pass variable, so if its 0 it doesnt add, just like i wrote before but forgot
+// because idk,
+//=============================================================================
 void check_buy_lane0(const BuyGateBuilt *packed_conditions,
                      uint64_t data_stream, OrderPool *pool) {
+  uint32_t price = (int32_t)(data_stream & 0xFFFFFFFF);
+  uint32_t volume = (int32_t)(data_stream >> 32);
 
-  if (data_stream == packed_conditions->packed_conditions_buy) {
-    OrderInformation *slot = OrderPool_Allocate(pool);
-    *((uint64_t *)slot) = data_stream;
-  }
+  uint32_t price_pass =
+      price >= (packed_conditions->packed_conditions_buy & 0xFFFFFFFF);
+  uint32_t volume_pass =
+      volume >= (packed_conditions->packed_conditions_buy >> 32);
+
+  uint32_t pass = price_pass & volume_pass;
+
+  OrderInformation *slot = &pool->slots[pool->count];
+  pool->count += pass;
+  slot->price.price = price;
+  slot->volume.volume = volume;
 }
 
 //=============================================================================
