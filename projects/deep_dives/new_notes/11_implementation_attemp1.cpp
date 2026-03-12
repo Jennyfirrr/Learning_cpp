@@ -257,7 +257,11 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // these are extremely basic, im sure there are normaliziation practices to use,
 // but there would need something like a linear regression function to actually
 // work with a certain regime, unless you could normalize the data to work with
-// a flat slope, otherwise this wouldnt work
+// a flat slope, otherwise this wouldnt work, this also ties back into where i
+// mentioned that a model would basically update the risk gates depending on
+// overall patterns for a given time interval, but thats like, a little ways
+// off, its probably dumb as hell to make this stuff OSS, but who knows maybe
+// someone will hire me
 //=============================================================================
 void check_buy_lane0(const BuyGateBuilt *packed_conditions,
                      uint64_t data_stream, OrderPool *pool) {
