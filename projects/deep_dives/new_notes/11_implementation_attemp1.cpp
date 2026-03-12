@@ -245,6 +245,14 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // each, it cacn probably be optimized further idk, good start though removing
 // the jumps i guess, and its not java(I C K Y)
 //=============================================================================
+// [EDIT [12-03-26 12:25am]]
+//=============================================================================
+// this has major issues, im trying to think this through, but the idea was to
+// track active buy orders in a pool allocator and then remove them using the
+// sell gate, it may be bad deisgn but who knows, ive never actually seen the
+// internals of an HFT firm, so im just kinda E X P E R I M E N T I N G, i may
+// sleep on this or like just do something else and come back to it idk
+//=============================================================================
 void check_buy_lane0(const BuyGateBuilt *packed_conditions,
                      uint64_t data_stream, OrderPool *pool) {
   uint32_t price = (int32_t)(data_stream & 0xFFFFFFFF);
