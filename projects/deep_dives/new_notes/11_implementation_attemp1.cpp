@@ -280,7 +280,15 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // pool has things in it, apparently this can be avoided using using popcountll
 // to get the iteration count upfront, and use a counted for loop, but this
 // shouldnt introduce branch predcition paths like and if/else jump would cause,
-// so it probably doesnt introduce problematic latency variance
+// so it probably doesnt introduce problematic latency variance, ill probably
+// need to rework some of the other structs some, like introducing the volume
+// targets as well, but this is just a simple buy when price is below X, and
+// sell when above Y, introducing actual algorithms or gating based on a model
+// controlling a linear regression slope is gonna be a little harder to
+// implement so im just working up to that, because going straight to that
+// without understanding the basics, is building on weak foundations, and its
+// kind of enjoyable to reason throught this from first principles, it feels
+// like a puzzle
 //=============================================================================
 struct DataStream {
   uint32_t price;
