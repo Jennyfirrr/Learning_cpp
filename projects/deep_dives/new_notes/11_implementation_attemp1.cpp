@@ -251,7 +251,13 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // track active buy orders in a pool allocator and then remove them using the
 // sell gate, it may be bad deisgn but who knows, ive never actually seen the
 // internals of an HFT firm, so im just kinda E X P E R I M E N T I N G, i may
-// sleep on this or like just do something else and come back to it idk
+// sleep on this or like just do something else and come back to it idk, this
+// would need like a for loop, beacuse it would just build up all the same buy
+// orders and stuff, without really having a way to implement a strategy, but
+// these are extremely basic, im sure there are normaliziation practices to use,
+// but there would need something like a linear regression function to actually
+// work with a certain regime, unless you could normalize the data to work with
+// a flat slope, otherwise this wouldnt work
 //=============================================================================
 void check_buy_lane0(const BuyGateBuilt *packed_conditions,
                      uint64_t data_stream, OrderPool *pool) {
