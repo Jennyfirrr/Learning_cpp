@@ -6,7 +6,7 @@
 //=============================================================================
 // [PLANS AND GOALS]
 //=============================================================================
-// just gonna try to actually start using the stuff gone over in the other files
+//just gonna try to actually start using the stuff gone over in the other files
 // and try to actually create something that isnt just a basic learning script
 //=============================================================================
 // [INCLUDED]
@@ -71,21 +71,20 @@
 // interesting
 //=============================================================================
 struct OrderPrice {
-  uint32_t price;
+    uint32_t price;
 };
 static_assert(sizeof(OrderPrice) == 4, "OrderPrice should be 4 bytes");
 
 struct Volume {
-  uint32_t volume;
+    uint32_t volume;
 };
 static_assert(sizeof(Volume) == 4, "Volume should be 4 bytes");
 
 struct OrderInformation {
-  OrderPrice price;
-  Volume volume;
+    OrderPrice price;
+    Volume volume;
 };
-static_assert(sizeof(OrderInformation) == 8,
-              "OrderInformation should be 8 bytes");
+static_assert(sizeof(OrderInformation) == 8, "OrderInformation should be 8 bytes");
 //=============================================================================
 // [METADATA STRUCTS]
 //=============================================================================
@@ -97,12 +96,12 @@ static_assert(sizeof(OrderInformation) == 8,
 // actualy execution path
 //=============================================================================
 struct Timestamp {
-  uint64_t timestamp;
+    uint64_t timestamp;
 };
 static_assert(sizeof(Timestamp) == 8, "Timestamp should be 8 bytes");
 
 struct Symbol {
-  uint16_t symbol;
+    uint16_t symbol;
 };
 static_assert(sizeof(Symbol) == 2, "Symbol should be 2 bytes");
 //=============================================================================
@@ -111,12 +110,12 @@ static_assert(sizeof(Symbol) == 2, "Symbol should be 2 bytes");
 //=============================================================================
 
 struct OrderType {
-  uint8_t order_type;
+    uint8_t order_type;
 };
 static_assert(sizeof(OrderType) == 1, "OrderType should be 1 byte");
 
 struct OrderAmount {
-  uint16_t order_amount;
+    uint16_t order_amount;
 };
 static_assert(sizeof(OrderAmount) == 2, "OrderAmount should be 2 bytes");
 //=============================================================================
@@ -125,17 +124,17 @@ static_assert(sizeof(OrderAmount) == 2, "OrderAmount should be 2 bytes");
 //=============================================================================
 
 struct Padding {
-  uint8_t padding;
+    uint8_t padding;
 };
 static_assert(sizeof(Padding) == 1, "Padding should be 1 byte");
 
 struct OrderMetaData {
-  uint64_t timestamp;
-  uint32_t order_amount;
-  uint32_t price;
-  uint16_t symbol;
-  uint8_t order_type;
-  uint8_t padding;
+    uint64_t timestamp;
+    uint32_t order_amount;
+    uint32_t price;
+    uint16_t symbol;
+    uint8_t order_type;
+    uint8_t padding;
 };
 static_assert(sizeof(OrderMetaData) == 24, "OrderMetaData should be 16");
 
@@ -143,12 +142,28 @@ static_assert(sizeof(OrderMetaData) == 24, "OrderMetaData should be 16");
 // [ORDER POOL STRUCTS]
 //=============================================================================
 struct OrderPool {
-  uint64_t bitmap;
-  uint32_t capacity;
-  uint32_t count;
-  OrderInformation *slots;
+    uint64_t bitmap;
+    uint32_t capacity;
+    uint32_t count;
+    OrderInformation *slots;
 };
 static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
+//=============================================================================
+// [EDIT [12-03-26 08:41am]]
+//=============================================================================
+// basic struct for order tracking, idk, im gonna figure out the implementation later, its just so i remember what i was doing because i apparently cant remember what i was doing when i did this, god i love having ADHD
+//=============================================================================
+
+struct OrderFlowTracker {
+    uint64_t buy_checks;
+    uint64_t buy_fills;
+    uint64_t sell_checks;
+    uint64_t sell_exits;
+    uint64_t buy_volume_total;
+    uint64_t sell_volume_total;
+};
+static_assert(sizeof(OrderFlowTracker) == 48, "OrderFlowTracker should be 48 bytes");
+
 //=============================================================================
 // [RISK GATE STRUCTS]
 //=============================================================================
@@ -157,24 +172,24 @@ static_assert(sizeof(OrderPool) == 24, "OrderPool should be 24 bytes");
 // and experiementing, IDK
 //=============================================================================
 struct BuySideGateConditions {
-  uint32_t price;
-  uint32_t volume;
+    uint32_t price;
+    uint32_t volume;
 };
 static_assert(sizeof(BuySideGateConditions) == 8, "BuySideGateConditions");
 
 struct SellSideGateConditions {
-  uint32_t price;
-  uint32_t volume;
+    uint32_t price;
+    uint32_t volume;
 };
 static_assert(sizeof(SellSideGateConditions) == 8, "SellSideGateConditions");
 
 struct SellGateBuilt {
-  uint64_t packed_conditions_sell;
+    uint64_t packed_conditions_sell;
 };
 static_assert(sizeof(SellGateBuilt) == 8, "SellGateBuilt should best 8 bytes");
 
 struct BuyGateBuilt {
-  uint64_t packed_conditions_buy;
+    uint64_t packed_conditions_buy;
 };
 static_assert(sizeof(BuyGateBuilt) == 8, "BuyGateBuilt should be 8 bytes");
 
@@ -184,25 +199,25 @@ static_assert(sizeof(BuyGateBuilt) == 8, "BuyGateBuilt should be 8 bytes");
 // [Pool_Allocator]
 //=============================================================================
 void OrderPool_init(OrderPool *pool, uint32_t capacity) {
-  pool->slots = (OrderInformation *)calloc(capacity, sizeof(OrderInformation));
-  pool->bitmap = 0;
-  pool->capacity = capacity;
+    pool->slots    = (OrderInformation *)calloc(capacity, sizeof(OrderInformation));
+    pool->bitmap   = 0;
+    pool->capacity = capacity;
 }
 
 OrderInformation *OrderPool_Allocate(OrderPool *pool) {
-  uint32_t index = __builtin_ctzll(~pool->bitmap);
-  pool->bitmap |= (1ULL << index);
-  return &pool->slots[index];
+    uint32_t index = __builtin_ctzll(~pool->bitmap);
+    pool->bitmap |= (1ULL << index);
+    return &pool->slots[index];
 }
 
 void OrderPool_Free(OrderPool *pool, OrderInformation *slot_ptr) {
-  uint32_t index = (uint32_t)(slot_ptr - pool->slots);
-  pool->bitmap &= ~(1ULL << index);
+    uint32_t index = (uint32_t)(slot_ptr - pool->slots);
+    pool->bitmap &= ~(1ULL << index);
 }
 
 uint32_t OrderPool_CountActive(const OrderPool *pool) {
-  uint32_t popcount = __builtin_popcountll(pool->bitmap);
-  return popcount;
+    uint32_t popcount = __builtin_popcountll(pool->bitmap);
+    return popcount;
 }
 //=============================================================================
 // [CONDITIONS]
@@ -213,17 +228,17 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // it may actually be bad to use SWAR techniques, im not really sure
 //=============================================================================
 BuyGateBuilt build_buy_conditions(BuySideGateConditions *conditions) {
-  uint64_t packed_conditions = 0;
-  packed_conditions |= conditions->price;
-  packed_conditions |= ((uint64_t)conditions->volume << 32);
-  return {packed_conditions};
+    uint64_t packed_conditions = 0;
+    packed_conditions |= conditions->price;
+    packed_conditions |= ((uint64_t)conditions->volume << 32);
+    return {packed_conditions};
 }
 
 SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
-  uint64_t packed_conditions = 0;
-  packed_conditions |= conditions->price;
-  packed_conditions |= ((uint64_t)conditions->volume << 32);
-  return {packed_conditions};
+    uint64_t packed_conditions = 0;
+    packed_conditions |= conditions->price;
+    packed_conditions |= ((uint64_t)conditions->volume << 32);
+    return {packed_conditions};
 }
 
 //=============================================================================
@@ -291,64 +306,59 @@ SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
 // like a puzzle
 //=============================================================================
 struct DataStream {
-  uint32_t price;
-  uint32_t volume;
+    uint32_t price;
+    uint32_t volume;
 };
 static_assert(sizeof(DataStream) == 8, "DataStream should be 8 bytes");
 
 struct ProfitTarget {
-  uint32_t profit_target;
+    uint32_t profit_target;
 };
 static_assert(sizeof(ProfitTarget) == 4, "ProfitTarget should be 4 bytes");
 
-void check_buy_lane0(const BuyGateBuilt *packed_conditions,
-                     const DataStream *stream, OrderPool *pool) {
-  uint32_t price = stream->price;
-  uint32_t volume = stream->volume;
+void check_buy_lane0(const BuyGateBuilt *packed_conditions, const DataStream *stream, OrderPool *pool) {
+    uint32_t price  = stream->price;
+    uint32_t volume = stream->volume;
 
-  uint32_t price_pass =
-      price <= (packed_conditions->packed_conditions_buy & 0xFFFFFFFF);
-  uint32_t volume_pass =
-      volume >= (packed_conditions->packed_conditions_buy >> 32);
+    uint32_t price_pass  = price <= (packed_conditions->packed_conditions_buy & 0xFFFFFFFF);
+    uint32_t volume_pass = volume >= (packed_conditions->packed_conditions_buy >> 32);
 
-  uint32_t pass = price_pass & volume_pass;
+    uint32_t pass = price_pass & volume_pass;
 
-  uint64_t mask = (uint64_t)(-(int64_t)pass);
-  uint32_t index = __builtin_ctzll(~pool->bitmap);
-  pool->bitmap |= (mask & (1ULL << index));
-  pool->slots[index].price.price = price;
-  pool->slots[index].volume.volume = volume;
+    uint64_t mask  = (uint64_t)(-(int64_t)pass);
+    uint32_t index = __builtin_ctzll(~pool->bitmap);
+    pool->bitmap |= (mask & (1ULL << index));
+    pool->slots[index].price.price   = price;
+    pool->slots[index].volume.volume = volume;
 }
 
-void check_sell_lane0(const SellGateBuilt *packed_conditions,
-                      DataStream *stream, OrderPool *pool,
+void check_sell_lane0(const SellGateBuilt *packed_conditions, DataStream *stream, OrderPool *pool,
                       const ProfitTarget *profit_target_struct) {
-  uint32_t price = stream->price;
-  uint32_t volume = stream->volume;
+    uint32_t price  = stream->price;
+    uint32_t volume = stream->volume;
 
-  uint32_t price_pass =
-      price >= (packed_conditions->packed_conditions_sell & 0xFFFFFFFF);
-  uint32_t volume_pass =
-      volume <= (packed_conditions->packed_conditions_sell >> 32);
+    uint32_t price_pass  = price >= (packed_conditions->packed_conditions_sell & 0xFFFFFFFF);
+    uint32_t volume_pass = volume <= (packed_conditions->packed_conditions_sell >> 32);
 
-  uint32_t pass = price_pass & volume_pass;
+    uint32_t pass = price_pass & volume_pass;
 
-  uint64_t active = pool->bitmap;
-  while (active) {
-    uint32_t idx = __builtin_ctzll(active);
-    uint32_t entry_price = pool->slots[idx].price.price;
-    uint32_t exit_pass =
-        (price >= entry_price + profit_target_struct->profit_target);
-    uint64_t clear_mask = (uint64_t)(-(int64_t)exit_pass) & (1ULL << idx);
-    pool->bitmap &= ~clear_mask;
-    active &= active - 1;
-  }
+    uint64_t active = pool->bitmap;
+    while (active) {
+        uint32_t idx         = __builtin_ctzll(active);
+        uint32_t entry_price = pool->slots[idx].price.price;
+        uint32_t exit_pass   = (price >= entry_price + profit_target_struct->profit_target);
+        uint64_t clear_mask  = (uint64_t)(-(int64_t)exit_pass) & (1ULL << idx);
+        pool->bitmap &= ~clear_mask;
+        active &= active - 1;
+    }
 }
 
 //=============================================================================
 // [USAGE EXAMPLE]
 //=============================================================================
-int main() { return 0; }
+int main() {
+    return 0;
+}
 //=============================================================================
 // [ASM BREAKDOWN]
 //=============================================================================
