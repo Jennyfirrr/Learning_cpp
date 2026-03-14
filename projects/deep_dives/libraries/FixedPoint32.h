@@ -305,19 +305,16 @@ static inline SST_FP32 SST_FP32_Ceil(SST_FP32 value) {
 }
 
 static inline SST_FP32 SST_FP32_Round(SST_FP32 value) {
-    int64_t mask = (1LL << SST_FP32_FRAC_BITS) - 1;
-    int64_t raw  = value.raw_value & ~mask;
-    int64_t half = 1LL << (SST_FP32_FRAC_BITS - 1);
-
-    if (value.raw_value >= 0) {
-        if ((value.raw_value & mask) >= half) {
-            raw += (1LL << SST_FP32_FRAC_BITS);
-        }
-    } else {
-        if ((value.raw_value & mask) > half) {
-            raw -= (1LL << SST_FP32_FRAC_BITS);
-        }
-    }
+    int64_t mask       = (1LL << SST_FP32_FRAC_BITS) - 1;
+    int64_t raw        = value.raw_value & ~mask;
+    int64_t half       = 1LL << (SST_FP32_FRAC_BITS - 1);
+    int64_t frac       = value.raw_value & mask;
+    int64_t is_pos     = (value.raw_value > 0);
+    int64_t is_neg     = (value.raw_value < 0);
+    int64_t round_up   = is_pos & (frac >= half);
+    int64_t round_down = is_neg & (frac > half);
+    raw += (1LL << SST_FP32_FRAC_BITS) & -round_up;
+    raw -= (1LL << SST_FP32_FRAC_BITS) & -round_down;
 
     return (SST_FP32){.raw_value = raw};
 }
