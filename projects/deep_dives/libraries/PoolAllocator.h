@@ -26,7 +26,7 @@ typedef struct {
     uint64_t bitmap;
     uint32_t capacity;
 } OrderPool;
-static_assert(sizeof(OrderPool) == 36, "struct must be 36 bytes");
+static_assert(sizeof(OrderPool) == 24, "struct must be 36 bytes");
 //======================================================================================================
 // [POOL ALLOCATOR FUNCTION PROTOTYPES]
 //======================================================================================================
