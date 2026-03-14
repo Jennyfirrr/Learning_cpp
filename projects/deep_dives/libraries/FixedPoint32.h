@@ -34,7 +34,7 @@ static inline SST_FP32 SST_FP32_AddSat(SST_FP32 a, SST_FP32 b) {
     SST_FP32 result;
     int64_t sum = a.raw_value + b.raw_value;
 
-    int64_t overflow = (a.raw_value ^ b.raw_value) & (b.raw_value ^ sum);
+    int64_t overflow = (a.raw_value ^ sum) & (b.raw_value ^ sum);
 
     int64_t sat = (a.raw_value >> 63) ^ INT64_MAX;
 
@@ -151,7 +151,9 @@ static inline int SST_FP32_GreaterThanOrEqual(SST_FP32 a, SST_FP32 b) {
 //======================================================================================================
 static inline SST_FP32 SST_FP32_Negate(SST_FP32 value) {
     SST_FP32 result;
-    result.raw_value = -value.raw_value;
+    int64_t is_min = !(value.raw_value ^ INT64_MIN);
+
+    result.raw_value = (-value.raw_value & ~(-(int64_t)is_min)) | (INT64_MAX & (-(int64_t)is_min));
     return result;
 }
 
