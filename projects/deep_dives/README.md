@@ -39,6 +39,17 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 | `data_structures.cpp` | 511 | — | 78 | Linear structures (arrays/vectors/linked lists), trees (BST, in-order/pre-order/post-order traversals), graphs and hash maps (stubs) |
 | `lock_free_reference.cpp` | 975 | — | 110 | Lock-free concurrency, CAS (compare_exchange_weak vs strong), spin loops, cmpxchg on x86, mutex vs lock-free tradeoffs |
 
+### `libraries/`
+
+Reusable header-only libraries extracted from the deep dives. All built on fixed-point arithmetic — no floating point, no heap allocation surprises.
+
+| File | Topics |
+|------|--------|
+| `FixedPoint16.h` | 16-bit fractional fixed-point arithmetic — int32 backed, add/sub/mul/div, full comparison suite, branchless abs and sign via bit smearing |
+| `LinearRegressionSimple.h` | Single-feature ordinary least squares using fixed-point math — y = mx + b, predict from fitted model |
+| `LinearRegression3X.h` | Linear regression with ring buffer feeder (8-sample window), R² goodness-of-fit, OLS with 5-sum accumulator, price prediction pipeline — all fixed-point |
+| `PoolAllocator.h` | Bitmap-based pool allocator for order tracking — TZCNT slot finding, POPCNT active count, calloc-backed with 64-slot bitmap capacity |
+
 ### `asm_outputs/`
 
 | File | Source |
@@ -83,3 +94,11 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 - ASM deep dive — DWARF unwinder, @PLT, DOD (data oriented design), more instruction coverage
 
 **Keep in mind that these are more like things I wanna study, there isnt like a guarentee or anything ill every actually get to these or push anything about them, there just a list of things that im currently interested in**
+
+---
+
+**Portfolio: [Jennyfirr.me](https://Jennyfirr.me)**
+
+**Connect with me on LinkedIn if you like my content: [LinkedIn](https://www.linkedin.com/in/jennifer-lewis-b601a73a8)**
+
+**Email: jenn.lewis5789@gmail.com**

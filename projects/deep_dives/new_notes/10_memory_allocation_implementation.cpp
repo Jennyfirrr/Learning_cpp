@@ -243,14 +243,14 @@ static std::mt19937_64 rng(123124);
 // thinking about it
 //
 struct Order {
-  uint8_t p;  // price
-  uint8_t e;  // expirery
-  uint8_t n;  // notational
-  uint8_t i;  // instrument id
-  uint8_t s;  // side
-  uint8_t l;  // limit
-  uint8_t o;  // order size
-  uint8_t l2; // lot size
+    uint8_t p;  // price
+    uint8_t e;  // expirery
+    uint8_t n;  // notational
+    uint8_t i;  // instrument id
+    uint8_t s;  // side
+    uint8_t l;  // limit
+    uint8_t o;  // order size
+    uint8_t l2; // lot size
 };
 static_assert(sizeof(Order) == 8, "struct must be 8 bytes");
 
@@ -278,50 +278,50 @@ static_assert(sizeof(Order) == 8, "struct must be 8 bytes");
 //
 //==============================================================================
 struct CurrentOrder {
-  uint8_t current_order;
+    uint8_t current_order;
 };
 static_assert(sizeof(CurrentOrder) == 1, "struct must be 1 byte");
 
 struct TrackedOrders {
-  CurrentOrder order0;
-  CurrentOrder order1;
-  CurrentOrder order2;
-  CurrentOrder order3;
-  CurrentOrder order4;
-  CurrentOrder order5;
-  CurrentOrder order6;
-  CurrentOrder order7;
+    CurrentOrder order0;
+    CurrentOrder order1;
+    CurrentOrder order2;
+    CurrentOrder order3;
+    CurrentOrder order4;
+    CurrentOrder order5;
+    CurrentOrder order6;
+    CurrentOrder order7;
 };
 static_assert(sizeof(TrackedOrders) == 8, "struct must be 8 bytes");
 
 struct RiskGate_BuySide {
-  uint8_t buyside_risk0;
-  uint8_t buyside_risk1;
-  uint8_t buyside_risk2;
-  uint8_t buyside_risk3;
-  uint8_t buyside_risk4;
-  uint8_t buyside_risk5;
-  uint8_t buyside_risk6;
-  uint8_t buyside_risk7;
+    uint8_t buyside_risk0;
+    uint8_t buyside_risk1;
+    uint8_t buyside_risk2;
+    uint8_t buyside_risk3;
+    uint8_t buyside_risk4;
+    uint8_t buyside_risk5;
+    uint8_t buyside_risk6;
+    uint8_t buyside_risk7;
 };
 static_assert(sizeof(RiskGate_BuySide) == 8, "struct must be 8 bytes");
 
 struct RiskGate_SellSide {
-  uint8_t sellside_risk0;
-  uint8_t sellside_risk1;
-  uint8_t sellside_risk2;
-  uint8_t sellside_risk3;
-  uint8_t sellside_risk4;
-  uint8_t sellside_risk5;
-  uint8_t sellside_risk6;
-  uint8_t sellside_risk7;
+    uint8_t sellside_risk0;
+    uint8_t sellside_risk1;
+    uint8_t sellside_risk2;
+    uint8_t sellside_risk3;
+    uint8_t sellside_risk4;
+    uint8_t sellside_risk5;
+    uint8_t sellside_risk6;
+    uint8_t sellside_risk7;
 };
 static_assert(sizeof(RiskGate_BuySide) == 8, "struct must by 8 bytes");
 
 struct OrderPool {
-  uint64_t bitmap;
-  uint32_t capacity;
-  CurrentOrder *slots;
+    uint64_t bitmap;
+    uint32_t capacity;
+    CurrentOrder *slots;
 };
 static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
 
@@ -329,25 +329,25 @@ static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
 // [POOL ALLOCATOR]
 //==============================================================================
 void OrderPool_init(OrderPool *pool, uint32_t capacity) {
-  pool->slots = (CurrentOrder *)calloc(capacity, sizeof(CurrentOrder));
-  pool->bitmap = 0;
-  pool->capacity = capacity;
+    pool->slots    = (CurrentOrder *)calloc(capacity, sizeof(CurrentOrder));
+    pool->bitmap   = 0;
+    pool->capacity = capacity;
 }
 
 CurrentOrder *OrderPool_Allocate(OrderPool *pool) {
-  uint32_t index = __builtin_ctzll(~pool->bitmap);
-  pool->bitmap |= (1ULL << index);
-  return &pool->slots[index];
+    uint32_t index = __builtin_ctzll(~pool->bitmap);
+    pool->bitmap |= (1ULL << index);
+    return &pool->slots[index];
 }
 
 void OrderPool_Free(OrderPool *pool, CurrentOrder *slot_ptr) {
-  uint32_t index = (uint32_t)(slot_ptr - pool->slots);
-  pool->bitmap &= ~(1ULL << index);
+    uint32_t index = (uint32_t)(slot_ptr - pool->slots);
+    pool->bitmap &= ~(1ULL << index);
 }
 
 uint32_t OrderPool_CountActive(const OrderPool *pool) {
-  uint32_t popcount = __builtin_popcountll(pool->bitmap);
-  return popcount;
+    uint32_t popcount = __builtin_popcountll(pool->bitmap);
+    return popcount;
 }
 
 //==============================================================================
@@ -405,18 +405,18 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 // because registers are ricky bobby fast
 //==============================================================================
 uint64_t order_packing_8_byte(TrackedOrders pair) {
-  uint64_t packed_orders = 0;
+    uint64_t packed_orders = 0;
 
-  packed_orders |= static_cast<uint64_t>(pair.order0.current_order);
-  packed_orders |= static_cast<uint64_t>(pair.order1.current_order) << 8;
-  packed_orders |= static_cast<uint64_t>(pair.order2.current_order) << 16;
-  packed_orders |= static_cast<uint64_t>(pair.order3.current_order) << 24;
-  packed_orders |= static_cast<uint64_t>(pair.order4.current_order) << 32;
-  packed_orders |= static_cast<uint64_t>(pair.order5.current_order) << 40;
-  packed_orders |= static_cast<uint64_t>(pair.order6.current_order) << 48;
-  packed_orders |= static_cast<uint64_t>(pair.order7.current_order) << 56;
+    packed_orders |= static_cast<uint64_t>(pair.order0.current_order);
+    packed_orders |= static_cast<uint64_t>(pair.order1.current_order) << 8;
+    packed_orders |= static_cast<uint64_t>(pair.order2.current_order) << 16;
+    packed_orders |= static_cast<uint64_t>(pair.order3.current_order) << 24;
+    packed_orders |= static_cast<uint64_t>(pair.order4.current_order) << 32;
+    packed_orders |= static_cast<uint64_t>(pair.order5.current_order) << 40;
+    packed_orders |= static_cast<uint64_t>(pair.order6.current_order) << 48;
+    packed_orders |= static_cast<uint64_t>(pair.order7.current_order) << 56;
 
-  return packed_orders;
+    return packed_orders;
 }
 //==============================================================================
 // [RISK GATE]
@@ -455,53 +455,43 @@ uint64_t order_packing_8_byte(TrackedOrders pair) {
 // attire
 //==============================================================================
 uint64_t build_risk_gate_buy(RiskGate_BuySide sides) {
-  uint64_t risk_gate_built_buy_side = 0;
+    uint64_t risk_gate_built_buy_side = 0;
 
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk0);
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk1) << 8;
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk2) << 16;
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk3) << 24;
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk4) << 32;
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk5) << 40;
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk6) << 48;
-  risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk7) << 56;
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk0);
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk1) << 8;
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk2) << 16;
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk3) << 24;
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk4) << 32;
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk5) << 40;
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk6) << 48;
+    risk_gate_built_buy_side |= static_cast<uint64_t>(sides.buyside_risk7) << 56;
 
-  return risk_gate_built_buy_side;
+    return risk_gate_built_buy_side;
 }
 
 uint64_t build_risk_gate_sell(RiskGate_SellSide sides) {
-  uint64_t risk_gate_built_sell_side = 0;
+    uint64_t risk_gate_built_sell_side = 0;
 
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk0);
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk1) << 8;
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk2)
-                               << 16;
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk3)
-                               << 24;
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk4)
-                               << 32;
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk5)
-                               << 40;
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk6)
-                               << 48;
-  risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk7)
-                               << 56;
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk0);
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk1) << 8;
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk2) << 16;
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk3) << 24;
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk4) << 32;
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk5) << 40;
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk6) << 48;
+    risk_gate_built_sell_side |= static_cast<uint64_t>(sides.sellside_risk7) << 56;
 
-  return risk_gate_built_sell_side;
+    return risk_gate_built_sell_side;
 }
 
-uint64_t risk_gate_check_buy_side(uint64_t packed_order,
-                                  uint64_t risk_gate_buy_side) {
-  uint64_t breach_buy =
-      (risk_gate_buy_side - packed_order) & 0x8080808080808080ULL;
-  return breach_buy;
+uint64_t risk_gate_check_buy_side(uint64_t packed_order, uint64_t risk_gate_buy_side) {
+    uint64_t breach_buy = (risk_gate_buy_side - packed_order) & 0x8080808080808080ULL;
+    return breach_buy;
 }
 
-uint64_t risk_gate_check_sell_side(uint64_t packed_order,
-                                   uint64_t risk_gate_sell_side) {
-  uint64_t breach_sell =
-      (risk_gate_sell_side - packed_order) & 0x7070707070707070ULL;
-  return breach_sell;
+uint64_t risk_gate_check_sell_side(uint64_t packed_order, uint64_t risk_gate_sell_side) {
+    uint64_t breach_sell = (risk_gate_sell_side - packed_order) & 0x7070707070707070ULL;
+    return breach_sell;
 }
 
 //==============================================================================

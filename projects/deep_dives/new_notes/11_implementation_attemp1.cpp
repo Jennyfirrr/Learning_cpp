@@ -136,7 +136,7 @@ struct OrderMetaData {
     uint8_t order_type;
     uint8_t padding;
 };
-static_assert(sizeof(OrderMetaData) == 24, "OrderMetaData should be 16");
+static_assert(sizeof(OrderMetaData) == 24, "OrderMetaData should be 24");
 
 //=============================================================================
 // [ORDER POOL STRUCTS]
@@ -311,11 +311,6 @@ struct DataStream {
 };
 static_assert(sizeof(DataStream) == 8, "DataStream should be 8 bytes");
 
-struct ProfitTarget {
-    uint32_t profit_target;
-};
-static_assert(sizeof(ProfitTarget) == 4, "ProfitTarget should be 4 bytes");
-
 void check_buy_lane0(const BuyGateBuilt *packed_conditions, const DataStream *stream, OrderPool *pool) {
     uint32_t price  = stream->price;
     uint32_t volume = stream->volume;
@@ -331,6 +326,11 @@ void check_buy_lane0(const BuyGateBuilt *packed_conditions, const DataStream *st
     pool->slots[index].price.price   = price;
     pool->slots[index].volume.volume = volume;
 }
+
+struct ProfitTarget {
+    uint32_t profit_target;
+};
+static_assert(sizeof(ProfitTarget) == 4, "ProfitTarget should be 4 bytes");
 
 void check_sell_lane0(const SellGateBuilt *packed_conditions, DataStream *stream, OrderPool *pool,
                       const ProfitTarget *profit_target_struct) {

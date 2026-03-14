@@ -113,40 +113,40 @@ static std::mt19937_64 rng(123456);
 //=================================================================================
 
 struct buy_side {
-  uint8_t order0b;
-  uint8_t order1b;
-  uint8_t order2b;
-  uint8_t order3b;
+    uint8_t order0b;
+    uint8_t order1b;
+    uint8_t order2b;
+    uint8_t order3b;
 };
 static_assert(sizeof(buy_side) == 4, "struct must be 4 bytes");
 
 struct sell_side {
-  uint8_t order0s;
-  uint8_t order1s;
-  uint8_t order2s;
-  uint8_t order3s;
+    uint8_t order0s;
+    uint8_t order1s;
+    uint8_t order2s;
+    uint8_t order3s;
 };
 static_assert(sizeof(sell_side) == 4, "struct must be 4 bytes");
 
 struct OrderPair {
-  buy_side buys;
-  sell_side sells;
+    buy_side buys;
+    sell_side sells;
 };
 static_assert(sizeof(OrderPair) == 8, "struct must be 8 bytes");
 
 uint64_t order_packing_8byte(OrderPair pair) {
-  uint64_t packed_orders = 0;
+    uint64_t packed_orders = 0;
 
-  packed_orders |= static_cast<uint64_t>(pair.buys.order0b);
-  packed_orders |= static_cast<uint64_t>(pair.buys.order1b) << 8;
-  packed_orders |= static_cast<uint64_t>(pair.buys.order2b) << 16;
-  packed_orders |= static_cast<uint64_t>(pair.buys.order3b) << 24;
-  packed_orders |= static_cast<uint64_t>(pair.sells.order0s) << 32;
-  packed_orders |= static_cast<uint64_t>(pair.sells.order1s) << 40;
-  packed_orders |= static_cast<uint64_t>(pair.sells.order2s) << 48;
-  packed_orders |= static_cast<uint64_t>(pair.sells.order3s) << 56;
+    packed_orders |= static_cast<uint64_t>(pair.buys.order0b);
+    packed_orders |= static_cast<uint64_t>(pair.buys.order1b) << 8;
+    packed_orders |= static_cast<uint64_t>(pair.buys.order2b) << 16;
+    packed_orders |= static_cast<uint64_t>(pair.buys.order3b) << 24;
+    packed_orders |= static_cast<uint64_t>(pair.sells.order0s) << 32;
+    packed_orders |= static_cast<uint64_t>(pair.sells.order1s) << 40;
+    packed_orders |= static_cast<uint64_t>(pair.sells.order2s) << 48;
+    packed_orders |= static_cast<uint64_t>(pair.sells.order3s) << 56;
 
-  return packed_orders;
+    return packed_orders;
 }
 //=================================================================================
 // this is fucking cursed LOL, the compiler likes this more though, and theres
@@ -233,32 +233,32 @@ uint64_t order_packing_8byte(OrderPair pair) {
 // uint64_t packed = order_packing_8byte(*slot);
 //=================================================================================
 struct OrderPool {
-  OrderPair *slots;
-  uint64_t bitmap;
-  uint32_t capacity;
+    OrderPair *slots;
+    uint64_t bitmap;
+    uint32_t capacity;
 };
 static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
 
 void OrderPool_init(OrderPool *pool, uint32_t capacity) {
-  pool->slots = (OrderPair *)calloc(capacity, sizeof(OrderPair));
-  pool->bitmap = 0;
-  pool->capacity = capacity;
+    pool->slots    = (OrderPair *)calloc(capacity, sizeof(OrderPair));
+    pool->bitmap   = 0;
+    pool->capacity = capacity;
 }
 
 OrderPair *OrderPool_Allocate(OrderPool *pool) {
-  uint32_t index = __builtin_ctzll(~pool->bitmap);
-  pool->bitmap |= (1ULL << index);
-  return &pool->slots[index];
+    uint32_t index = __builtin_ctzll(~pool->bitmap);
+    pool->bitmap |= (1ULL << index);
+    return &pool->slots[index];
 }
 
 void OrderPool_Free(OrderPool *pool, OrderPair *slot_ptr) {
-  uint32_t index = (uint32_t)(slot_ptr - pool->slots);
-  pool->bitmap &= ~(1ULL << index);
+    uint32_t index = (uint32_t)(slot_ptr - pool->slots);
+    pool->bitmap &= ~(1ULL << index);
 }
 
 uint32_t OrderPool_CountActive(const OrderPool *pool) {
-  uint32_t popcount = __builtin_popcountll(pool->bitmap);
-  return popcount;
+    uint32_t popcount = __builtin_popcountll(pool->bitmap);
+    return popcount;
 }
 //=================================================================================
 // [RISK GATE] [TAG-risk_gate]
@@ -315,44 +315,44 @@ uint32_t OrderPool_CountActive(const OrderPool *pool) {
 //=================================================================================
 
 struct risk_gate {
-  uint8_t buy_side_risk0;
-  uint8_t buy_side_risk1;
-  uint8_t buy_side_risk2;
-  uint8_t buy_side_risk3;
-  uint8_t sell_side_risk0;
-  uint8_t sell_side_risk1;
-  uint8_t sell_side_risk2;
-  uint8_t sell_side_risk3;
+    uint8_t buy_side_risk0;
+    uint8_t buy_side_risk1;
+    uint8_t buy_side_risk2;
+    uint8_t buy_side_risk3;
+    uint8_t sell_side_risk0;
+    uint8_t sell_side_risk1;
+    uint8_t sell_side_risk2;
+    uint8_t sell_side_risk3;
 };
 static_assert(sizeof(risk_gate) == 8, "struct must be 8 bytes");
 
 uint64_t build_risk_gate(risk_gate sides) {
-  uint64_t risk_gate_built = 0;
+    uint64_t risk_gate_built = 0;
 
-  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk0);
-  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk1) << 8;
-  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk2) << 16;
-  risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk3) << 24;
-  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk0) << 32;
-  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk1) << 40;
-  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk2) << 48;
-  risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk3) << 56;
+    risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk0);
+    risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk1) << 8;
+    risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk2) << 16;
+    risk_gate_built |= static_cast<uint64_t>(sides.buy_side_risk3) << 24;
+    risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk0) << 32;
+    risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk1) << 40;
+    risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk2) << 48;
+    risk_gate_built |= static_cast<uint64_t>(sides.sell_side_risk3) << 56;
 
-  return risk_gate_built;
+    return risk_gate_built;
 }
 
 uint64_t risk_gate_check(uint64_t packed_order, uint64_t risk_gate) {
-  uint64_t breach = (risk_gate - packed_order) & 0x8080808080808080ULL;
-  return breach;
+    uint64_t breach = (risk_gate - packed_order) & 0x8080808080808080ULL;
+    return breach;
 }
 
 //=================================================================================
 //[ORDER GENERATION] [TAG-order_gen]
 //=================================================================================
 OrderPair order_generation() {
-  uint64_t generated_order = rng();
-  generated_order &= 0x7F7F7F7F7F7F7F7FULL;
-  return *reinterpret_cast<OrderPair *>(&generated_order);
+    uint64_t generated_order = rng();
+    generated_order &= 0x7F7F7F7F7F7F7F7FULL;
+    return *reinterpret_cast<OrderPair *>(&generated_order);
 }
 //=================================================================================
 // [XOR SHIFT] [Order gen not using twister]
@@ -394,91 +394,83 @@ uint64_t xorshift256(uint64_t s[4]) {
 // instead of just simulated direct order flow with no state tracking
 //=================================================================================
 int main() {
-  uint64_t duration, start, end;
-  uint32_t risk_id;
+    uint64_t duration, start, end;
+    uint32_t risk_id;
 
-  std::cout << "Please select how long to run this: ";
-  std::cin >> duration;
+    std::cout << "Please select how long to run this: ";
+    std::cin >> duration;
 
-  std::cout << "Please select risk gate id [0-127]: ";
-  std::cin >> risk_id;
+    std::cout << "Please select risk gate id [0-127]: ";
+    std::cin >> risk_id;
 
-  const uint64_t total_duration = duration;
+    const uint64_t total_duration = duration;
 
-  uint8_t risk_val = static_cast<uint8_t>(risk_id);
+    uint8_t risk_val = static_cast<uint8_t>(risk_id);
 
-  risk_gate risk_gate_id = {risk_val, risk_val, risk_val, risk_val,
-                            risk_val, risk_val, risk_val, risk_val};
+    risk_gate risk_gate_id = {risk_val, risk_val, risk_val, risk_val, risk_val, risk_val, risk_val, risk_val};
 
-  uint64_t risk = build_risk_gate(risk_gate_id);
-  uint64_t passed = 0;
-  uint64_t total_failed = 0;
+    uint64_t risk         = build_risk_gate(risk_gate_id);
+    uint64_t passed       = 0;
+    uint64_t total_failed = 0;
 
-  uint64_t cycles_gen = 0;
-  uint64_t cycles_pack = 0;
-  uint64_t cycles_gate = 0;
+    uint64_t cycles_gen  = 0;
+    uint64_t cycles_pack = 0;
+    uint64_t cycles_gate = 0;
 
-  while (duration > 0) {
-    __asm__ volatile("mfence" ::: "memory");
-    // this just seperates the different __rdtsc calls
-    uint64_t s1 = __rdtsc();
-    OrderPair order = order_generation();
-    uint64_t e1 = __rdtsc();
-    __asm__ volatile("mfence" ::: "memory");
+    while (duration > 0) {
+        __asm__ volatile("mfence" ::: "memory");
+        // this just seperates the different __rdtsc calls
+        uint64_t s1     = __rdtsc();
+        OrderPair order = order_generation();
+        uint64_t e1     = __rdtsc();
+        __asm__ volatile("mfence" ::: "memory");
 
-    uint64_t s2 = __rdtsc();
-    uint64_t packed = order_packing_8byte(order);
-    uint64_t e2 = __rdtsc();
-    __asm__ volatile("mfence" ::: "memory");
+        uint64_t s2     = __rdtsc();
+        uint64_t packed = order_packing_8byte(order);
+        uint64_t e2     = __rdtsc();
+        __asm__ volatile("mfence" ::: "memory");
 
-    uint64_t s3 = __rdtsc();
-    uint64_t breach = risk_gate_check(packed, risk);
-    uint64_t failed = __builtin_popcountll(breach);
-    uint64_t e3 = __rdtsc();
-    __asm__ volatile("mfence" ::: "memory");
+        uint64_t s3     = __rdtsc();
+        uint64_t breach = risk_gate_check(packed, risk);
+        uint64_t failed = __builtin_popcountll(breach);
+        uint64_t e3     = __rdtsc();
+        __asm__ volatile("mfence" ::: "memory");
 
-    cycles_gen += (e1 - s1);
-    cycles_pack += (e2 - s2);
-    cycles_gate += (e3 - s3);
+        cycles_gen += (e1 - s1);
+        cycles_pack += (e2 - s2);
+        cycles_gate += (e3 - s3);
 
-    passed += 8 - failed;
-    total_failed += failed;
+        passed += 8 - failed;
+        total_failed += failed;
 
-    duration--;
-  }
+        duration--;
+    }
 
-  std::cout
-      << "\n==============================================================="
-         "=======\n";
+    std::cout << "\n==============================================================="
+                 "=======\n";
 
-  std::cout << "Average cycle count gen: "
-            << static_cast<float>(cycles_gen) / total_duration << "\n";
+    std::cout << "Average cycle count gen: " << static_cast<float>(cycles_gen) / total_duration << "\n";
 
-  std::cout << "Average cycle count pack: "
-            << static_cast<float>(cycles_pack) / total_duration << "\n";
+    std::cout << "Average cycle count pack: " << static_cast<float>(cycles_pack) / total_duration << "\n";
 
-  std::cout << "Average cycle count gate: "
-            << static_cast<float>(cycles_gate) / total_duration << "\n";
+    std::cout << "Average cycle count gate: " << static_cast<float>(cycles_gate) / total_duration << "\n";
 
-  std::cout
-      << "\n==============================================================="
-         "=======\n";
-  std::cout << "Total Orders Generated: " << passed + total_failed << "\n";
-  std::cout << "==============================================================="
-               "=======\n";
+    std::cout << "\n==============================================================="
+                 "=======\n";
+    std::cout << "Total Orders Generated: " << passed + total_failed << "\n";
+    std::cout << "==============================================================="
+                 "=======\n";
 
-  std::cout << "Passed: " << passed << "\n";
-  std::cout << "Failed: " << total_failed << "\n";
-  std::cout << "==============================================================="
-               "=======\n";
+    std::cout << "Passed: " << passed << "\n";
+    std::cout << "Failed: " << total_failed << "\n";
+    std::cout << "==============================================================="
+                 "=======\n";
 
-  std::cout << "Passed %: "
-            << (static_cast<float>(passed) / (passed + total_failed)) * 100
-            << "%\n";
-  std::cout << "==============================================================="
-               "=======\n";
+    std::cout << "Passed %: " << (static_cast<float>(passed) / (passed + total_failed)) * 100 << "%\n";
+    std::cout << "==============================================================="
+                 "=======\n";
 
-  return 0;
+    return 0;
 }
 //=================================================================================
 // [ASM BREAKDOWN]

@@ -60,6 +60,7 @@ projects/deep_dives/08_mycroft_implementation
 projects/deep_dives/09_allocator_practice
 projects/deep_dives/backup/new_notes_backup_20260302/allocator_practice
 projects/deep_dives/backup/new_notes_backup_20260302/mycroft_implementation
+projects/deep_dives/libraries/test
 
 # log files
 *.log
