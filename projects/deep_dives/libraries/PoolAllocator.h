@@ -12,7 +12,7 @@
 //======================================================================================================
 // [CURRENT ORDER STRUCTURE]
 //======================================================================================================
-// these are the current structs, theyll probably change but idk, just consider these more like intial jsut to lay ground work
+// these are the current structs, theyll probably change but idk, just consider these more like intial jsut to lay ground work, these are almost definitly gonna change now that i think about it lol
 //======================================================================================================
 typedef struct {
     uint64_t order_id;
@@ -22,11 +22,11 @@ typedef struct {
 static_assert(sizeof(CurrentOrder) == 24, "struct must be 24 bytes");
 
 typedef struct {
+    CurrentOrder *slots;
     uint64_t bitmap;
     uint32_t capacity;
-    CurrentOrder *slots;
 } OrderPool;
-static_assert(sizeof(OrderPool) == 24, "struct must be 24 bytes");
+static_assert(sizeof(OrderPool) == 36, "struct must be 36 bytes");
 //======================================================================================================
 // [POOL ALLOCATOR FUNCTION PROTOTYPES]
 //======================================================================================================
