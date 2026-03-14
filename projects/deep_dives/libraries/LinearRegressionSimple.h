@@ -14,10 +14,11 @@ typedef struct {
     SST_FP slope;
     SST_FP intercept;
 } LinearRegressionModel;
+static_assert(sizeof(LinearRegressionModel) == 8, "struct must be 8 bytes");
 //======================================================================================================
 // [LINEAR REGRESSION FUNCTION PROTOTYPES]
 //======================================================================================================
-LinearRegressionModel LinearRegression_Fit(SST_FP *x_values, SST_FP *y_values, int count) {
+static inline LinearRegressionModel LinearRegression_Fit(SST_FP *x_values, SST_FP *y_values, int count) {
     LinearRegressionModel model;
 
     SST_FP sum_x = {0}, sum_y = {0};
@@ -47,7 +48,7 @@ LinearRegressionModel LinearRegression_Fit(SST_FP *x_values, SST_FP *y_values, i
     return model;
 }
 
-SST_FP LinearRegression_Predict(LinearRegressionModel model, SST_FP x) {
+static inline SST_FP LinearRegression_Predict(LinearRegressionModel model, SST_FP x) {
     return SST_FP_Add(SST_FP_Mul(model.slope, x), model.intercept);
 }
 
