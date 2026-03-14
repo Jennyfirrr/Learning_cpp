@@ -1,5 +1,5 @@
 //======================================================================================================
-// [FIXED-POINT ARITHMETIC LIBRARY]
+// [FIXED-POINT ARITHMETIC LIBRARY 16 FRACTIONAL BITS]
 //======================================================================================================
 #ifndef SST_FIXED_POINT_H
 #define SST_FIXED_POINT_H
