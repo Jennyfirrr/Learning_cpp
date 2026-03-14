@@ -21,7 +21,7 @@ typedef struct {
     int head;
     int count;
 } RegressionFeederX;
-static_assert(sizeof(RegressionFeederX) == 64, "struct must be 64 bytes");
+static_assert(sizeof(RegressionFeederX) == 40, "struct must be 40 bytes");
 
 typedef struct {
     LinearRegression3XModel model;
