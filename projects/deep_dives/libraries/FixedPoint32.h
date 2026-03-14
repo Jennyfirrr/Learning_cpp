@@ -28,6 +28,18 @@ static inline double SST_FP32_ToDouble(SST_FP32 value) {
     return (double)value.raw_value / (1LL << SST_FP32_FRAC_BITS);
 }
 //======================================================================================================
+// [GUARDS]
+//======================================================================================================
+static inline SST_FP32 SST_FP32_Min(SST_FP32 a, SST_FP32 b) {
+    int64_t mask = (a.raw_value - b.raw_value) >> 63;
+    return (SST_FP32){.raw_value = (a.raw_value & mask) | (b.raw_value & ~mask)};
+}
+
+static inline SST_FP32 SST_FP32_Max(SST_FP32 a, SST_FP32 b) {
+    int64_t mask = (a.raw_value - b.raw_value) >> 63;
+    return (SST_FP32){.raw_value = (b.raw_value & mask) | (a.raw_value & ~mask)};
+}
+//======================================================================================================
 // [FIXED-POINT ARITHMETIC OPERATIONS]
 //======================================================================================================
 static inline SST_FP32 SST_FP32_AddSat(SST_FP32 a, SST_FP32 b) {
@@ -178,6 +190,166 @@ static inline SST_FP32 SST_FP32_Sign(SST_FP32 value) {
 //======================================================================================================
 // [FIXED-POINT MATH FUNCTIONS]
 //======================================================================================================
+static inline SST_FP32 SST_FP32_Sqrt(SST_FP32 value) {
+    assert(value.raw_value >= 0);
+
+    if (value.raw_value == 0) {
+        return (SST_FP32){.raw_value = 0};
+    }
+
+    int64_t x      = value.raw_value;
+    int64_t result = 0;
+    int64_t bit    = 1LL << (SST_FP32_FRAC_BITS + 30);
+
+    while (bit > x) {
+        bit >>= 2;
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        while (bit != 0) {
+            if (x >= result + bit) {
+                x -= result + bit;
+                result += bit << 1;
+            }
+            result >>= 1;
+            bit >>= 2;
+        }
+        if (i == 0) {
+            if (x > (1LL << SST_FP32_FRAC_BITS)) {
+                x -= result;
+                result += 1LL << SST_FP32_FRAC_BITS;
+            }
+            x <<= SST_FP32_FRAC_BITS;
+            bit = 1LL << (SST_FP32_FRAC_BITS + 30);
+        }
+    }
+
+    return (SST_FP32){.raw_value = result};
+}
+
+static inline SST_FP32 SST_FP32_InvSqrt(SST_FP32 value) {
+    assert(value.raw_value > 0);
+
+    double x = SST_FP32_ToDouble(value);
+    double y = 1.0 / sqrt(x);
+    return SST_FP32_FromDouble(y);
+}
+
+static inline SST_FP32 SST_FP32_Sin(SST_FP32 value) {
+    double x = SST_FP32_ToDouble(value);
+    double y = sin(x);
+    return SST_FP32_FromDouble(y);
+}
+
+static inline SST_FP32 SST_FP32_Cos(SST_FP32 value) {
+    double x = SST_FP32_ToDouble(value);
+    double y = cos(x);
+    return SST_FP32_FromDouble(y);
+}
+
+static inline SST_FP32 SST_FP32_Tan(SST_FP32 value) {
+    double x = SST_FP32_ToDouble(value);
+    double y = tan(x);
+    return SST_FP32_FromDouble(y);
+}
+
+static inline SST_FP32 SST_FP32_Atan2(SST_FP32 y, SST_FP32 x) {
+    double dy    = SST_FP32_ToDouble(y);
+    double dx    = SST_FP32_ToDouble(x);
+    double angle = atan2(dy, dx);
+    return SST_FP32_FromDouble(angle);
+}
+
+static inline SST_FP32 SST_FP32_Exp(SST_FP32 value) {
+    double x = SST_FP32_ToDouble(value);
+    double y = exp(x);
+    return SST_FP32_FromDouble(y);
+}
+
+static inline SST_FP32 SST_FP32_Log(SST_FP32 value) {
+    assert(value.raw_value > 0);
+
+    double x = SST_FP32_ToDouble(value);
+    double y = log(x);
+    return SST_FP32_FromDouble(y);
+}
+
+static inline SST_FP32 SST_FP32_Pow(SST_FP32 base, SST_FP32 exponent) {
+    double b = SST_FP32_ToDouble(base);
+    double e = SST_FP32_ToDouble(exponent);
+    double y = pow(b, e);
+    return SST_FP32_FromDouble(y);
+}
+//======================================================================================================
+// [FIXED-POINT MISCELLANEOUS FUNCTIONS]
+//======================================================================================================
+
+static inline SST_FP32 SST_FP32_Floor(SST_FP32 value) {
+    int64_t mask = (1LL << SST_FP32_FRAC_BITS) - 1;
+    int64_t raw  = value.raw_value & ~mask;
+
+    if (value.raw_value < 0 && (value.raw_value & mask) != 0) {
+        raw -= (1LL << SST_FP32_FRAC_BITS);
+    }
+
+    return (SST_FP32){.raw_value = raw};
+}
+
+static inline SST_FP32 SST_FP32_Ceil(SST_FP32 value) {
+    int64_t mask = (1LL << SST_FP32_FRAC_BITS) - 1;
+    int64_t raw  = value.raw_value & ~mask;
+
+    if (value.raw_value > 0 && (value.raw_value & mask) != 0) {
+        raw += (1LL << SST_FP32_FRAC_BITS);
+    }
+
+    return (SST_FP32){.raw_value = raw};
+}
+
+static inline SST_FP32 SST_FP32_Round(SST_FP32 value) {
+    int64_t mask = (1LL << SST_FP32_FRAC_BITS) - 1;
+    int64_t raw  = value.raw_value & ~mask;
+    int64_t half = 1LL << (SST_FP32_FRAC_BITS - 1);
+
+    if (value.raw_value >= 0) {
+        if ((value.raw_value & mask) >= half) {
+            raw += (1LL << SST_FP32_FRAC_BITS);
+        }
+    } else {
+        if ((value.raw_value & mask) > half) {
+            raw -= (1LL << SST_FP32_FRAC_BITS);
+        }
+    }
+
+    return (SST_FP32){.raw_value = raw};
+}
+
+static inline SST_FP32 SST_FP32_Mod(SST_FP32 a, SST_FP32 b) {
+    assert(b.raw_value != 0);
+
+    int64_t safe_b     = b.raw_value | (!b.raw_value);
+    SST_FP32 quotient  = SST_FP32_DivNoAssert(a, (SST_FP32){.raw_value = safe_b});
+    SST_FP32 truncated = (SST_FP32){.raw_value = quotient.raw_value & ~((1LL << SST_FP32_FRAC_BITS) - 1)};
+    return SST_FP32_SubSat(a, SST_FP32_Mul(truncated, (SST_FP32){.raw_value = safe_b}));
+}
+
+static inline SST_FP32 SST_FP32_Lerp(SST_FP32 a, SST_FP32 b, SST_FP32 t) {
+    SST_FP32 diff   = SST_FP32_SubSat(b, a);
+    SST_FP32 scaled = SST_FP32_Mul(diff, t);
+    return SST_FP32_AddSat(a, scaled);
+}
+
+static inline SST_FP32 SST_FP32_SmoothStep(SST_FP32 edge0, SST_FP32 edge1, SST_FP32 x) {
+    if (SST_FP32_LessThanOrEqual(x, edge0)) {
+        return (SST_FP32){.raw_value = 0};
+    } else if (SST_FP32_GreaterThanOrEqual(x, edge1)) {
+        return (SST_FP32){.raw_value = 1LL << SST_FP32_FRAC_BITS};
+    } else {
+        SST_FP32 t = SST_FP32_DivNoAssert(SST_FP32_SubSat(x, edge0), SST_FP32_SubSat(edge1, edge0));
+        return SST_FP32_Mul(SST_FP32_Mul(t, t), SST_FP32_SubSat((SST_FP32){.raw_value = 3LL << SST_FP32_FRAC_BITS},
+                                                                SST_FP32_Mul((SST_FP32){.raw_value = 2LL << SST_FP32_FRAC_BITS}, t)));
+    }
+}
 //======================================================================================================
 //======================================================================================================
 
