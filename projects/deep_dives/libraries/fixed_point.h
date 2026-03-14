@@ -61,6 +61,59 @@ static inline SST_FP SST_FP_Div(SST_FP a, SST_FP b) {
     result.raw_value = ((__int64_t)a.raw_value << SST_FP_FRAC_BITS) / b.raw_value;
     return result;
 }
+//======================================================================================================
+// [FIXED-POINT COMPARISON OPERATIONS]
+//======================================================================================================
+static inline int SST_FP_Equal(SST_FP a, SST_FP b) {
+    return a.raw_value == b.raw_value;
+}
+
+static inline int SST_FP_NotEqual(SST_FP a, SST_FP b) {
+    return a.raw_value != b.raw_value;
+}
+
+static inline int SST_FP_LessThan(SST_FP a, SST_FP b) {
+    return a.raw_value < b.raw_value;
+}
+
+static inline int SST_FP_LessThanOrEqual(SST_FP a, SST_FP b) {
+    return a.raw_value <= b.raw_value;
+}
+
+static inline int SST_FP_GreaterThan(SST_FP a, SST_FP b) {
+    return a.raw_value > b.raw_value;
+}
+
+static inline int SST_FP_GreaterThanOrEqual(SST_FP a, SST_FP b) {
+    return a.raw_value >= b.raw_value;
+}
+
+static inline int SST_FP_IsZero(SST_FP a) {
+    return a.raw_value == 0;
+}
+
+static inline int SST_FP_IsNegative(SST_FP a) {
+    return a.raw_value < 0;
+}
+
+static inline int SST_FP_IsPositive(SST_FP a) {
+    return a.raw_value > 0;
+}
+
+static inline int SST_FP_Sign(SST_FP a) {
+    int32_t mask = a.raw_value >> 31;
+    return (mask | (!!a.raw_value));
+}
+
+static inline SST_FP SST_FP_Abs(SST_FP a) {
+    SST_FP result;
+
+    int32_t mask     = a.raw_value >> 31;
+    int32_t diff     = a.raw_value ^ mask;
+    result.raw_value = diff - mask;
+
+    return result;
+}
 
 //======================================================================================================
 //======================================================================================================
