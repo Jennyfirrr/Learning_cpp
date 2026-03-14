@@ -32,24 +32,24 @@ static_assert(sizeof(OrderPool) == 24, "struct must be 36 bytes");
 //======================================================================================================
 // current working code, subject to chaaanggggeeeee
 //======================================================================================================
-void OrderPool_init(OrderPool *pool, uint32_t capacity) {
+static inline void OrderPool_init(OrderPool *pool, uint32_t capacity) {
     pool->slots    = (CurrentOrder *)calloc(capacity, sizeof(CurrentOrder));
     pool->bitmap   = 0;
     pool->capacity = capacity;
 }
 
-CurrentOrder *OrderPool_Allocate(OrderPool *pool) {
+static inline CurrentOrder *OrderPool_Allocate(OrderPool *pool) {
     uint32_t index = __builtin_ctzll(~pool->bitmap);
     pool->bitmap |= (1ULL << index);
     return &pool->slots[index];
 }
 
-void OrderPool_Free(OrderPool *pool, CurrentOrder *slot_ptr) {
+static inline void OrderPool_Free(OrderPool *pool, CurrentOrder *slot_ptr) {
     uint32_t index = (uint32_t)(slot_ptr - pool->slots);
     pool->bitmap &= ~(1ULL << index);
 }
 
-uint32_t OrderPool_CountActive(const OrderPool *pool) {
+static inline uint32_t OrderPool_CountActive(const OrderPool *pool) {
     uint32_t popcount = __builtin_popcountll(pool->bitmap);
     return popcount;
 }
