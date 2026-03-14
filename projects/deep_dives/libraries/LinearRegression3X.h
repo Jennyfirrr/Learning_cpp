@@ -83,7 +83,8 @@ static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP *x_values, 
         // Calculate R-squared
         SST_FP ss_total = SST_FP_Sub(sum_y2, SST_FP_Div(SST_FP_Mul(sum_y, sum_y), n_fp));
         if (ss_total.raw_value != 0) {
-            result.r_squared = SST_FP_Div(SST_FP_Sub(ss_total, numerator), ss_total);
+            SST_FP ss_reg    = SST_FP_Div(SST_FP_Mul(numerator, numerator), denominator);
+            result.r_squared = SST_FP_Div(ss_reg, ss_total);
         }
     }
 
