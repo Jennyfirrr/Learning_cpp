@@ -22,6 +22,8 @@ static_assert(sizeof(SST_FP) == 4, "SST_FP must be 4 bytes");
 //======================================================================================================
 // [DOUBLE PRECISION FIXED-POINT ARITHMETIC]
 //======================================================================================================
+// im gonna add more types here
+//======================================================================================================
 static inline SST_FP SST_FP_FromDouble(double input) {
     SST_FP result;
     result.raw_value = (int32_t)(input * (1LL << SST_FP_FRAC_BITS));
