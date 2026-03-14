@@ -4,7 +4,7 @@
 #ifndef SST_FIXED_POINT_H
 #define SST_FIXED_POINT_H
 
-#define SST_FP_FRAC_BITS 32
+#define SST_FP_FRAC_BITS 16
 
 #include <stdint.h>
 #include <assert.h>
@@ -17,7 +17,7 @@
 typedef struct {
     int32_t raw_value;
 } SST_FP;
-static_assert(sizeof(SST_FP) == 8, "SST_FP must be 8 bytes");
+static_assert(sizeof(SST_FP) == 4, "SST_FP must be 4 bytes");
 
 //======================================================================================================
 // [DOUBLE PRECISION FIXED-POINT ARITHMETIC]
@@ -49,7 +49,7 @@ static inline SST_FP SST_FP_Sub(SST_FP a, SST_FP b) {
 
 static inline SST_FP SST_FP_Mul(SST_FP a, SST_FP b) {
     SST_FP result;
-    result.raw_value = ((__int64)a.raw_value * b.raw_value) >> SST_FP_FRAC_BITS;
+    result.raw_value = ((int64_t)a.raw_value * b.raw_value) >> SST_FP_FRAC_BITS;
     return result;
 }
 
