@@ -1,6 +1,8 @@
 //======================================================================================================
 // [LINEAR REGRESSION 3X]
 //======================================================================================================
+// this is just a basic time and price regression model, im gonna keep iterating on expadning these as i learn more about them
+//======================================================================================================
 #ifndef LINEAR_REGRESSION_3X_H
 #define LINEAR_REGRESSION_3X_H
 
