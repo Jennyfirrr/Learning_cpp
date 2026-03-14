@@ -8,16 +8,18 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "FixedPoint32.h"
 
 //======================================================================================================
 // [CURRENT ORDER STRUCTURE]
 //======================================================================================================
 // these are the current structs, theyll probably change but idk, just consider these more like intial jsut to lay ground work, these are almost definitly gonna change now that i think about it lol
+// UPDATE: price and quantity are now SST_FP32 — deterministic fixed-point all the way through
 //======================================================================================================
 typedef struct {
     uint64_t order_id;
-    uint64_t price;
-    uint64_t quantity;
+    SST_FP32 price;
+    SST_FP32 quantity;
 } CurrentOrder;
 static_assert(sizeof(CurrentOrder) == 24, "struct must be 24 bytes");
 

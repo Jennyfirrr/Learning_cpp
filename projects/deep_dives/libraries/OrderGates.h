@@ -5,97 +5,70 @@
 #define ORDER_GATES_H
 
 #include <stdint.h>
-#include <immintrin.h>
 #include "PoolAllocator.h"
 #include "FixedPoint32.h"
 //======================================================================================================
 // [STRUCTS]
 //======================================================================================================
+// SST_FP32 throughout — no float-to-int conversion boundaries, no precision surprises
+// DataStream goes from 8 to 16 bytes but still cache-line friendly (two 8-byte stores)
+// Packed gate trick is dropped — SST_FP32 comparisons are already branchless so packing buys nothing
+//======================================================================================================
 typedef struct {
-    uint32_t price;
-    uint32_t volume;
+    SST_FP32 price;
+    SST_FP32 volume;
 } DataStream;
-static_assert(sizeof(DataStream) == 8, "DataStream should be 8 bytes");
+static_assert(sizeof(DataStream) == 16, "DataStream should be 16 bytes");
 
 typedef struct {
-    uint32_t profit_target;
+    SST_FP32 profit_target;
 } ProfitTarget;
-static_assert(sizeof(ProfitTarget) == 4, "ProfitTarget should be 4 bytes");
+static_assert(sizeof(ProfitTarget) == 8, "ProfitTarget should be 8 bytes");
 
 typedef struct {
-    uint32_t price;
-    uint32_t volume;
+    SST_FP32 price;
+    SST_FP32 volume;
 } BuySideGateConditions;
-static_assert(sizeof(BuySideGateConditions) == 8, "BuySideGateConditions should be 8 bytes");
+static_assert(sizeof(BuySideGateConditions) == 16, "BuySideGateConditions should be 16 bytes");
 
 typedef struct {
-    uint32_t price;
-    uint32_t volume;
+    SST_FP32 price;
+    SST_FP32 volume;
 } SellSideGateConditions;
-static_assert(sizeof(SellSideGateConditions) == 8, "SellSideGateConditions should be 8 bytes");
-
-typedef struct {
-    uint64_t packed_conditions_buy;
-} BuyGateBuilt;
-static_assert(sizeof(BuyGateBuilt) == 8, "BuyGateBuilt should be 8 bytes");
-
-typedef struct {
-    uint64_t packed_conditions_sell;
-} SellGateBuilt;
-static_assert(sizeof(SellGateBuilt) == 8, "SellGateBuilt should be 8 bytes");
-
-//======================================================================================================
-// [BUILD GATES]
-//======================================================================================================
-static inline BuyGateBuilt build_buy_conditions(BuySideGateConditions *conditions) {
-    uint64_t packed_conditions = 0;
-    packed_conditions |= conditions->price;
-    packed_conditions |= ((uint64_t)conditions->volume << 32);
-    return (BuyGateBuilt){packed_conditions};
-}
-
-static inline SellGateBuilt build_sell_conditions(SellSideGateConditions *conditions) {
-    uint64_t packed_conditions = 0;
-    packed_conditions |= conditions->price;
-    packed_conditions |= ((uint64_t)conditions->volume << 32);
-    return (SellGateBuilt){packed_conditions};
-}
+static_assert(sizeof(SellSideGateConditions) == 16, "SellSideGateConditions should be 16 bytes");
 
 //======================================================================================================
 //[ORDER GATES]
 //======================================================================================================
-static inline void BuyGate(const BuyGateBuilt *packed_conditions, const DataStream *stream, OrderPool *pool) {
-    uint32_t price  = stream->price;
-    uint32_t volume = stream->volume;
+// no more packing/unpacking — compare SST_FP32 fields directly (already branchless)
+//======================================================================================================
+static inline void BuyGate(const BuySideGateConditions *conditions, const DataStream *stream, OrderPool *pool) {
+    int price_pass  = SST_FP32_LessThanOrEqual(stream->price, conditions->price);
+    int volume_pass = SST_FP32_GreaterThanOrEqual(stream->volume, conditions->volume);
 
-    uint32_t price_pass  = price <= (packed_conditions->packed_conditions_buy & 0xFFFFFFFF);
-    uint32_t volume_pass = volume >= (packed_conditions->packed_conditions_buy >> 32);
-
-    uint32_t pass = price_pass & volume_pass;
+    int pass = price_pass & volume_pass;
 
     uint64_t mask  = (uint64_t)(-(int64_t)pass);
     uint32_t index = __builtin_ctzll(~pool->bitmap);
     pool->bitmap |= (mask & (1ULL << index));
-    pool->slots[index].price.price   = price;
-    pool->slots[index].volume.volume = volume;
+    pool->slots[index].price    = stream->price;
+    pool->slots[index].quantity = stream->volume;
 }
 
-static inline void SellGate(const SellGateBuilt *packed_conditions, DataStream *stream, OrderPool *pool,
-                            const ProfitTarget *profit_target_struct) {
-    uint32_t price  = stream->price;
-    uint32_t volume = stream->volume;
+static inline void SellGate(const SellSideGateConditions *conditions, const DataStream *stream, OrderPool *pool,
+                            const ProfitTarget *profit_target) {
+    int price_pass  = SST_FP32_GreaterThanOrEqual(stream->price, conditions->price);
+    int volume_pass = SST_FP32_LessThanOrEqual(stream->volume, conditions->volume);
 
-    uint32_t price_pass  = price >= (packed_conditions->packed_conditions_sell & 0xFFFFFFFF);
-    uint32_t volume_pass = volume <= (packed_conditions->packed_conditions_sell >> 32);
-
-    uint32_t pass = price_pass & volume_pass;
+    int pass = price_pass & volume_pass;
 
     uint64_t active = pool->bitmap;
     while (active) {
-        uint32_t idx         = __builtin_ctzll(active);
-        uint32_t entry_price = pool->slots[idx].price.price;
-        uint32_t exit_pass   = (price >= entry_price + profit_target_struct->profit_target);
-        uint64_t clear_mask  = (uint64_t)(-(int64_t)exit_pass) & (1ULL << idx);
+        uint32_t idx       = __builtin_ctzll(active);
+        SST_FP32 entry_price = pool->slots[idx].price;
+        SST_FP32 target_price = SST_FP32_AddSat(entry_price, profit_target->profit_target);
+        int exit_pass      = SST_FP32_GreaterThanOrEqual(stream->price, target_price);
+        uint64_t clear_mask = (uint64_t)(-(int64_t)exit_pass) & (1ULL << idx);
         pool->bitmap &= ~clear_mask;
         active &= active - 1;
     }
