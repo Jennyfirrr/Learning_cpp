@@ -335,15 +335,21 @@ static inline SST_FP32 SST_FP32_Lerp(SST_FP32 a, SST_FP32 b, SST_FP32 t) {
 }
 
 static inline SST_FP32 SST_FP32_SmoothStep(SST_FP32 edge0, SST_FP32 edge1, SST_FP32 x) {
-    if (SST_FP32_LessThanOrEqual(x, edge0)) {
-        return (SST_FP32){.raw_value = 0};
-    } else if (SST_FP32_GreaterThanOrEqual(x, edge1)) {
-        return (SST_FP32){.raw_value = 1LL << SST_FP32_FRAC_BITS};
-    } else {
-        SST_FP32 t = SST_FP32_DivNoAssert(SST_FP32_SubSat(x, edge0), SST_FP32_SubSat(edge1, edge0));
-        return SST_FP32_Mul(SST_FP32_Mul(t, t), SST_FP32_SubSat((SST_FP32){.raw_value = 3LL << SST_FP32_FRAC_BITS},
-                                                                SST_FP32_Mul((SST_FP32){.raw_value = 2LL << SST_FP32_FRAC_BITS}, t)));
-    }
+    int64_t mask0    = -((int64_t)SST_FP32_LessThanOrEqual(x, edge0));
+    int64_t mask1    = -((int64_t)SST_FP32_GreaterThanOrEqual(x, edge1));
+    int64_t in_range = ~(mask0 | mask1);
+
+    SST_FP32 clamped = SST_FP32_Max(SST_FP32_Min(x, edge1), edge0);
+
+    SST_FP32 t = SST_FP32_DivNoAssert(SST_FP32_SubSat(clamped, edge0), SST_FP32_SubSat(edge1, edge0));
+
+    SST_FP32 poly = SST_FP32_Mul(SST_FP32_Mul(t, t), SST_FP32_SubSat((SST_FP32){.raw_value = 3LL << SST_FP32_FRAC_BITS},
+                                                                     SST_FP32_Mul((SST_FP32){.raw_value = 2LL << SST_FP32_FRAC_BITS}, t)));
+
+    int64_t one = 1LL << SST_FP32_FRAC_BITS;
+    int64_t raw = (0 & mask0) | (one & mask1) | (poly.raw_value & in_range);
+
+    return (SST_FP32){.raw_value = raw};
 }
 //======================================================================================================
 //======================================================================================================
