@@ -1,18 +1,22 @@
 //======================================================================================================
 // [LINEAR REGRESSION]
 //======================================================================================================
-// oh yeah its gonna be fixed point boiiiiiii, this is just a simple implementation, with only a single feature, im learning
+// oh yeah its gonna be fixed point boiiiiiii, this is just a simple implementation, with only a single feature, im learning, for the more advanced one it will probably use a struct to just pack all the features in idk yet, im learning and trying to imagine ways to use this, so w/e, if you see me IRL it would make my day if you told me you love me, and remember class, java is bad
 //======================================================================================================
 #ifndef LINEAR_REGRESSION_H
 #define LINEAR_REGRESSION_H
 
 #include "FixedPoint16.h"
 //======================================================================================================
+// [LINEAR REGRESSION STRUCTURES]
+//======================================================================================================
 typedef struct {
     SST_FP slope;
     SST_FP intercept;
 } LinearRegressionModel;
-
+//======================================================================================================
+// [LINEAR REGRESSION FUNCTION PROTOTYPES]
+//======================================================================================================
 LinearRegressionModel LinearRegression_Fit(SST_FP *x_values, SST_FP *y_values, int count) {
     LinearRegressionModel model;
 
