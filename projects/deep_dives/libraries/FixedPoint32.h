@@ -199,39 +199,9 @@ static inline SST_FP32 SST_FP32_Sign(SST_FP32 value) {
 //======================================================================================================
 static inline SST_FP32 SST_FP32_Sqrt(SST_FP32 value) {
     assert(value.raw_value >= 0);
-
-    if (value.raw_value == 0) {
-        return (SST_FP32){.raw_value = 0};
-    }
-
-    int64_t x      = value.raw_value;
-    int64_t result = 0;
-    int64_t bit    = 1LL << (SST_FP32_FRAC_BITS + 30);
-
-    while (bit > x) {
-        bit >>= 2;
-    }
-
-    for (int i = 0; i < 2; ++i) {
-        while (bit != 0) {
-            if (x >= result + bit) {
-                x -= result + bit;
-                result += bit << 1;
-            }
-            result >>= 1;
-            bit >>= 2;
-        }
-        if (i == 0) {
-            if (x > (1LL << SST_FP32_FRAC_BITS)) {
-                x -= result;
-                result += 1LL << SST_FP32_FRAC_BITS;
-            }
-            x <<= SST_FP32_FRAC_BITS;
-            bit = 1LL << (SST_FP32_FRAC_BITS + 30);
-        }
-    }
-
-    return (SST_FP32){.raw_value = result};
+    double x = SST_FP32_ToDouble(value);
+    double y = sqrt(x);
+    return SST_FP32_FromDouble(y);
 }
 
 static inline SST_FP32 SST_FP32_InvSqrt(SST_FP32 value) {
