@@ -44,27 +44,6 @@ static inline RegressionFeederX RegressionFeederX_Init() {
     return feeder;
 }
 
-static inline LinearRegression3XResult RegressionFeederX_Compute(RegressionFeederX *feeder) {
-    if (feeder->count < 2) {
-        LinearRegression3XResult empty;
-        empty.model.slope     = (SST_FP){0};
-        empty.model.intercept = (SST_FP){0};
-        empty.r_squared       = (SST_FP){0};
-        return empty; // Not enough data points
-    }
-
-    SST_FP linearized[MAX_WINDOW];
-    SST_FP time_index[MAX_WINDOW];
-
-    for (int i = 0; i < feeder->count; i++) {
-        int idx       = (feeder->head - feeder->count + i + MAX_WINDOW) % MAX_WINDOW;
-        linearized[i] = feeder->price_samples[idx];
-        time_index[i] = (SST_FP){i << SST_FP_FRAC_BITS};
-    }
-
-    return LinearRegression3X_Fit(time_index, linearized, feeder->count);
-}
-
 static inline void RegressionFeederX_Push(RegressionFeederX *feeder, SST_FP price) {
     feeder->price_samples[feeder->head] = price;
     feeder->head                        = (feeder->head + 1) % MAX_WINDOW;
@@ -109,6 +88,27 @@ static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP *x_values, 
     }
 
     return result;
+}
+
+static inline LinearRegression3XResult RegressionFeederX_Compute(RegressionFeederX *feeder) {
+    if (feeder->count < 2) {
+        LinearRegression3XResult empty;
+        empty.model.slope     = (SST_FP){0};
+        empty.model.intercept = (SST_FP){0};
+        empty.r_squared       = (SST_FP){0};
+        return empty; // Not enough data points
+    }
+
+    SST_FP linearized[MAX_WINDOW];
+    SST_FP time_index[MAX_WINDOW];
+
+    for (int i = 0; i < feeder->count; i++) {
+        int idx       = (feeder->head - feeder->count + i + MAX_WINDOW) % MAX_WINDOW;
+        linearized[i] = feeder->price_samples[idx];
+        time_index[i] = (SST_FP){i << SST_FP_FRAC_BITS};
+    }
+
+    return LinearRegression3X_Fit(time_index, linearized, feeder->count);
 }
 
 static inline SST_FP LinearRegression3X_Predict(LinearRegression3XModel model, SST_FP x) {
