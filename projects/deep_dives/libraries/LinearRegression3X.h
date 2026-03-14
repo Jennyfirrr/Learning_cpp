@@ -124,7 +124,7 @@ static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP *x_values, 
     return result;
 }
 //======================================================================================================
-// [PREDICTION FUNCTION]
+// [COMPUTER FUNCTION]
 //======================================================================================================
 // this is just run the regression on the ring buffer, it doesnt store it in chronological order, so you have to walk from the oldest to the newest and copy them into the linearized in the correct time order, then it just hands the arrays to the _Fit and computes, theres probably a better and faster way to do this but idk, im figuring this out as a go, because FUCK java(I C K Y)
 //======================================================================================================
