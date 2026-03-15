@@ -10,9 +10,9 @@
 //======================================================================================================
 // [STRUCTS]
 //======================================================================================================
-// SST_FP32 throughout — no float-to-int conversion boundaries, no precision surprises
+// SST_FP32 throughout - no float-to-int conversion boundaries, no precision surprises
 // DataStream goes from 8 to 16 bytes but still cache-line friendly (two 8-byte stores)
-// Packed gate trick is dropped — SST_FP32 comparisons are already branchless so packing buys nothing
+// Packed gate trick is dropped - SST_FP32 comparisons are already branchless so packing buys nothing
 //======================================================================================================
 typedef struct {
     SST_FP32 price;
@@ -40,7 +40,7 @@ static_assert(sizeof(SellSideGateConditions) == 16, "SellSideGateConditions shou
 //======================================================================================================
 //[ORDER GATES]
 //======================================================================================================
-// no more packing/unpacking — compare SST_FP32 fields directly (already branchless)
+// no more packing/unpacking - compare SST_FP32 fields directly (already branchless)
 //======================================================================================================
 static inline void BuyGate(const BuySideGateConditions *conditions, const DataStream *stream, OrderPool *pool) {
     int price_pass  = SST_FP32_LessThanOrEqual(stream->price, conditions->price);
