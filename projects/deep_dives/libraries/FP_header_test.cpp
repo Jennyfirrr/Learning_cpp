@@ -371,7 +371,25 @@ int main() {
                            "48111745028410270193852110555964462294895493038196"
                            "44288109756659334461284756482337867831652712019091"
                            "45648566923460348610454326648213393607260249141273"
-                           "72458700660631558817488152092096282925409171536436";
+                           "72458700660631558817488152092096282925409171536436"
+                           "78925903600113305305488204665213841469519415116094"
+                           "33057270365759591953092186117381932611793105118548"
+                           "07446237996274956735188575272489122793818301194912"
+                           "98336733624406566430860213949463952247371907021798"
+                           "60943702770539217176293176752384674818467669405132"
+                           "00056812714526356082778577134275778960917363717872"
+                           "14684409012249534301465495853710507922796892589235"
+                           "42019956112129021960864034418159813629774771309960"
+                           "51870721134999999837297804995105973173281609631859"
+                           "50244594553469083026425223082533446850352619311881"
+                           "71010003137838752886587533208381420617177669147303"
+                           "59825349042875546873115956286388235378759375195778"
+                           "18577805321712268066130019278766111959092164201989"
+                           "38095257201065485863278865936153381827968230301952"
+                           "03530185296899577362259941389124972177528347913151"
+                           "55748572424541506959508295331168617278558890750983"
+                           "81754637464939319255060400927701671139009848824012"
+                           "85836160356370766010471018194295559619894676783744";
 
     // arctan via Taylor series, entirely in fixed-point
     // arctan(1/n) = 1/n - 1/(3*n^3) + 1/(5*n^5) - ...
@@ -393,8 +411,8 @@ int main() {
         // use max_digits terms to be safe (overkill for x=239 but correct)
         unsigned n_terms = (unsigned)((uint64_t)FP_TEST_BITS * 301 / 1000) + 10;
         // cap at a reasonable number so the test doesn't take forever
-        if (n_terms > 500)
-            n_terms = 500;
+        if (n_terms > 1500)
+            n_terms = 1500;
 
         for (unsigned k = 0; k < n_terms; k++) {
             // divisor = 2k+1
@@ -422,7 +440,7 @@ int main() {
     FP_T four_fp     = SST_FPN_FromString<FP_TEST_BITS>("4.0");
     FP_T computed_pi = SST_FPN_SubSat(SST_FPN_Mul(sixteen, atan_5), SST_FPN_Mul(four_fp, atan_239));
 
-    unsigned pi_digits = max_digits < 350 ? max_digits : 350;
+    unsigned pi_digits = max_digits < 1250 ? max_digits : 1250;
     SST_FPN_ToString(computed_pi, fbuf, sizeof(fbuf), pi_digits);
 
     // count matching digits against known pi (+-1 tolerance on last digit for rounding)
@@ -439,8 +457,8 @@ int main() {
 
     // should match close to the theoretical max: FRAC_BITS * log10(2)
     int expected_min = (int)((uint64_t)FP_TEST_BITS * 301 / 1000) - 5;
-    if (expected_min > 350)
-        expected_min = 345; // capped by reference string
+    if (expected_min > 1250)
+        expected_min = 1245; // capped by reference string
     check("computed pi digits", computed_match >= expected_min, 1.0, 0);
     printf("  (computed %d digits of pi, expected >= %d)\n", computed_match, expected_min);
 
