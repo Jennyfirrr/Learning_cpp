@@ -13,8 +13,6 @@
 //======================================================================================================
 // [FIXED-POINT NUMBER REPRESENTATION]
 //======================================================================================================
-// so apparently these are considered C or something, idk, but you have to do structs like this to avoid error high lighting, it works with stadnard cpp formatting, but the errors annoyed me and i couldnt fix them, so one thing about this is that it may be better to use this as a 32 bit integer, that way the casting for mulitplication and division dont have to be pushed to 64 bit integers, which allows a single regsiter to hold each value, but idk im just thinking
-//======================================================================================================
 typedef struct {
     int32_t raw_value;
 } SST_FP;
@@ -22,8 +20,6 @@ static_assert(sizeof(SST_FP) == 4, "SST_FP must be 4 bytes");
 
 //======================================================================================================
 // [DOUBLE PRECISION FIXED-POINT ARITHMETIC]
-//======================================================================================================
-// im gonna add more types here
 //======================================================================================================
 static inline SST_FP SST_FP_FromDouble(double input) {
     SST_FP result;
@@ -40,12 +36,12 @@ static inline double SST_FP_ToDouble(SST_FP value) {
 //======================================================================================================
 static inline SST_FP SST_FP_Min(SST_FP a, SST_FP b) {
     int32_t mask = (a.raw_value - b.raw_value) >> 31;
-    return (SST_FP){(a.raw_value & mask) | (b.raw_value & ~mask)};
+    return (SST_FP){.raw_value = (a.raw_value & mask) | (b.raw_value & ~mask)};
 }
 
 static inline SST_FP SST_FP_Max(SST_FP a, SST_FP b) {
     int32_t mask = (a.raw_value - b.raw_value) >> 31;
-    return (SST_FP){(b.raw_value & mask) | (a.raw_value & ~mask)};
+    return (SST_FP){.raw_value = (b.raw_value & mask) | (a.raw_value & ~mask)};
 }
 //======================================================================================================
 // [FIXED-POINT ARITHMETIC OPERATIONS]
@@ -114,8 +110,8 @@ static inline SST_FP SST_FP_MulSat(SST_FP a, SST_FP b) {
     int32_t product_sign = sign_a ^ sign_b;
     int32_t sat          = (product_sign ^ INT32_MAX);
 
-    int overflow     = (hi != 0) & (hi != -1);
-    int32_t mask     = -(int32_t)overflow;
+    int overflow = (hi != 0) & (hi != -1);
+    int32_t mask = -(int32_t)overflow;
 
     result.raw_value = (sat & mask) | ((int32_t)shifted & ~mask);
     return result;
@@ -132,8 +128,8 @@ static inline SST_FP SST_FP_DivNoAssert(SST_FP a, SST_FP b) {
     int32_t quotient_sign = sign_a ^ sign_b;
     int32_t sat           = (quotient_sign ^ INT32_MAX);
 
-    int overflow     = (hi != 0) & (hi != -1);
-    int32_t mask     = -(int32_t)overflow;
+    int overflow = (hi != 0) & (hi != -1);
+    int32_t mask = -(int32_t)overflow;
 
     result.raw_value = (sat & mask) | ((int32_t)wide & ~mask);
     return result;
@@ -233,7 +229,7 @@ static inline SST_FP SST_FP_SignFP(SST_FP value) {
     int32_t is_neg = (value.raw_value < 0);
     int32_t one    = 1 << SST_FP_FRAC_BITS;
     int32_t raw    = (one & -is_pos) | (-one & -is_neg);
-    return (SST_FP){raw};
+    return (SST_FP){.raw_value = raw};
 }
 //======================================================================================================
 // [FIXED-POINT MATH FUNCTIONS]
@@ -301,14 +297,14 @@ static inline SST_FP SST_FP_Pow(SST_FP base, SST_FP exponent) {
 //======================================================================================================
 static inline SST_FP SST_FP_Floor(SST_FP value) {
     int32_t mask = (1 << SST_FP_FRAC_BITS) - 1;
-    return (SST_FP){value.raw_value & ~mask};
+    return (SST_FP){.raw_value = value.raw_value & ~mask};
 }
 
 static inline SST_FP SST_FP_Ceil(SST_FP value) {
     int32_t mask     = (1 << SST_FP_FRAC_BITS) - 1;
     int32_t has_frac = (value.raw_value & mask) != 0;
     int32_t raw      = (value.raw_value & ~mask) + ((1 << SST_FP_FRAC_BITS) & -has_frac);
-    return (SST_FP){raw};
+    return (SST_FP){.raw_value = raw};
 }
 
 static inline SST_FP SST_FP_Round(SST_FP value) {
@@ -321,15 +317,15 @@ static inline SST_FP SST_FP_Round(SST_FP value) {
     raw += (1 << SST_FP_FRAC_BITS) & -bump;
     int32_t sign = value.raw_value >> 31;
     raw          = (raw ^ sign) - sign;
-    return (SST_FP){raw};
+    return (SST_FP){.raw_value = raw};
 }
 
 static inline SST_FP SST_FP_Mod(SST_FP a, SST_FP b) {
     assert(b.raw_value != 0);
 
-    int32_t safe_b     = b.raw_value | (!b.raw_value);
-    SST_FP quotient    = SST_FP_DivNoAssert(a, (SST_FP){safe_b});
-    SST_FP truncated   = (SST_FP){quotient.raw_value & ~((1 << SST_FP_FRAC_BITS) - 1)};
+    int32_t safe_b   = b.raw_value | (!b.raw_value);
+    SST_FP quotient  = SST_FP_DivNoAssert(a, (SST_FP){safe_b});
+    SST_FP truncated = (SST_FP){quotient.raw_value & ~((1 << SST_FP_FRAC_BITS) - 1)};
     return SST_FP_SubSat(a, SST_FP_MulSat(truncated, (SST_FP){safe_b}));
 }
 
@@ -348,18 +344,14 @@ static inline SST_FP SST_FP_SmoothStep(SST_FP edge0, SST_FP edge1, SST_FP x) {
 
     SST_FP t = SST_FP_DivNoAssert(SST_FP_SubSat(clamped, edge0), SST_FP_SubSat(edge1, edge0));
 
-    SST_FP poly = SST_FP_MulSat(SST_FP_MulSat(t, t), SST_FP_SubSat((SST_FP){3 << SST_FP_FRAC_BITS},
-                                                                     SST_FP_MulSat((SST_FP){2 << SST_FP_FRAC_BITS}, t)));
+    SST_FP poly = SST_FP_MulSat(SST_FP_MulSat(t, t),
+                                SST_FP_SubSat((SST_FP){3 << SST_FP_FRAC_BITS}, SST_FP_MulSat((SST_FP){2 << SST_FP_FRAC_BITS}, t)));
 
     int32_t one = 1 << SST_FP_FRAC_BITS;
     int32_t raw = (0 & mask0) | (one & mask1) | (poly.raw_value & in_range);
 
-    return (SST_FP){raw};
+    return (SST_FP){.raw_value = raw};
 }
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
 //======================================================================================================
 //======================================================================================================
 #endif // SST_FIXED_POINT_H
