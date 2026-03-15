@@ -61,6 +61,10 @@ projects/deep_dives/09_allocator_practice
 projects/deep_dives/backup/new_notes_backup_20260302/allocator_practice
 projects/deep_dives/backup/new_notes_backup_20260302/mycroft_implementation
 projects/deep_dives/libraries/test
+projects/deep_dives/libraries/test32
+projects/deep_dives/libraries/test_regression3x
+projects/deep_dives/libraries/test_ror
+projects/graphics/fractal
 
 # log files
 *.log

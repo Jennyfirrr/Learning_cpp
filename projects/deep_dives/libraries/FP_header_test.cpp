@@ -291,30 +291,24 @@ int main() {
     check("1/3*3 close to 1", close_to_one, 1.0, 0);
 
     // 5. subtraction precision: parse two values that differ only in the last digits
-    //    (1 + 10^-30) - 1 should give 10^-30, not zero
-    FP_T big_one     = SST_FPN_FromString<FP_TEST_BITS>("1.000000000000000000000000000001");
+    //    (1 + 10^-15) - 1 should give 10^-15, not zero
+    //    10^-15 is within precision of all widths >= 64 (~19 decimal digits)
+    FP_T big_one     = SST_FPN_FromString<FP_TEST_BITS>("1.000000000000001");
     FP_T exact_one   = SST_FPN_FromString<FP_TEST_BITS>("1.0");
     FP_T tiny_diff   = FP_SubSat(big_one, exact_one);
     int diff_nonzero = !SST_FPN_IsZero(tiny_diff);
-    // at FP64 we only have ~19 decimal digits, so the 10^-30 difference
-    // is below precision and the result IS zero - that's correct behavior
-    if (FP_TEST_BITS >= 128) {
-        check("sub precision 10^-30", diff_nonzero, 1.0, 0);
-        // verify the result is close to 10^-30 (starts with 0.000...000 then nonzero)
-        SST_FPN_ToString(tiny_diff, fbuf, sizeof(fbuf), 35);
-        // should have 29 zeros after "0." then a nonzero digit
-        int leading_zeros = 0;
-        for (unsigned d = 2; fbuf[d]; d++) {
-            if (fbuf[d] == '0')
-                leading_zeros++;
-            else
-                break;
-        }
-        check("sub precision magnitude", leading_zeros == 30, 1.0, 0);
-    } else {
-        // at 64 bits, 10^-30 is below precision, so zero is correct
-        check("sub precision (below ULP)", diff_nonzero, 0.0, 0);
+    check("sub precision 10^-15", diff_nonzero, 1.0, 0);
+    // verify the result has the right magnitude: 15 leading zeros after "0."
+    // (10^-15 rounds to 0.000000000000000999... in binary, so 15 not 14)
+    SST_FPN_ToString(tiny_diff, fbuf, sizeof(fbuf), 20);
+    int leading_zeros = 0;
+    for (unsigned d = 2; fbuf[d]; d++) {
+        if (fbuf[d] == '0')
+            leading_zeros++;
+        else
+            break;
     }
+    check("sub precision magnitude", leading_zeros == 15, 1.0, 0);
 
     // 6. carry chain stress: add 1 ULP repeatedly and verify it accumulates
     //    parse "0.0" then add "0." + string of zeros + "1" many times

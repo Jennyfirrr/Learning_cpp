@@ -51,6 +51,43 @@ Reusable header-only libraries extracted from the deep dives. All built on fixed
 | `OrderGates.h` | Branchless buy/sell order gates using FP32 comparisons — price/volume threshold checks, pool allocator integration, profit-target exit scanning with TZCNT |
 | `PoolAllocator.h` | Bitmap-based pool allocator for order tracking — TZCNT slot finding, POPCNT active count, calloc-backed with 64-slot bitmap capacity |
 
+#### Testing FixedPointN.h
+
+```bash
+# single width
+g++ -std=c++17 -O2 -DFP_TEST_BITS=512 -o fp_test FP_header_test.cpp -lm && ./fp_test
+
+# all widths 64 through 4096 (default)
+./run_tests.sh
+
+# all widths 64 through 8192
+./run_tests.sh 8192
+
+# just the small ones (quick)
+./run_tests.sh 256
+```
+
+FRAC_BITS must be a power of 2 >= 64. Higher widths take longer to compile (GCC unrolls massive loop bodies) and the pi computation runs more Taylor series terms. FP4096 compiles in ~30s and computes 1232 digits of pi.
+
+#### Verifying Branchless Codegen
+
+`fp_branchcheck.cpp` compiles each core operation with `__attribute__((noinline))` so you can inspect the generated ASM per-function and verify zero data-dependent branches.
+
+```bash
+# compile and disassemble
+g++ -std=c++17 -O2 -o fp_branchcheck fp_branchcheck.cpp -lm
+objdump -d fp_branchcheck | awk '
+/^[0-9a-f]+ <_Z/ {
+    if (name) print name ": " (branches > 0 ? branches " BRANCHES" : "branchless")
+    name = $0; branches = 0; next
+}
+name && /\tj[a-z]/ && !/\tjmp/ { branches++ }
+END { if (name) print name ": " (branches > 0 ? branches " BRANCHES" : "branchless") }
+'
+```
+
+Results at FP64 with `-O2`: mul, abs, negate, min, max, lt, gt, eq, floor, ceil, round are fully branchless. add/sub/div show 1-2 "branches" that are either stack canary checks (`%fs:0x28` / `__stack_chk_fail`) or the division loop back-edge (fixed 128 iterations, deterministic -- the branch predictor nails it every time except the final exit). No data-dependent branching anywhere.
+
 #### `old_headers/`
 
 Previous per-width fixed-point headers, superseded by `FixedPointN.h`:
