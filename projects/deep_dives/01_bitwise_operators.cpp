@@ -18,8 +18,8 @@ using namespace std;
 // AND clears bits, and XOR toggles bits
 
 int or_op(int x) {
-  x |= (1 << 3);
-  return x;
+    x |= (1 << 3);
+    return x;
 }
 
 // this specific example basically functions as a +8 to whatever number is
@@ -53,11 +53,11 @@ int main() {
 // leading to an even faster way to find a single number, in an array with pairs
 
 int findSingle(vector<int> &nums) {
-  int result = 0;
-  for (int n : nums) {
-    result ^= n; // xor bit-shifting
-  }
-  return result;
+    int result = 0;
+    for (int n : nums) {
+        result ^= n; // xor bit-shifting
+    }
+    return result;
 }
 
 // -----------------------------------------------------------
@@ -67,20 +67,20 @@ int findSingle(vector<int> &nums) {
 // just playing with bitwise operators for funsies
 
 void or_shift_combo(int cycles) {
-  int result = 0;
+    int result = 0;
 
-  for (int i = 0; i < cycles; i++) {
-    result = result << 1;
-    // shift the bit to the left once, so at 0, you get 0
-    // becuase there is nothing to shift
-    result = result ^ (result << 1);
-    // use the xor operator with the value from the above shifted
-    // right once again to nullify the prior
-    result |= 1;
-    // use the or operator to add a 1 to the end, so that your
-    // always adding one every cycle
-    std::cout << "Cycle #" << i + 1 << ": " << result << "\n";
-  }
+    for (int i = 0; i < cycles; i++) {
+        result = result << 1;
+        // shift the bit to the left once, so at 0, you get 0
+        // becuase there is nothing to shift
+        result = result ^ (result << 1);
+        // use the xor operator with the value from the above shifted
+        // right once again to nullify the prior
+        result |= 1;
+        // use the or operator to add a 1 to the end, so that your
+        // always adding one every cycle
+        std::cout << "Cycle #" << i + 1 << ": " << result << "\n";
+    }
 }
 
 // easier visualization of the xor operator for the last cycle referenced
@@ -107,17 +107,17 @@ void or_shift_combo(int cycles) {
 // hand holding
 
 void or_exp(int cycles) {
-  int result = 0;
+    int result = 0;
 
-  for (int i = 0; i < cycles; i++) {
-    result = result << 1;
-    // shifts the bit left 1
-    result |= 3;
-    // adds a 1 to the 0 and 1 bit, assuming they dont already have one
-    result = result ^ (result >> 1);
-    // xor the result value against result shifted back right 1
-    std::cout << "Cycle #" << i + 1 << ": " << result << "\n";
-  }
+    for (int i = 0; i < cycles; i++) {
+        result = result << 1;
+        // shifts the bit left 1
+        result |= 3;
+        // adds a 1 to the 0 and 1 bit, assuming they dont already have one
+        result = result ^ (result >> 1);
+        // xor the result value against result shifted back right 1
+        std::cout << "Cycle #" << i + 1 << ": " << result << "\n";
+    }
 }
 
 // this has a really weird growth pattern lol, this shit is wacky lol, i love
@@ -126,34 +126,34 @@ void or_exp(int cycles) {
 
 void werid(int cycles) {
 
-  for (int i = 0; i < cycles; i++) {
-    int x = i >> (i & (i << 1));
-    if (x != 0) {
-      std::cout << "Cycle #" << i + 1 << ": " << x << "\n";
+    for (int i = 0; i < cycles; i++) {
+        int x = i >> (i & (i << 1));
+        if (x != 0) {
+            std::cout << "Cycle #" << i + 1 << ": " << x << "\n";
+        }
     }
-  }
 }
 
 // these are so weird lol, this shit is SO FREAKING COOL
 
 int main() {
-  int cycles;
-  int selection = 0;
+    int cycles;
+    int selection = 0;
 
-  while (selection == 0) {
-    std::cout << "Please select a function: ";
-    std::cin >> selection;
-  }
+    while (selection == 0) {
+        std::cout << "Please select a function: ";
+        std::cin >> selection;
+    }
 
-  std::cout << "Please select a cycle count: ";
-  std::cin >> cycles;
-  if (selection == 1) {
-    or_shift_combo(cycles);
-  } else if (selection == 2) {
-    or_exp(cycles);
-  } else {
-    werid(cycles);
-  }
+    std::cout << "Please select a cycle count: ";
+    std::cin >> cycles;
+    if (selection == 1) {
+        or_shift_combo(cycles);
+    } else if (selection == 2) {
+        or_exp(cycles);
+    } else {
+        werid(cycles);
+    }
 
-  return 0;
+    return 0;
 }
