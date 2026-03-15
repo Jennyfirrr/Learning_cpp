@@ -45,12 +45,22 @@ Reusable header-only libraries extracted from the deep dives. All built on fixed
 
 | File | Topics |
 |------|--------|
-| `FixedPoint16.h` | 16-bit fractional fixed-point arithmetic — int32 backed, add/sub/mul/div, full comparison suite, branchless abs and sign via bit smearing |
-| `FixedPoint32.h` | 32-bit fractional fixed-point arithmetic — int64 backed, saturating add/sub/mul/div, __int128 intermediates, branchless min/max/abs/sign, trig/exp/log/pow wrappers, floor/ceil/round/mod/lerp/smoothstep |
+| `FixedPointN.h` | Arbitrary-precision fixed-point arithmetic — template parameter selects bit width (64, 128, 256, 512, 1024+), sign-magnitude representation with uint64_t word arrays, schoolbook N^2 partial-product multiply, branchless bit-by-bit long division, full comparison suite, floor/ceil/round/mod/lerp/smoothstep, trig/exp/log/pow wrappers. All core arithmetic (add/sub/mul/div/min/max/comparisons/rounding) compiles to fully branchless straight-line code at every width — verified via ASM inspection at 512 and 1024 bits. Zero data-dependent branches, zero heap allocation, zero dependencies. Replaces the old per-width headers (FP16/32/64/128, now in `old_headers/`) |
 | `LinearRegressionSimple.h` | Single-feature ordinary least squares using fixed-point math — y = mx + b, predict from fitted model |
 | `LinearRegression3X.h` | Linear regression with ring buffer feeder (8-sample window), R² goodness-of-fit, OLS with 5-sum accumulator, branchless zero-denom guards, price prediction pipeline, data flow from market tick to trading signal — all fixed-point |
 | `OrderGates.h` | Branchless buy/sell order gates using FP32 comparisons — price/volume threshold checks, pool allocator integration, profit-target exit scanning with TZCNT |
 | `PoolAllocator.h` | Bitmap-based pool allocator for order tracking — TZCNT slot finding, POPCNT active count, calloc-backed with 64-slot bitmap capacity |
+
+#### `old_headers/`
+
+Previous per-width fixed-point headers, superseded by `FixedPointN.h`:
+
+| File | Topics |
+|------|--------|
+| `FixedPoint16.h` | 16-bit fractional fixed-point — int32 backed, add/sub/mul/div, branchless abs and sign via bit smearing |
+| `FixedPoint32.h` | 32-bit fractional fixed-point — int64 backed, saturating ops, __int128 intermediates, branchless min/max/abs/sign |
+| `FixedPoint64.h` | 64-bit fractional fixed-point — __uint128_t backed, same branchless pattern at wider precision |
+| `FixedPoint128.h` | 128-bit fractional fixed-point — dual uint64 word storage, manual carry/borrow chains |
 
 ### `asm_outputs/`
 
@@ -75,7 +85,7 @@ Reusable header-only libraries extracted from the deep dives. All built on fixed
 - **Buddy allocator** — reference implementation with power-of-2 splitting, free lists, coalescing (buddy_allocator_ref.cpp)
 - **BMI1/BMI2** — PDEP/PEXT bit deposit/extract, IMUL magic numbers, de Bruijn masking (08, 09)
 - **Inline ASM** — discovery and basic usage, register annotations (inline_asm_discovery.cpp)
-- **Fixed point math** — COBOL-inspired integer storage for deterministic financial math (fixed_point_math.cpp)
+- **Fixed point math** — COBOL-inspired integer storage for deterministic financial math (fixed_point_math.cpp), arbitrary-precision branchless fixed-point library scaling to 1024+ bits with verified zero data-dependent branches (libraries/FixedPointN.h)
 - **Data structures** — linear structures, BST, tree traversals (data_structures.cpp)
 
 ### In Progress / Continuing

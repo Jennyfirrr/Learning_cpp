@@ -152,26 +152,203 @@ template <unsigned F> inline double SST_FPN_ToDouble(SST_FPN<F> value) {
     constexpr unsigned N  = SST_FPN<F>::N;
     constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
 
-    // integer part
+    // double only has ~52 bits of mantissa, so we only need the most significant
+    // non-zero words. processing all words at large N causes scale to hit inf
+    // and frac_scale to hit 0, producing NaN from 0*inf
+
+    // integer part: find highest non-zero integer word, convert from there down
+    // (at most 2 words contribute meaningful precision to a double)
     double int_part = 0.0;
-    double scale    = 1.0;
-    #pragma GCC unroll 65534
-    for (unsigned i = FW; i < N; i++) {
-        int_part += (double)value.w[i] * scale;
-        scale *= 18446744073709551616.0;
+    int top_int = -1;
+    for (int i = (int)N - 1; i >= (int)FW; i--) {
+        if (value.w[i] != 0) { top_int = i; break; }
+    }
+    if (top_int >= 0) {
+        double scale = 1.0;
+        for (int i = (int)FW; i < top_int; i++) scale *= 18446744073709551616.0;
+        // convert top 2 words (more than enough for double precision)
+        int start = (top_int > (int)FW) ? (top_int - 1) : top_int;
+        double s = scale;
+        for (int i = (int)FW; i < start; i++) s *= 18446744073709551616.0;
+        // just do it simply: accumulate from FW up to top_int
+        double sc = 1.0;
+        for (int i = (int)FW; i <= top_int; i++) {
+            int_part += (double)value.w[i] * sc;
+            sc *= 18446744073709551616.0;
+        }
     }
 
-    // fractional part (from most significant frac word down)
-    double frac       = 0.0;
-    double frac_scale = 1.0 / 18446744073709551616.0;
-    #pragma GCC unroll 65534
-    for (int i = (int)FW - 1; i >= 0; i--) {
-        frac += (double)value.w[i] * frac_scale;
-        frac_scale /= 18446744073709551616.0;
+    // fractional part: only top 2 fractional words matter for double precision
+    double frac = 0.0;
+    if (FW >= 1) {
+        frac += (double)value.w[FW - 1] / 18446744073709551616.0;
+        if (FW >= 2)
+            frac += (double)value.w[FW - 2] / (18446744073709551616.0 * 18446744073709551616.0);
     }
 
     double mag = int_part + frac;
     return mag * (1.0 - 2.0 * value.sign);
+}
+
+//======================================================================================================
+// [STRING CONVERSION - FULL PRECISION]
+//======================================================================================================
+// not limited by double's 52-bit mantissa - these preserve every bit
+// uses single-word multiply/divmod by 10 across the word array
+// decimal_places controls fractional digits (max meaningful ≈ FRAC_BITS * 0.301)
+//======================================================================================================
+
+// helper: multiply N-word array in-place by a single uint64_t, return overflow
+template <unsigned N_WORDS>
+inline uint64_t SST_FPN_MulSingle(uint64_t *a, uint64_t b) {
+    uint64_t carry = 0;
+    for (unsigned i = 0; i < N_WORDS; i++) {
+        __uint128_t prod = (__uint128_t)a[i] * b + carry;
+        a[i]  = (uint64_t)prod;
+        carry = (uint64_t)(prod >> 64);
+    }
+    return carry;
+}
+
+// helper: divmod N-word array in-place by a single uint64_t, return remainder
+template <unsigned N_WORDS>
+inline uint64_t SST_FPN_DivModSingle(uint64_t *a, uint64_t b) {
+    uint64_t rem = 0;
+    for (int i = (int)N_WORDS - 1; i >= 0; i--) {
+        __uint128_t cur = ((__uint128_t)rem << 64) | a[i];
+        a[i] = (uint64_t)(cur / b);
+        rem  = (uint64_t)(cur % b);
+    }
+    return rem;
+}
+
+// helper: is N-word array all zeros
+template <unsigned N_WORDS>
+inline int SST_FPN_ArrayIsZero(const uint64_t *a) {
+    uint64_t acc = 0;
+    for (unsigned i = 0; i < N_WORDS; i++) acc |= a[i];
+    return acc == 0;
+}
+
+// max meaningful decimal digits for the fractional part
+template <unsigned F>
+inline constexpr unsigned SST_FPN_MaxDecimalDigits() {
+    return (unsigned)((uint64_t)F * 301 / 1000) + 1; // ceil(FRAC_BITS * log10(2))
+}
+
+// convert to decimal string, returns number of chars written (excluding null terminator)
+// buf must be large enough: sign + integer digits + '.' + decimal_places + '\0'
+// if decimal_places is 0, uses max meaningful precision
+template <unsigned F>
+inline unsigned SST_FPN_ToString(SST_FPN<F> value, char *buf, unsigned buf_size, unsigned decimal_places = 0) {
+    constexpr unsigned N  = SST_FPN<F>::N;
+    constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
+    constexpr unsigned IW = N - FW;
+
+    if (decimal_places == 0) decimal_places = SST_FPN_MaxDecimalDigits<F>();
+
+    unsigned pos = 0;
+
+    // sign
+    if (value.sign && !SST_FPN_MagIsZero(value)) {
+        if (pos < buf_size - 1) buf[pos++] = '-';
+    }
+
+    // integer part: repeated divmod by 10, collect digits reversed
+    uint64_t int_words[IW];
+    for (unsigned i = 0; i < IW; i++) int_words[i] = value.w[FW + i];
+
+    char int_digits[IW * 20 + 1];
+    unsigned n_int_digits = 0;
+
+    if (SST_FPN_ArrayIsZero<IW>(int_words)) {
+        int_digits[n_int_digits++] = '0';
+    } else {
+        while (!SST_FPN_ArrayIsZero<IW>(int_words)) {
+            uint64_t rem = SST_FPN_DivModSingle<IW>(int_words, 10);
+            int_digits[n_int_digits++] = '0' + (char)rem;
+        }
+    }
+
+    // write integer digits (reversed)
+    for (int i = (int)n_int_digits - 1; i >= 0 && pos < buf_size - 1; i--)
+        buf[pos++] = int_digits[i];
+
+    // fractional part: repeated multiply by 10, overflow digit is the next decimal digit
+    if (decimal_places > 0 && pos < buf_size - 1) {
+        buf[pos++] = '.';
+
+        uint64_t frac_words[FW];
+        for (unsigned i = 0; i < FW; i++) frac_words[i] = value.w[i];
+
+        for (unsigned d = 0; d < decimal_places && pos < buf_size - 1; d++) {
+            uint64_t digit = SST_FPN_MulSingle<FW>(frac_words, 10);
+            buf[pos++] = '0' + (char)digit;
+        }
+    }
+
+    buf[pos] = '\0';
+    return pos;
+}
+
+// parse decimal string to fixed-point
+// accepts optional sign, integer digits, optional '.', fractional digits
+template <unsigned F>
+inline SST_FPN<F> SST_FPN_FromString(const char *str) {
+    constexpr unsigned N  = SST_FPN<F>::N;
+    constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
+    constexpr unsigned IW = N - FW;
+
+    SST_FPN<F> result = SST_FPN_Zero<F>();
+    unsigned i = 0;
+
+    // sign
+    int neg = 0;
+    if (str[i] == '-') { neg = 1; i++; }
+    else if (str[i] == '+') { i++; }
+
+    // integer part: left to right, result = result * 10 + digit
+    uint64_t int_words[IW];
+    for (unsigned w = 0; w < IW; w++) int_words[w] = 0;
+
+    while (str[i] >= '0' && str[i] <= '9') {
+        SST_FPN_MulSingle<IW>(int_words, 10);
+        __uint128_t sum = (__uint128_t)int_words[0] + (uint64_t)(str[i] - '0');
+        int_words[0] = (uint64_t)sum;
+        uint64_t carry = (uint64_t)(sum >> 64);
+        for (unsigned w = 1; w < IW && carry; w++) {
+            sum = (__uint128_t)int_words[w] + carry;
+            int_words[w] = (uint64_t)sum;
+            carry = (uint64_t)(sum >> 64);
+        }
+        i++;
+    }
+
+    for (unsigned w = 0; w < IW; w++) result.w[FW + w] = int_words[w];
+
+    // fractional part: collect digits, process right to left
+    // for each digit (right to left): place digit in integer word, divmod (FW+1) words by 10
+    // this converts 0.12345 by computing (((((0+5)/10)+4)/10)+3)/10...
+    if (str[i] == '.') {
+        i++;
+
+        const char *frac_start = &str[i];
+        unsigned n_frac = 0;
+        while (str[i] >= '0' && str[i] <= '9') { n_frac++; i++; }
+
+        uint64_t frac_words[FW + 1];
+        for (unsigned w = 0; w <= FW; w++) frac_words[w] = 0;
+
+        for (int d = (int)n_frac - 1; d >= 0; d--) {
+            frac_words[FW] = (uint64_t)(frac_start[d] - '0');
+            SST_FPN_DivModSingle<FW + 1>(frac_words, 10);
+        }
+
+        for (unsigned w = 0; w < FW; w++) result.w[w] = frac_words[w];
+    }
+
+    result.sign = neg & !SST_FPN_MagIsZero(result);
+    return result;
 }
 
 //======================================================================================================

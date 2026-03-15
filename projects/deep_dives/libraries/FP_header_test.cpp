@@ -13,6 +13,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include "FixedPointN.h"
 
 //======================================================================================================
@@ -157,6 +158,49 @@ int main() {
         acc = FP_AddSat(acc, tiny);
     }
     check("1M * 0.001", FP_ToDouble(acc), 1000.0, 0.01);
+
+    //--- string conversion ---
+    printf("[string conversion]\n");
+    char buf[4096];
+
+    // roundtrip simple values through string
+    FP_T str_a = SST_FPN_FromString<FP_TEST_BITS>("42.125");
+    check("fromstring 42.125", FP_ToDouble(str_a), 42.125, tol);
+
+    FP_T str_b = SST_FPN_FromString<FP_TEST_BITS>("-7.5");
+    check("fromstring -7.5", FP_ToDouble(str_b), -7.5, tol);
+
+    FP_T str_z = SST_FPN_FromString<FP_TEST_BITS>("0.0");
+    check("fromstring 0.0", FP_ToDouble(str_z), 0.0, tol);
+
+    // tostring -> fromstring roundtrip
+    FP_T orig = FP_FromDouble(3.14159);
+    SST_FPN_ToString(orig, buf, sizeof(buf), 10);
+    FP_T back = SST_FPN_FromString<FP_TEST_BITS>(buf);
+    check("tostring->fromstring", FP_ToDouble(back), 3.14159, 0.0001);
+
+    // full precision string roundtrip (beyond double)
+    // string -> FP -> string -> FP -> string: compare only meaningful digits
+    // meaningful decimal digits ≈ FRAC_BITS * log10(2) ≈ FRAC_BITS * 301 / 1000
+    const char *precise = "123.456789012345678901234567890123456789";
+    unsigned meaningful = (unsigned)((uint64_t)FP_TEST_BITS * 301 / 1000);
+    FP_T prec_val = SST_FPN_FromString<FP_TEST_BITS>(precise);
+    SST_FPN_ToString(prec_val, buf, sizeof(buf), meaningful);
+    char buf2[4096];
+    FP_T prec_back = SST_FPN_FromString<FP_TEST_BITS>(buf);
+    SST_FPN_ToString(prec_back, buf2, sizeof(buf2), meaningful);
+    int strings_match = (strncmp(buf, buf2, meaningful) == 0);
+    check("full precision roundtrip", strings_match, 1.0, 0);
+
+    // arithmetic on string-parsed values
+    FP_T sa = SST_FPN_FromString<FP_TEST_BITS>("10.5");
+    FP_T sb = SST_FPN_FromString<FP_TEST_BITS>("3.25");
+    check("string add", FP_ToDouble(FP_AddSat(sa, sb)), 13.75, tol);
+    check("string mul", FP_ToDouble(FP_Mul(sa, sb)), 34.125, tol);
+
+    // big integer via string
+    FP_T big = SST_FPN_FromString<FP_TEST_BITS>("1000000");
+    check("fromstring 1000000", FP_ToDouble(big), 1000000.0, tol);
 
     //--- results ---
     printf("\n=== FP%d: %d passed, %d failed ===\n", FP_TEST_BITS, tests_passed, tests_failed);
