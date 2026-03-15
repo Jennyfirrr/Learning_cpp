@@ -68,11 +68,8 @@ static inline RegressionFeederX RegressionFeederX_Init() {
 //======================================================================================================
 static inline void RegressionFeederX_Push(RegressionFeederX *feeder, SST_FP price) {
     feeder->price_samples[feeder->head] = price;
-    feeder->head                        = (feeder->head + 1) % MAX_WINDOW;
-
-    if (feeder->count < MAX_WINDOW) {
-        feeder->count++;
-    }
+    feeder->head                        = (feeder->head + 1) & (MAX_WINDOW - 1); // branchless wrap, power-of-2 bitmask instead of modulo
+    feeder->count += (feeder->count < MAX_WINDOW); // branchless saturate, comparison yields 0 or 1, so it stops incrementing at MAX_WINDOW
 }
 //======================================================================================================
 // [COMPUTE FUNCTION]
@@ -93,9 +90,8 @@ static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP *x_values, 
     result.model.intercept = (SST_FP){0};
     result.r_squared       = (SST_FP){0};
 
-    if (count < 2) {
-        return result; // Not enough data points
-    }
+    // no early return for count < 2, if count is 0 or 1 the denominator ends up 0 and the branchless
+    // zero-denom guard below handles it, the sums just naturally produce a degenerate case
 
     SST_FP sum_x = {0}, sum_y = {0}, sum_xy = {0}, sum_x2 = {0}, sum_y2 = {0};
     for (int i = 0; i < count; i++) {
@@ -110,16 +106,22 @@ static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP *x_values, 
     SST_FP numerator   = SST_FP_Sub(SST_FP_Mul(n_fp, sum_xy), SST_FP_Mul(sum_x, sum_y));
     SST_FP denominator = SST_FP_Sub(SST_FP_Mul(n_fp, sum_x2), SST_FP_Mul(sum_x, sum_x));
 
-    if (denominator.raw_value != 0) {
-        result.model.slope     = SST_FP_Div(numerator, denominator);
-        result.model.intercept = SST_FP_Div(SST_FP_Sub(SST_FP_Mul(sum_y, sum_x2), SST_FP_Mul(sum_x, sum_xy)), denominator);
+    // branchless division guard: -(x != 0) produces 0xFFFFFFFF when nonzero, 0x00000000 when zero
+    // when denom is 0, we sub in 1 to avoid UB in the divide, then AND the result with the mask to
+    // zero it out, so the division always executes but the result is correct either
+    int32_t denom_mask = -(denominator.raw_value != 0);
+    SST_FP safe_denom  = {denominator.raw_value | (~denom_mask & 1)}; // 0 becomes 1, nonzero stays the same
 
-        // Calculate R-squared
-        SST_FP ss_total = SST_FP_Sub(SST_FP_Mul(n_fp, sum_y2), SST_FP_Mul(sum_y, sum_y));
-        if (ss_total.raw_value != 0) {
-            result.r_squared = SST_FP_Div(SST_FP_Mul(numerator, numerator), SST_FP_Mul(denominator, ss_total));
-        }
-    }
+    result.model.slope = (SST_FP){SST_FP_DivNoAssert(numerator, safe_denom).raw_value & denom_mask};
+    result.model.intercept =
+        (SST_FP){SST_FP_DivNoAssert(SST_FP_Sub(SST_FP_Mul(sum_y, sum_x2), SST_FP_Mul(sum_x, sum_xy)), safe_denom).raw_value & denom_mask};
+
+    // same branchless guard for r^2, ss_total of 0 means no variance so r^2 should be 0
+    SST_FP ss_total    = SST_FP_Sub(SST_FP_Mul(n_fp, sum_y2), SST_FP_Mul(sum_y, sum_y));
+    int32_t total_mask = -(ss_total.raw_value != 0) & denom_mask; // also needs denom to be valid
+    SST_FP safe_total  = {ss_total.raw_value | (~total_mask & 1)};
+    result.r_squared =
+        (SST_FP){SST_FP_DivNoAssert(SST_FP_Mul(numerator, numerator), SST_FP_Mul(safe_denom, safe_total)).raw_value & total_mask};
 
     return result;
 }
@@ -129,19 +131,13 @@ static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP *x_values, 
 // this is just run the regression on the ring buffer, it doesnt store it in chronological order, so you have to walk from the oldest to the newest and copy them into the linearized in the correct time order, then it just hands the arrays to the _Fit and computes, theres probably a better and faster way to do this but idk, im figuring this out as a go, because FUCK java(I C K Y)
 //======================================================================================================
 static inline LinearRegression3XResult RegressionFeederX_Compute(RegressionFeederX *feeder) {
-    if (feeder->count < 2) {
-        LinearRegression3XResult empty;
-        empty.model.slope     = (SST_FP){0};
-        empty.model.intercept = (SST_FP){0};
-        empty.r_squared       = (SST_FP){0};
-        return empty; // Not enough data points
-    }
+    // no early return needed, _Fit handles count < 2 branchlessly via the zero-denom guard
 
     SST_FP linearized[MAX_WINDOW];
     SST_FP time_index[MAX_WINDOW];
 
     for (int i = 0; i < feeder->count; i++) {
-        int idx       = (feeder->head - feeder->count + i + MAX_WINDOW) % MAX_WINDOW;
+        int idx       = (feeder->head - feeder->count + i + MAX_WINDOW) & (MAX_WINDOW - 1); // branchless wrap
         linearized[i] = feeder->price_samples[idx];
         time_index[i] = (SST_FP){i << SST_FP_FRAC_BITS};
     }
