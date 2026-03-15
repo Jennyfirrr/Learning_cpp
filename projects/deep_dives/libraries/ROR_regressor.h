@@ -1,0 +1,95 @@
+//======================================================================================================
+// [ROR REGRESSOR]
+//======================================================================================================
+// regression on regression - takes the slope outputs from LinearRegression3X and runs a second
+// regression on them, so instead of y=price x=time, its y=slope x=time, which tells you if the
+// trend itself is accelerating, decelerating, or reversing, the slope-of-slopes is basically
+// the second derivative of price, same way velocity vs acceleration works in physics
+//======================================================================================================
+#ifndef ROR_REGRESSOR_H
+#define ROR_REGRESSOR_H
+
+#include "LinearRegression3X.h"
+//======================================================================================================
+// [ROR REGRESSOR STRUCTURE]
+//======================================================================================================
+// same ring buffer pattern as RegressionFeederX, but instead of storing raw prices it stores the
+// slope values that come out of the inner regression, each time you run _Compute on the inner
+// regression you push the resulting slope into this buffer, once it fills up you can run regression
+// on the slopes themselves to get the trend of the trend
+//======================================================================================================
+typedef struct {
+    SST_FP slope_samples[MAX_WINDOW];
+    SST_FP r_squared_samples[MAX_WINDOW];
+    int head;
+    int count;
+} RORRegressor;
+static_assert(sizeof(RORRegressor) == 72, "struct must be 72 bytes");
+//======================================================================================================
+// [INIT FUNCTION]
+//======================================================================================================
+// zeroes everything out, call once at startup
+//======================================================================================================
+static inline RORRegressor RORRegressor_Init() {
+    RORRegressor reg;
+
+    for (int i = 0; i < MAX_WINDOW; i++) {
+        reg.slope_samples[i]     = (SST_FP){.raw_value = 0};
+        reg.r_squared_samples[i] = (SST_FP){.raw_value = 0};
+    }
+
+    reg.head  = 0;
+    reg.count = 0;
+
+    return reg;
+}
+//======================================================================================================
+// [PUSH FUNCTION]
+//======================================================================================================
+// takes a LinearRegression3XResult from the inner regression and stores the slope into the ring
+// buffer, also stores the r_squared so you could filter out bad fits later if you wanted to,
+// like if the inner regression had an r^2 of 0.05 that slope is basically noise and maybe you
+// dont want it polluting the outer regression
+//======================================================================================================
+static inline void RORRegressor_Push(RORRegressor *reg, LinearRegression3XResult inner_result) {
+    reg->slope_samples[reg->head]     = inner_result.model.slope;
+    reg->r_squared_samples[reg->head] = inner_result.r_squared;
+    reg->head                         = (reg->head + 1) & (MAX_WINDOW - 1);
+    reg->count += (reg->count < MAX_WINDOW);
+}
+//======================================================================================================
+// [COMPUTE FUNCTION]
+//======================================================================================================
+// linearizes the slope ring buffer oldest-to-newest and runs LinearRegression3X_Fit on it, same
+// approach as RegressionFeederX_Compute but the y values are slopes instead of prices, the output
+// slope tells you how fast the trend is changing - positive means the trend is getting steeper
+// (accelerating), negative means its flattening or reversing
+//======================================================================================================
+static inline LinearRegression3XResult RORRegressor_Compute(RORRegressor *reg) {
+    SST_FP linearized[MAX_WINDOW];
+    SST_FP time_index[MAX_WINDOW];
+
+    for (int i = 0; i < reg->count; i++) {
+        int idx       = (reg->head - reg->count + i + MAX_WINDOW) & (MAX_WINDOW - 1);
+        linearized[i] = reg->slope_samples[idx];
+        time_index[i] = (SST_FP){.raw_value = i << SST_FP_FRAC_BITS};
+    }
+
+    return LinearRegression3X_Fit(time_index, linearized, reg->count);
+}
+//======================================================================================================
+// [DATA FLOW]
+//======================================================================================================
+// [price ticks] -> [RegressionFeederX_Push] -> [RegressionFeederX_Compute] -> [slope/r^2]
+//                                                                                  |
+//                                                                           [RORRegressor_Push]
+//                                                                                  |
+//                                                                           [RORRegressor_Compute]
+//                                                                                  |
+//                                                                           [slope-of-slopes]
+//                                                                                  |
+//                                                          positive = trend accelerating (momentum)
+//                                                          negative = trend decelerating (reversal?)
+//                                                          near zero = trend is steady
+//======================================================================================================
+#endif // ROR_REGRESSOR_H
