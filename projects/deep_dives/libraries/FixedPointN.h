@@ -125,7 +125,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_FromDouble(double input) {
     double abs_input = input * (1.0 - 2.0 * neg);
 
     SST_FPN<F> result;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < N; i++)
         result.w[i] = 0;
 
@@ -159,17 +159,22 @@ template <unsigned F> inline double SST_FPN_ToDouble(SST_FPN<F> value) {
     // integer part: find highest non-zero integer word, convert from there down
     // (at most 2 words contribute meaningful precision to a double)
     double int_part = 0.0;
-    int top_int = -1;
+    int top_int     = -1;
     for (int i = (int)N - 1; i >= (int)FW; i--) {
-        if (value.w[i] != 0) { top_int = i; break; }
+        if (value.w[i] != 0) {
+            top_int = i;
+            break;
+        }
     }
     if (top_int >= 0) {
         double scale = 1.0;
-        for (int i = (int)FW; i < top_int; i++) scale *= 18446744073709551616.0;
+        for (int i = (int)FW; i < top_int; i++)
+            scale *= 18446744073709551616.0;
         // convert top 2 words (more than enough for double precision)
         int start = (top_int > (int)FW) ? (top_int - 1) : top_int;
-        double s = scale;
-        for (int i = (int)FW; i < start; i++) s *= 18446744073709551616.0;
+        double s  = scale;
+        for (int i = (int)FW; i < start; i++)
+            s *= 18446744073709551616.0;
         // just do it simply: accumulate from FW up to top_int
         double sc = 1.0;
         for (int i = (int)FW; i <= top_int; i++) {
@@ -199,64 +204,63 @@ template <unsigned F> inline double SST_FPN_ToDouble(SST_FPN<F> value) {
 //======================================================================================================
 
 // helper: multiply N-word array in-place by a single uint64_t, return overflow
-template <unsigned N_WORDS>
-inline uint64_t SST_FPN_MulSingle(uint64_t *a, uint64_t b) {
+template <unsigned N_WORDS> inline uint64_t SST_FPN_MulSingle(uint64_t *a, uint64_t b) {
     uint64_t carry = 0;
     for (unsigned i = 0; i < N_WORDS; i++) {
         __uint128_t prod = (__uint128_t)a[i] * b + carry;
-        a[i]  = (uint64_t)prod;
-        carry = (uint64_t)(prod >> 64);
+        a[i]             = (uint64_t)prod;
+        carry            = (uint64_t)(prod >> 64);
     }
     return carry;
 }
 
 // helper: divmod N-word array in-place by a single uint64_t, return remainder
-template <unsigned N_WORDS>
-inline uint64_t SST_FPN_DivModSingle(uint64_t *a, uint64_t b) {
+template <unsigned N_WORDS> inline uint64_t SST_FPN_DivModSingle(uint64_t *a, uint64_t b) {
     uint64_t rem = 0;
     for (int i = (int)N_WORDS - 1; i >= 0; i--) {
         __uint128_t cur = ((__uint128_t)rem << 64) | a[i];
-        a[i] = (uint64_t)(cur / b);
-        rem  = (uint64_t)(cur % b);
+        a[i]            = (uint64_t)(cur / b);
+        rem             = (uint64_t)(cur % b);
     }
     return rem;
 }
 
 // helper: is N-word array all zeros
-template <unsigned N_WORDS>
-inline int SST_FPN_ArrayIsZero(const uint64_t *a) {
+template <unsigned N_WORDS> inline int SST_FPN_ArrayIsZero(const uint64_t *a) {
     uint64_t acc = 0;
-    for (unsigned i = 0; i < N_WORDS; i++) acc |= a[i];
+    for (unsigned i = 0; i < N_WORDS; i++)
+        acc |= a[i];
     return acc == 0;
 }
 
 // max meaningful decimal digits for the fractional part
-template <unsigned F>
-inline constexpr unsigned SST_FPN_MaxDecimalDigits() {
+template <unsigned F> inline constexpr unsigned SST_FPN_MaxDecimalDigits() {
     return (unsigned)((uint64_t)F * 301 / 1000) + 1; // ceil(FRAC_BITS * log10(2))
 }
 
 // convert to decimal string, returns number of chars written (excluding null terminator)
 // buf must be large enough: sign + integer digits + '.' + decimal_places + '\0'
 // if decimal_places is 0, uses max meaningful precision
-template <unsigned F>
-inline unsigned SST_FPN_ToString(SST_FPN<F> value, char *buf, unsigned buf_size, unsigned decimal_places = 0) {
+template <unsigned F> inline unsigned SST_FPN_ToString(SST_FPN<F> value, char *buf, unsigned buf_size, unsigned decimal_places = 0) {
     constexpr unsigned N  = SST_FPN<F>::N;
     constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
     constexpr unsigned IW = N - FW;
 
-    if (decimal_places == 0) decimal_places = SST_FPN_MaxDecimalDigits<F>();
+    if (decimal_places == 0)
+        decimal_places = SST_FPN_MaxDecimalDigits<F>();
 
     unsigned pos = 0;
 
     // sign
     if (value.sign && !SST_FPN_MagIsZero(value)) {
-        if (pos < buf_size - 1) buf[pos++] = '-';
+        if (pos < buf_size - 1)
+            buf[pos++] = '-';
     }
 
     // integer part: repeated divmod by 10, collect digits reversed
     uint64_t int_words[IW];
-    for (unsigned i = 0; i < IW; i++) int_words[i] = value.w[FW + i];
+    for (unsigned i = 0; i < IW; i++)
+        int_words[i] = value.w[FW + i];
 
     char int_digits[IW * 20 + 1];
     unsigned n_int_digits = 0;
@@ -265,7 +269,7 @@ inline unsigned SST_FPN_ToString(SST_FPN<F> value, char *buf, unsigned buf_size,
         int_digits[n_int_digits++] = '0';
     } else {
         while (!SST_FPN_ArrayIsZero<IW>(int_words)) {
-            uint64_t rem = SST_FPN_DivModSingle<IW>(int_words, 10);
+            uint64_t rem               = SST_FPN_DivModSingle<IW>(int_words, 10);
             int_digits[n_int_digits++] = '0' + (char)rem;
         }
     }
@@ -279,11 +283,12 @@ inline unsigned SST_FPN_ToString(SST_FPN<F> value, char *buf, unsigned buf_size,
         buf[pos++] = '.';
 
         uint64_t frac_words[FW];
-        for (unsigned i = 0; i < FW; i++) frac_words[i] = value.w[i];
+        for (unsigned i = 0; i < FW; i++)
+            frac_words[i] = value.w[i];
 
         for (unsigned d = 0; d < decimal_places && pos < buf_size - 1; d++) {
             uint64_t digit = SST_FPN_MulSingle<FW>(frac_words, 10);
-            buf[pos++] = '0' + (char)digit;
+            buf[pos++]     = '0' + (char)digit;
         }
     }
 
@@ -293,38 +298,43 @@ inline unsigned SST_FPN_ToString(SST_FPN<F> value, char *buf, unsigned buf_size,
 
 // parse decimal string to fixed-point
 // accepts optional sign, integer digits, optional '.', fractional digits
-template <unsigned F>
-inline SST_FPN<F> SST_FPN_FromString(const char *str) {
+template <unsigned F> inline SST_FPN<F> SST_FPN_FromString(const char *str) {
     constexpr unsigned N  = SST_FPN<F>::N;
     constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
     constexpr unsigned IW = N - FW;
 
     SST_FPN<F> result = SST_FPN_Zero<F>();
-    unsigned i = 0;
+    unsigned i        = 0;
 
     // sign
     int neg = 0;
-    if (str[i] == '-') { neg = 1; i++; }
-    else if (str[i] == '+') { i++; }
+    if (str[i] == '-') {
+        neg = 1;
+        i++;
+    } else if (str[i] == '+') {
+        i++;
+    }
 
     // integer part: left to right, result = result * 10 + digit
     uint64_t int_words[IW];
-    for (unsigned w = 0; w < IW; w++) int_words[w] = 0;
+    for (unsigned w = 0; w < IW; w++)
+        int_words[w] = 0;
 
     while (str[i] >= '0' && str[i] <= '9') {
         SST_FPN_MulSingle<IW>(int_words, 10);
         __uint128_t sum = (__uint128_t)int_words[0] + (uint64_t)(str[i] - '0');
-        int_words[0] = (uint64_t)sum;
-        uint64_t carry = (uint64_t)(sum >> 64);
+        int_words[0]    = (uint64_t)sum;
+        uint64_t carry  = (uint64_t)(sum >> 64);
         for (unsigned w = 1; w < IW && carry; w++) {
-            sum = (__uint128_t)int_words[w] + carry;
+            sum          = (__uint128_t)int_words[w] + carry;
             int_words[w] = (uint64_t)sum;
-            carry = (uint64_t)(sum >> 64);
+            carry        = (uint64_t)(sum >> 64);
         }
         i++;
     }
 
-    for (unsigned w = 0; w < IW; w++) result.w[FW + w] = int_words[w];
+    for (unsigned w = 0; w < IW; w++)
+        result.w[FW + w] = int_words[w];
 
     // fractional part: collect digits, process right to left
     // for each digit (right to left): place digit in integer word, divmod (FW+1) words by 10
@@ -333,18 +343,23 @@ inline SST_FPN<F> SST_FPN_FromString(const char *str) {
         i++;
 
         const char *frac_start = &str[i];
-        unsigned n_frac = 0;
-        while (str[i] >= '0' && str[i] <= '9') { n_frac++; i++; }
+        unsigned n_frac        = 0;
+        while (str[i] >= '0' && str[i] <= '9') {
+            n_frac++;
+            i++;
+        }
 
         uint64_t frac_words[FW + 1];
-        for (unsigned w = 0; w <= FW; w++) frac_words[w] = 0;
+        for (unsigned w = 0; w <= FW; w++)
+            frac_words[w] = 0;
 
         for (int d = (int)n_frac - 1; d >= 0; d--) {
             frac_words[FW] = (uint64_t)(frac_start[d] - '0');
             SST_FPN_DivModSingle<FW + 1>(frac_words, 10);
         }
 
-        for (unsigned w = 0; w < FW; w++) result.w[w] = frac_words[w];
+        for (unsigned w = 0; w < FW; w++)
+            result.w[w] = frac_words[w];
     }
 
     result.sign = neg & !SST_FPN_MagIsZero(result);
@@ -392,7 +407,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Min(SST_FPN<F> a, SST_FPN<F> b) 
 
     uint64_t mask = -(uint64_t)a_lt;
     SST_FPN<F> result;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < SST_FPN<F>::N; i++)
         result.w[i] = (a.w[i] & mask) | (b.w[i] & ~mask);
     result.sign = (int32_t)((a.sign & a_lt) | (b.sign & (1 - a_lt)));
@@ -407,7 +422,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Max(SST_FPN<F> a, SST_FPN<F> b) 
 
     uint64_t mask = -(uint64_t)a_gt;
     SST_FPN<F> result;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < SST_FPN<F>::N; i++)
         result.w[i] = (a.w[i] & mask) | (b.w[i] & ~mask);
     result.sign = (int32_t)((a.sign & a_gt) | (b.sign & (1 - a_gt)));
@@ -438,7 +453,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_AddSat(SST_FPN<F> a, SST_FPN<F> 
 
     SST_FPN<F> result;
     uint64_t or_all = 0;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < N; i++) {
         uint64_t d  = (dab[i] & ge_mask) | (dba[i] & ~ge_mask);
         result.w[i] = (sum[i] & ~d_mask) | (d & d_mask);
@@ -490,30 +505,29 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Mul(SST_FPN<F> a, SST_FPN<F> b) 
         uint64_t carry = 0;
 #pragma GCC unroll 65534
         for (unsigned j = 0; j < N; j++) {
-            __uint128_t prod = (__uint128_t)a.w[i] * b.w[j]
-                             + (__uint128_t)p[i + j]
-                             + carry;
-            p[i + j] = (uint64_t)prod;
-            carry    = (uint64_t)(prod >> 64);
+            __uint128_t prod = (__uint128_t)a.w[i] * b.w[j] + (__uint128_t)p[i + j] + carry;
+            p[i + j]         = (uint64_t)prod;
+            carry            = (uint64_t)(prod >> 64);
         }
         // propagate remaining carry (fixed-trip, compiler unrolls)
 #pragma GCC unroll 65534
         for (unsigned k = i + N; k < 2 * N; k++) {
             __uint128_t s = (__uint128_t)p[k] + carry;
-            p[k]  = (uint64_t)s;
-            carry = (uint64_t)(s >> 64);
+            p[k]          = (uint64_t)s;
+            carry         = (uint64_t)(s >> 64);
         }
     }
 
     // extract result: shift right by FW words
     // overflow: any word above position FW + N - 1 means we overflowed
     uint64_t overflow = 0;
-    #pragma GCC unroll 65534
-    for (unsigned i = FW + N; i < 2 * N; i++) overflow |= p[i];
+#pragma GCC unroll 65534
+    for (unsigned i = FW + N; i < 2 * N; i++)
+        overflow |= p[i];
     uint64_t of_mask = -(uint64_t)(overflow != 0);
 
     SST_FPN<F> result;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < N; i++) {
         result.w[i] = (p[FW + i] & ~of_mask) | (UINT64_MAX & of_mask);
     }
@@ -536,8 +550,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Mul(SST_FPN<F> a, SST_FPN<F> b) 
 //======================================================================================================
 
 // helper: shift a 2N-word value left by 1 bit
-template <unsigned F>
-inline void SST_FPN_ShiftLeft1_2N(uint64_t *v) {
+template <unsigned F> inline void SST_FPN_ShiftLeft1_2N(uint64_t *v) {
     constexpr unsigned W = 2 * SST_FPN<F>::N;
 #pragma GCC unroll 65534
     for (int i = (int)W - 1; i > 0; i--) {
@@ -547,25 +560,23 @@ inline void SST_FPN_ShiftLeft1_2N(uint64_t *v) {
 }
 
 // helper: is N-word a >= N-word b (branchless, from LSB up)
-template <unsigned F>
-inline int SST_FPN_NWordGe(const uint64_t *a, const uint64_t *b) {
+template <unsigned F> inline int SST_FPN_NWordGe(const uint64_t *a, const uint64_t *b) {
     constexpr unsigned N = SST_FPN<F>::N;
-    int ge = (a[0] >= b[0]);
+    int ge               = (a[0] >= b[0]);
 #pragma GCC unroll 65534
     for (unsigned i = 1; i < N; i++) {
         int gt = (a[i] > b[i]);
         int eq = (a[i] == b[i]);
-        ge = gt | (eq & ge);
+        ge     = gt | (eq & ge);
     }
     return ge;
 }
 
 // helper: N-word conditional subtract: r = ge ? (a - b) : a
 // branchless: always computes both, mask-selects
-template <unsigned F>
-inline void SST_FPN_CondSub(uint64_t *a, const uint64_t *b, int ge) {
+template <unsigned F> inline void SST_FPN_CondSub(uint64_t *a, const uint64_t *b, int ge) {
     constexpr unsigned N = SST_FPN<F>::N;
-    uint64_t mask = -(uint64_t)ge;
+    uint64_t mask        = -(uint64_t)ge;
 
     uint64_t diff[N];
     uint64_t borrow = 0;
@@ -589,20 +600,22 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_DivNoAssert(SST_FPN<F> a, SST_FP
     constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
 
     // branchless zero-divisor saturation: if b is zero, safe_b = 1, result gets masked to MAX
-    int b_zero = SST_FPN_MagIsZero(b);
+    int b_zero       = SST_FPN_MagIsZero(b);
     uint64_t bz_mask = -(uint64_t)b_zero;
 
     // make safe divisor: if b is zero, set LSB to 1 so division executes without UB
     uint64_t divisor[N];
 #pragma GCC unroll 65534
-    for (unsigned i = 0; i < N; i++) divisor[i] = b.w[i];
+    for (unsigned i = 0; i < N; i++)
+        divisor[i] = b.w[i];
     divisor[0] |= (uint64_t)b_zero; // 0 becomes 1, nonzero stays the same
 
     // dividend = a_magnitude << FRAC_BITS
     // in a 2N-word array: lower FW words are 0, upper N words are a.w shifted up by FW
     uint64_t remainder[2 * N] = {0};
 #pragma GCC unroll 65534
-    for (unsigned i = 0; i < N; i++) remainder[FW + i] = a.w[i];
+    for (unsigned i = 0; i < N; i++)
+        remainder[FW + i] = a.w[i];
 
     // quotient accumulates bit by bit
     uint64_t quotient[N] = {0};
@@ -640,7 +653,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_DivNoAssert(SST_FPN<F> a, SST_FP
     // sign: XOR inputs, but if b was zero use a's sign
     int normal_sign = (a.sign ^ b.sign) & !SST_FPN_MagIsZero(result);
     int zero_sign   = a.sign;
-    result.sign = (normal_sign & (!b_zero)) | (zero_sign & b_zero);
+    result.sign     = (normal_sign & (!b_zero)) | (zero_sign & b_zero);
 
     return result;
 }
@@ -704,11 +717,11 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Abs(SST_FPN<F> value) {
 
 template <unsigned F> inline SST_FPN<F> SST_FPN_Sign(SST_FPN<F> value) {
     // branchless: compute +/-1.0, then mask to zero if input is zero
-    int is_nonzero       = !SST_FPN_MagIsZero(value);
-    uint64_t nz_mask     = -(uint64_t)is_nonzero;
-    SST_FPN<F> result    = SST_FPN_Zero<F>();
+    int is_nonzero                   = !SST_FPN_MagIsZero(value);
+    uint64_t nz_mask                 = -(uint64_t)is_nonzero;
+    SST_FPN<F> result                = SST_FPN_Zero<F>();
     result.w[SST_FPN<F>::FRAC_WORDS] = 1 & nz_mask;
-    result.sign          = value.sign & is_nonzero;
+    result.sign                      = value.sign & is_nonzero;
     return result;
 }
 
@@ -763,23 +776,23 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Floor(SST_FPN<F> value) {
     constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
     // check if any fractional word is nonzero
     uint64_t frac_or = 0;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < FW; i++)
         frac_or |= value.w[i];
     int has_frac = (frac_or != 0);
 
     SST_FPN<F> result;
-    // zero out fractional words
-    #pragma GCC unroll 65534
+// zero out fractional words
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < FW; i++)
         result.w[i] = 0;
-    // copy integer words
-    #pragma GCC unroll 65534
+// copy integer words
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++)
         result.w[i] = value.w[i];
     // if negative and had fraction, bump integer part by 1 with carry chain
     uint64_t bump = (uint64_t)(value.sign & has_frac);
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++) {
         uint64_t old = result.w[i];
         result.w[i] += bump;
@@ -792,28 +805,28 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Floor(SST_FPN<F> value) {
 template <unsigned F> inline SST_FPN<F> SST_FPN_Ceil(SST_FPN<F> value) {
     constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
     uint64_t frac_or      = 0;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < FW; i++)
         frac_or |= value.w[i];
     int has_frac = (frac_or != 0);
 
     SST_FPN<F> result;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < FW; i++)
         result.w[i] = 0;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++)
         result.w[i] = value.w[i];
     // if positive and had fraction, bump integer part by 1
     uint64_t bump = (uint64_t)((!value.sign) & has_frac);
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++) {
         uint64_t old = result.w[i];
         result.w[i] += bump;
         bump = (result.w[i] < old);
     }
     uint64_t int_or = 0;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++)
         int_or |= result.w[i];
     result.sign = value.sign & (int_or != 0);
@@ -826,21 +839,21 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Round(SST_FPN<F> value) {
     int round_up = (FW >= 1) ? ((value.w[FW - 1] >> 63) & 1) : 0;
 
     SST_FPN<F> result;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < FW; i++)
         result.w[i] = 0;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++)
         result.w[i] = value.w[i];
     uint64_t bump = (uint64_t)round_up;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++) {
         uint64_t old = result.w[i];
         result.w[i] += bump;
         bump = (result.w[i] < old);
     }
     uint64_t int_or = 0;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = FW; i < SST_FPN<F>::N; i++)
         int_or |= result.w[i];
     result.sign = value.sign & (int_or != 0);
@@ -852,7 +865,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Mod(SST_FPN<F> a, SST_FPN<F> b) 
     SST_FPN<F> quotient = SST_FPN_DivNoAssert(a, b);
     // truncate: zero out fractional words
     SST_FPN<F> truncated = quotient;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < SST_FPN<F>::FRAC_WORDS; i++)
         truncated.w[i] = 0;
     return SST_FPN_SubSat(a, SST_FPN_Mul(truncated, b));
@@ -874,7 +887,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_SmoothStep(SST_FPN<F> edge0, SST
     SST_FPN<F> poly  = SST_FPN_Mul(SST_FPN_Mul(t, t), SST_FPN_SubSat(three, SST_FPN_Mul(two, t)));
 
     // clamp conditions
-    int below = SST_FPN_LessThanOrEqual(x, edge0);   // -> 0.0
+    int below = SST_FPN_LessThanOrEqual(x, edge0);    // -> 0.0
     int above = SST_FPN_GreaterThanOrEqual(x, edge1); // -> 1.0
 
     // 1.0 constant
@@ -887,7 +900,7 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_SmoothStep(SST_FPN<F> edge0, SST
     uint64_t pm = ~bm & ~am; // middle region
 
     SST_FPN<F> result;
-    #pragma GCC unroll 65534
+#pragma GCC unroll 65534
     for (unsigned i = 0; i < N; i++)
         result.w[i] = (poly.w[i] & pm) | (one.w[i] & am);
     // sign: poly could be negative from numerical noise, but clamped regions are non-negative
