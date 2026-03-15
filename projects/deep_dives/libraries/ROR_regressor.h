@@ -19,12 +19,12 @@
 // on the slopes themselves to get the trend of the trend
 //======================================================================================================
 typedef struct {
-    SST_FP slope_samples[MAX_WINDOW];
-    SST_FP r_squared_samples[MAX_WINDOW];
+    SST_FP32 slope_samples[MAX_WINDOW];
+    SST_FP32 r_squared_samples[MAX_WINDOW];
     int head;
     int count;
 } RORRegressor;
-static_assert(sizeof(RORRegressor) == 72, "struct must be 72 bytes");
+static_assert(sizeof(RORRegressor) == 136, "struct must be 136 bytes");
 //======================================================================================================
 // [INIT FUNCTION]
 //======================================================================================================
@@ -34,8 +34,8 @@ static inline RORRegressor RORRegressor_Init() {
     RORRegressor reg;
 
     for (int i = 0; i < MAX_WINDOW; i++) {
-        reg.slope_samples[i]     = (SST_FP){.raw_value = 0};
-        reg.r_squared_samples[i] = (SST_FP){.raw_value = 0};
+        reg.slope_samples[i]     = (SST_FP32){.raw_value = 0};
+        reg.r_squared_samples[i] = (SST_FP32){.raw_value = 0};
     }
 
     reg.head  = 0;
@@ -66,13 +66,13 @@ static inline void RORRegressor_Push(RORRegressor *reg, LinearRegression3XResult
 // (accelerating), negative means its flattening or reversing
 //======================================================================================================
 static inline LinearRegression3XResult RORRegressor_Compute(RORRegressor *reg) {
-    SST_FP linearized[MAX_WINDOW];
-    SST_FP time_index[MAX_WINDOW];
+    SST_FP32 linearized[MAX_WINDOW];
+    SST_FP32 time_index[MAX_WINDOW];
 
     for (int i = 0; i < reg->count; i++) {
         int idx       = (reg->head - reg->count + i + MAX_WINDOW) & (MAX_WINDOW - 1);
         linearized[i] = reg->slope_samples[idx];
-        time_index[i] = (SST_FP){.raw_value = i << SST_FP_FRAC_BITS};
+        time_index[i] = (SST_FP32){.raw_value = (int64_t)i << SST_FP32_FRAC_BITS};
     }
 
     return LinearRegression3X_Fit(time_index, linearized, reg->count);
