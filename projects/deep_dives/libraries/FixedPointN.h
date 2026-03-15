@@ -434,7 +434,9 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_DivNoAssert(SST_FPN<F> a, SST_FP
     // each iteration: shift remainder left 1, compare top N words against divisor,
     // conditionally subtract, shift quotient bit in
     constexpr unsigned TOTAL_QBITS = N * 64;
-#pragma GCC unroll 65534
+    // NOTE: do NOT unroll this outer loop - at 512+ bits it's 1024+ iterations and GCC chokes
+    // the loop counter branch is fixed-trip (branch predictor hits 100%), not data-dependent
+    // all the actual math inside (compare, cond-subtract, quotient bit) stays branchless
     for (unsigned bit = 0; bit < TOTAL_QBITS; bit++) {
         // shift remainder left by 1
         SST_FPN_ShiftLeft1_2N<F>(remainder);
@@ -524,13 +526,13 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Abs(SST_FPN<F> value) {
 }
 
 template <unsigned F> inline SST_FPN<F> SST_FPN_Sign(SST_FPN<F> value) {
-    if (SST_FPN_MagIsZero(value))
-        return SST_FPN_Zero<F>();
-    // 1.0: integer part = 1, so w[FRAC_WORDS] = 1, rest = 0
-    SST_FPN<F> one                = SST_FPN_Zero<F>();
-    one.w[SST_FPN<F>::FRAC_WORDS] = 1;
-    one.sign                      = value.sign;
-    return one;
+    // branchless: compute +/-1.0, then mask to zero if input is zero
+    int is_nonzero       = !SST_FPN_MagIsZero(value);
+    uint64_t nz_mask     = -(uint64_t)is_nonzero;
+    SST_FPN<F> result    = SST_FPN_Zero<F>();
+    result.w[SST_FPN<F>::FRAC_WORDS] = 1 & nz_mask;
+    result.sign          = value.sign & is_nonzero;
+    return result;
 }
 
 //======================================================================================================
@@ -686,23 +688,34 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Lerp(SST_FPN<F> a, SST_FPN<F> b,
 }
 
 template <unsigned F> inline SST_FPN<F> SST_FPN_SmoothStep(SST_FPN<F> edge0, SST_FPN<F> edge1, SST_FPN<F> x) {
-    if (SST_FPN_LessThanOrEqual(x, edge0))
-        return SST_FPN_Zero<F>();
-    if (SST_FPN_GreaterThanOrEqual(x, edge1)) {
-        SST_FPN<F> one                = SST_FPN_Zero<F>();
-        one.w[SST_FPN<F>::FRAC_WORDS] = 1; // hmm, 1.0 needs to be in the right spot
-        // actually 1.0 in Q(F.F) has the integer LSB set, which is w[FRAC_WORDS] bit 0
-        // but we need the whole word to be 1? No, 1 in the integer part = w[FRAC_WORDS] = 1
-        // but thats not right either. 1.0 means the value is 1, so raw magnitude = 1 << FRAC_BITS
-        // in word terms: w[FRAC_WORDS] = 1, since FRAC_BITS = FRAC_WORDS * 64
-        // wait, 1 << (FRAC_WORDS * 64) in a multi-word representation is just w[FRAC_WORDS] = 1
-        // yes thats correct
-        return one;
-    }
+    constexpr unsigned N = SST_FPN<F>::N;
+
+    // always compute the polynomial: t = (x - edge0) / (edge1 - edge0), result = t*t*(3 - 2*t)
     SST_FPN<F> t     = SST_FPN_DivNoAssert(SST_FPN_SubSat(x, edge0), SST_FPN_SubSat(edge1, edge0));
     SST_FPN<F> three = SST_FPN_FromDouble<F>(3.0);
     SST_FPN<F> two   = SST_FPN_FromDouble<F>(2.0);
-    return SST_FPN_Mul(SST_FPN_Mul(t, t), SST_FPN_SubSat(three, SST_FPN_Mul(two, t)));
+    SST_FPN<F> poly  = SST_FPN_Mul(SST_FPN_Mul(t, t), SST_FPN_SubSat(three, SST_FPN_Mul(two, t)));
+
+    // clamp conditions
+    int below = SST_FPN_LessThanOrEqual(x, edge0);   // -> 0.0
+    int above = SST_FPN_GreaterThanOrEqual(x, edge1); // -> 1.0
+
+    // 1.0 constant
+    SST_FPN<F> one                = SST_FPN_Zero<F>();
+    one.w[SST_FPN<F>::FRAC_WORDS] = 1;
+
+    // mask-select: below -> zero, above -> one, else -> poly
+    uint64_t bm = -(uint64_t)below;
+    uint64_t am = -(uint64_t)above;
+    uint64_t pm = ~bm & ~am; // middle region
+
+    SST_FPN<F> result;
+    #pragma GCC unroll 65534
+    for (unsigned i = 0; i < N; i++)
+        result.w[i] = (poly.w[i] & pm) | (one.w[i] & am);
+    // sign: poly could be negative from numerical noise, but clamped regions are non-negative
+    result.sign = poly.sign & (int)(pm != 0);
+    return result;
 }
 
 //======================================================================================================
