@@ -5,7 +5,7 @@
 **IF YOURE FROM HR, JUST FORWARD THIS TO YOUR LEAD ENGINEER SO YOU DONT HAVE AN ANYUERISM READING IT, I PROMISE I KNOW WHAT IM TALKING ABOUT, BUT THE PROSE IN THESE FILES WILL MAKE YOU HAVE A HEADACHE THAT LASTS FOR 6+ MONTHS**
 
 **TLDR: USE A STRUCT**
- - Thats literally what all these files conclude to, 44k words of prose + 5k words of annotated ASM, to basically just say, yous a well written struct
+ - Thats literally what all these files conclude to, 44k words of prose + 3,277 lines of annotated ASM, to basically just say, yous a well written struct
 
 Explorations of hardware/binary-level topics, low-level optimization, and how C++ actually compiles down to assembly. Started with bitwise operators and spiraled into branchless programming, bit packing for HFT order books, hand-tracing binary math, and annotating compiler-generated x86 assembly.
 
@@ -19,12 +19,12 @@ Explorations of hardware/binary-level topics, low-level optimization, and how C+
 | 02 | `02_bitmasking.cpp` | 2,129 | — | 201 | Bitmasking, bitfields, and bit shifts — storing 32 T/F flags in a single int, power-of-2 checks, L1/L2 cache benefits of compact data |
 | 03 | `03_branchless_programming.cpp` | 5,690 | 6 | 577 | Branchless clamp, two's complement, branch prediction penalties, chaining operations, ternary vs if/else at the CPU pipeline level |
 | 04 | `04_bit_state_checking.cpp` | 2,231 | 12 | 283 | Per-bit state extraction and normalization, kill switch logic using bitmasks, cmov vs jump compiler behavior, when if statements stay branchless vs trigger branch prediction |
-| 05 | `05_bit_packing_orders.cpp` | 4,757 | 1,768 | 1,305 | Packing multiple 8-bit order IDs into 32-bit ints, kill masks with de Bruijn-style multiplication, loop unrolling, delta encoding with XOR, signed vs unsigned pitfalls, extensively annotated ASM output for the entire program |
-| 06 | `06_kill_switch_asm.cpp` | 1,245 | 509 | 398 | Array-based kill switch using std::array, function-by-function ASM breakdown showing how the compiler converts bit operations to NOT+TEST+SETE, RDTSC cycle counting |
+| 05 | `05_bit_packing_orders.cpp` | 4,757 | 818 | 1,305 | Packing multiple 8-bit order IDs into 32-bit ints, kill masks with de Bruijn-style multiplication, loop unrolling, delta encoding with XOR, signed vs unsigned pitfalls, extensively annotated ASM output for the entire program |
+| 06 | `06_kill_switch_asm.cpp` | 1,245 | 818 | 398 | Array-based kill switch using std::array, function-by-function ASM breakdown showing how the compiler converts bit operations to NOT+TEST+SETE, RDTSC cycle counting |
 | 07 | `07_boolean_algebra.cpp` | 3,358 | — | 479 | Mycroft trick (haszero/hasless macro), lane-by-lane binary subtraction with borrow logic, full hand-traced 32-bit operation table, POPCNT as a single silicon instruction |
-| 08 | `08_mycroft_implementation.cpp` | 4,874 | 1,941 | 1,386 | Mycroft trick implementation with 64-bit order packing, 4 buy + 4 sell per uint64, PDEP/PEXT bit deposit/extract, signed bit smearing pitfalls, BMI1/2 instructions |
-| 09 | `09_allocator_practice.cpp` | 3,151 | 1,048 | 1,027 | Pool/arena allocator for order tracking, de Bruijn masking, PDEP/PEXT with immintrin.h, IMUL magic number optimization, TZCNT/BSF bit scanning |
-| 10 | `10_memory_allocation_implementation.cpp` | 3,577 | — | 527 | Pool allocator order tracking, buy/sell risk gates, 8-lane order packing, branchless order routing, struct-based state machine design for single-ticker and cross-sectional flows |
+| 08 | `08_mycroft_implementation.cpp` | 4,874 | 831 | 1,386 | Mycroft trick implementation with 64-bit order packing, 4 buy + 4 sell per uint64, PDEP/PEXT bit deposit/extract, signed bit smearing pitfalls, BMI1/2 instructions |
+| 09 | `09_allocator_practice.cpp` | 3,151 | 628 | 1,027 | Pool/arena allocator for order tracking, de Bruijn masking, PDEP/PEXT with immintrin.h, IMUL magic number optimization, TZCNT/BSF bit scanning |
+| 10 | `10_memory_allocation_implementation.cpp` | 3,577 | 182 | 527 | Pool allocator order tracking, buy/sell risk gates, 8-lane order packing, branchless order routing, struct-based state machine design for single-ticker and cross-sectional flows |
 
 ### Standalone / Reference Files
 
@@ -46,8 +46,10 @@ Reusable header-only libraries extracted from the deep dives. All built on fixed
 | File | Topics |
 |------|--------|
 | `FixedPoint16.h` | 16-bit fractional fixed-point arithmetic — int32 backed, add/sub/mul/div, full comparison suite, branchless abs and sign via bit smearing |
+| `FixedPoint32.h` | 32-bit fractional fixed-point arithmetic — int64 backed, saturating add/sub/mul/div, __int128 intermediates, branchless min/max/abs/sign, trig/exp/log/pow wrappers, floor/ceil/round/mod/lerp/smoothstep |
 | `LinearRegressionSimple.h` | Single-feature ordinary least squares using fixed-point math — y = mx + b, predict from fitted model |
-| `LinearRegression3X.h` | Linear regression with ring buffer feeder (8-sample window), R² goodness-of-fit, OLS with 5-sum accumulator, price prediction pipeline — all fixed-point |
+| `LinearRegression3X.h` | Linear regression with ring buffer feeder (8-sample window), R² goodness-of-fit, OLS with 5-sum accumulator, branchless zero-denom guards, price prediction pipeline, data flow from market tick to trading signal — all fixed-point |
+| `OrderGates.h` | Branchless buy/sell order gates using FP32 comparisons — price/volume threshold checks, pool allocator integration, profit-target exit scanning with TZCNT |
 | `PoolAllocator.h` | Bitmap-based pool allocator for order tracking — TZCNT slot finding, POPCNT active count, calloc-backed with 64-slot bitmap capacity |
 
 ### `asm_outputs/`
@@ -58,6 +60,7 @@ Reusable header-only libraries extracted from the deep dives. All built on fixed
 | `06_kill_switch_asm.s` | Generated with `g++ -S -O2` from `06_kill_switch_asm.cpp` |
 | `08_mycroft_implementation.s` | Generated from `08_mycroft_implementation.cpp` |
 | `09_allocator_practice.s` | Generated from `09_allocator_practice.cpp` |
+| `10_mem_alloc.s` | Generated from `10_memory_allocation_implementation.cpp` |
 
 ## Deep Dive Progress
 
