@@ -278,31 +278,177 @@ template <unsigned F> inline SST_FPN<F> SST_FPN_Sub(SST_FPN<F> a, SST_FPN<F> b) 
 }
 
 //======================================================================================================
-// [MULTIPLY AND DIVIDE]
+// [MULTIPLY - SCHOOLBOOK PARTIAL PRODUCTS]
 //======================================================================================================
-// go through long double conversion - precision limited by double but the value of arbitrary
-// width is in the add/sub accumulation path where full N-word precision is maintained
+// splits each N-word magnitude into N single uint64_t words, does N^2 partial multiplies
+// each partial is uint64_t * uint64_t -> __uint128_t (one hardware mul instruction)
+// the compiler fully unrolls both loops since N is compile-time, so this is straight-line
+// multiply-accumulate with no branches
+//
+// full product is 2N words, we shift right by FRAC_WORDS to get back to Q(F.F)
 //======================================================================================================
 template <unsigned F> inline SST_FPN<F> SST_FPN_Mul(SST_FPN<F> a, SST_FPN<F> b) {
-    long double fa    = fabsl((long double)SST_FPN_ToDouble(a));
-    long double fb    = fabsl((long double)SST_FPN_ToDouble(b));
-    SST_FPN<F> result = SST_FPN_FromDouble<F>((double)(fa * fb));
-    result.sign       = (a.sign ^ b.sign) & !SST_FPN_MagIsZero(result);
+    constexpr unsigned N  = SST_FPN<F>::N;
+    constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
+
+    // 2N-word product
+    uint64_t p[2 * N] = {0};
+
+    // schoolbook: N^2 partial products, each one mul + add + carry propagation
+    // pragma unroll forces GCC to flatten these into straight-line mul/add/carry
+#pragma GCC unroll 65534
+    for (unsigned i = 0; i < N; i++) {
+        uint64_t carry = 0;
+#pragma GCC unroll 65534
+        for (unsigned j = 0; j < N; j++) {
+            __uint128_t prod = (__uint128_t)a.w[i] * b.w[j]
+                             + (__uint128_t)p[i + j]
+                             + carry;
+            p[i + j] = (uint64_t)prod;
+            carry    = (uint64_t)(prod >> 64);
+        }
+        // propagate remaining carry (fixed-trip, compiler unrolls)
+#pragma GCC unroll 65534
+        for (unsigned k = i + N; k < 2 * N; k++) {
+            __uint128_t s = (__uint128_t)p[k] + carry;
+            p[k]  = (uint64_t)s;
+            carry = (uint64_t)(s >> 64);
+        }
+    }
+
+    // extract result: shift right by FW words
+    // overflow: any word above position FW + N - 1 means we overflowed
+    uint64_t overflow = 0;
+    for (unsigned i = FW + N; i < 2 * N; i++) overflow |= p[i];
+    uint64_t of_mask = -(uint64_t)(overflow != 0);
+
+    SST_FPN<F> result;
+    for (unsigned i = 0; i < N; i++) {
+        result.w[i] = (p[FW + i] & ~of_mask) | (UINT64_MAX & of_mask);
+    }
+
+    result.sign = (a.sign ^ b.sign) & !SST_FPN_MagIsZero(result);
     return result;
 }
 
-template <unsigned F> inline SST_FPN<F> SST_FPN_DivNoAssert(SST_FPN<F> a, SST_FPN<F> b) {
-    if (SST_FPN_MagIsZero(b)) {
-        SST_FPN<F> sat;
-        for (unsigned i = 0; i < SST_FPN<F>::N; i++)
-            sat.w[i] = UINT64_MAX;
-        sat.sign = a.sign;
-        return sat;
+//======================================================================================================
+// [DIVISION - BRANCHLESS LONG DIVISION]
+//======================================================================================================
+// computes (a_magnitude << FRAC_BITS) / b_magnitude using bit-by-bit long division
+// the dividend is 2N words (a shifted left by FRAC_BITS), divisor is N words
+// each iteration produces 1 bit of quotient: trial-subtract the divisor from the remainder,
+// use branchless mask-select to keep or discard, shift quotient bit in
+//
+// total iterations: N * 64 (one per bit of quotient)
+// each iteration: N-word compare + N-word conditional subtract + 2N-word shift = O(N) work
+// all branchless - compare produces a mask, subtract is always computed, mask selects result
+//======================================================================================================
+
+// helper: shift a 2N-word value left by 1 bit
+template <unsigned F>
+inline void SST_FPN_ShiftLeft1_2N(uint64_t *v) {
+    constexpr unsigned W = 2 * SST_FPN<F>::N;
+#pragma GCC unroll 65534
+    for (int i = (int)W - 1; i > 0; i--) {
+        v[i] = (v[i] << 1) | (v[i - 1] >> 63);
     }
-    long double fa    = fabsl((long double)SST_FPN_ToDouble(a));
-    long double fb    = fabsl((long double)SST_FPN_ToDouble(b));
-    SST_FPN<F> result = SST_FPN_FromDouble<F>((double)(fa / fb));
-    result.sign       = (a.sign ^ b.sign) & !SST_FPN_MagIsZero(result);
+    v[0] <<= 1;
+}
+
+// helper: is N-word a >= N-word b (branchless, from LSB up)
+template <unsigned F>
+inline int SST_FPN_NWordGe(const uint64_t *a, const uint64_t *b) {
+    constexpr unsigned N = SST_FPN<F>::N;
+    int ge = (a[0] >= b[0]);
+#pragma GCC unroll 65534
+    for (unsigned i = 1; i < N; i++) {
+        int gt = (a[i] > b[i]);
+        int eq = (a[i] == b[i]);
+        ge = gt | (eq & ge);
+    }
+    return ge;
+}
+
+// helper: N-word conditional subtract: r = ge ? (a - b) : a
+// branchless: always computes both, mask-selects
+template <unsigned F>
+inline void SST_FPN_CondSub(uint64_t *a, const uint64_t *b, int ge) {
+    constexpr unsigned N = SST_FPN<F>::N;
+    uint64_t mask = -(uint64_t)ge;
+
+    uint64_t diff[N];
+    uint64_t borrow = 0;
+#pragma GCC unroll 65534
+    for (unsigned i = 0; i < N; i++) {
+        uint64_t t   = a[i] - b[i];
+        uint64_t bw1 = (a[i] < b[i]);
+        diff[i]      = t - borrow;
+        uint64_t bw2 = (t < borrow);
+        borrow       = bw1 | bw2;
+    }
+
+#pragma GCC unroll 65534
+    for (unsigned i = 0; i < N; i++) {
+        a[i] = (diff[i] & mask) | (a[i] & ~mask);
+    }
+}
+
+template <unsigned F> inline SST_FPN<F> SST_FPN_DivNoAssert(SST_FPN<F> a, SST_FPN<F> b) {
+    constexpr unsigned N  = SST_FPN<F>::N;
+    constexpr unsigned FW = SST_FPN<F>::FRAC_WORDS;
+
+    // branchless zero-divisor saturation: if b is zero, safe_b = 1, result gets masked to MAX
+    int b_zero = SST_FPN_MagIsZero(b);
+    uint64_t bz_mask = -(uint64_t)b_zero;
+
+    // make safe divisor: if b is zero, set LSB to 1 so division executes without UB
+    uint64_t divisor[N];
+#pragma GCC unroll 65534
+    for (unsigned i = 0; i < N; i++) divisor[i] = b.w[i];
+    divisor[0] |= (uint64_t)b_zero; // 0 becomes 1, nonzero stays the same
+
+    // dividend = a_magnitude << FRAC_BITS
+    // in a 2N-word array: lower FW words are 0, upper N words are a.w shifted up by FW
+    uint64_t remainder[2 * N] = {0};
+#pragma GCC unroll 65534
+    for (unsigned i = 0; i < N; i++) remainder[FW + i] = a.w[i];
+
+    // quotient accumulates bit by bit
+    uint64_t quotient[N] = {0};
+
+    // long division: produce N*64 bits of quotient, one bit per iteration
+    // each iteration: shift remainder left 1, compare top N words against divisor,
+    // conditionally subtract, shift quotient bit in
+    constexpr unsigned TOTAL_QBITS = N * 64;
+#pragma GCC unroll 65534
+    for (unsigned bit = 0; bit < TOTAL_QBITS; bit++) {
+        // shift remainder left by 1
+        SST_FPN_ShiftLeft1_2N<F>(remainder);
+
+        // compare top N words of remainder against divisor
+        int ge = SST_FPN_NWordGe<F>(&remainder[N], divisor);
+
+        // conditionally subtract divisor from top N words
+        SST_FPN_CondSub<F>(&remainder[N], divisor, ge);
+
+        // shift quotient left by 1 and OR in the new bit
+        unsigned word_idx = N - 1 - (bit / 64);
+        unsigned bit_idx  = 63 - (bit % 64);
+        quotient[word_idx] |= ((uint64_t)ge << bit_idx);
+    }
+
+    // build result: quotient is the magnitude, saturate if b was zero
+    SST_FPN<F> result;
+#pragma GCC unroll 65534
+    for (unsigned i = 0; i < N; i++) {
+        result.w[i] = (quotient[i] & ~bz_mask) | (UINT64_MAX & bz_mask);
+    }
+
+    // sign: XOR inputs, but if b was zero use a's sign
+    int normal_sign = (a.sign ^ b.sign) & !SST_FPN_MagIsZero(result);
+    int zero_sign   = a.sign;
+    result.sign = (normal_sign & (!b_zero)) | (zero_sign & b_zero);
+
     return result;
 }
 
