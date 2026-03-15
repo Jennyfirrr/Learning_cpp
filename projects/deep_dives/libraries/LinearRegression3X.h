@@ -9,10 +9,14 @@
 // accumulating sums of squares, Q32.32 handles prices in the thousands with no issues, the
 // tradeoff is mul/div go through __int128_t instead of int64_t which is one extra cycle
 //======================================================================================================
+// [EDIT [14-03-26]]
+//======================================================================================================
+// templated on FP precision - engine code picks the width, all the math flows through FixedPointN
+//======================================================================================================
 #ifndef LINEAR_REGRESSION_3X_H
 #define LINEAR_REGRESSION_3X_H
 
-#include "FixedPoint32.h"
+#include "FixedPointN.h"
 
 #ifndef MAX_WINDOW
 #define MAX_WINDOW 8
@@ -24,32 +28,32 @@
 //======================================================================================================
 // this is basically the equation y = mx + b, slope is m, intercept is b, and these numbers give you the slope, we track them in a struct for better organization, and the slope means on average that the price changes by this much per interval
 //======================================================================================================
-typedef struct {
-    SST_FP32 slope;
-    SST_FP32 intercept;
-} LinearRegression3XModel;
-static_assert(sizeof(LinearRegression3XModel) == 16, "struct must be 16 bytes");
+template<unsigned F>
+struct LinearRegression3XModel {
+    SST_FPN<F> slope;
+    SST_FPN<F> intercept;
+};
 //======================================================================================================
 // [FEEDER STRUCT]
 //======================================================================================================
 // this struct just has where there data lives before the regression takes place, apparently this is called a ring buffer, it holds the last 8 price sampels which is from the [MAX_WINDOW], head is where the next write goes, and count tracks which sample your on within the sample window, you can extend this for more intervals, but then the assert size changes, ill probably look into making that confirgurable outside of the file and based on dynamic observations but for now this works as i learn it, this also means that once the buffer gets full, it will start overwriting the oldest data point, which creates like a moving average for the slope, so basically it gives you the most recent output for the 8 prices
 //======================================================================================================
-typedef struct {
-    SST_FP32 price_samples[MAX_WINDOW];
+template<unsigned F>
+struct RegressionFeederX {
+    SST_FPN<F> price_samples[MAX_WINDOW];
     int head;
     int count;
-} RegressionFeederX;
-static_assert(sizeof(RegressionFeederX) == 72, "struct must be 72 bytes");
+};
 //======================================================================================================
 // [RESULT STRUCT]
 //======================================================================================================
 // this is the fitted line, (slope + intercept), plus the r^2 value, which is just a measure of how well the line fits the data, where 1.0 is perfect, and 0, is no relationship at all, ill probably go more into stuff like overfitting and stuff later, but generally you cant trust extreme values, like most things with stocks will probably fall within like .3 -> .7, and even then, .7 is still unusually high
 //======================================================================================================
-typedef struct {
-    LinearRegression3XModel model;
-    SST_FP32 r_squared;
-} LinearRegression3XResult;
-static_assert(sizeof(LinearRegression3XResult) == 24, "struct must be 24 bytes");
+template<unsigned F>
+struct LinearRegression3XResult {
+    LinearRegression3XModel<F> model;
+    SST_FPN<F> r_squared;
+};
 //======================================================================================================
 // [LINEAR REGRESSION FUNCTION PROTOTYPES]
 //======================================================================================================
@@ -57,11 +61,12 @@ static_assert(sizeof(LinearRegression3XResult) == 24, "struct must be 24 bytes")
 //======================================================================================================
 // just creates a clean feeder with everything zerod out, you call this once at startup and basically only then
 //======================================================================================================
-static inline RegressionFeederX RegressionFeederX_Init() {
-    RegressionFeederX feeder;
+template<unsigned F>
+inline RegressionFeederX<F> RegressionFeederX_Init() {
+    RegressionFeederX<F> feeder;
 
     for (int i = 0; i < MAX_WINDOW; i++) {
-        feeder.price_samples[i] = (SST_FP32){.raw_value = 0};
+        feeder.price_samples[i] = SST_FPN_Zero<F>();
     }
 
     feeder.head  = 0;
@@ -74,7 +79,8 @@ static inline RegressionFeederX RegressionFeederX_Init() {
 //======================================================================================================
 // this writes the new price at the current head position, and it advances with a wrap,so that after it hits the max window length, it starts wrapping around, the count just increments until youve filled the window, and at 8 it just starts overwriting the older value, in short the data ingestion path
 //======================================================================================================
-static inline void RegressionFeederX_Push(RegressionFeederX *feeder, SST_FP32 price) {
+template<unsigned F>
+inline void RegressionFeederX_Push(RegressionFeederX<F> *feeder, SST_FPN<F> price) {
     feeder->price_samples[feeder->head] = price;
     feeder->head                        = (feeder->head + 1) & (MAX_WINDOW - 1); // branchless wrap, power-of-2 bitmask instead of modulo
     feeder->count += (feeder->count < MAX_WINDOW); // branchless saturate, comparison yields 0 or 1, so it stops incrementing at MAX_WINDOW
@@ -92,45 +98,51 @@ static inline void RegressionFeederX_Push(RegressionFeederX *feeder, SST_FP32 pr
 //
 // ss_total is the total variance in y, which is just how much the prices vary overall, ss_reg is how much of that the variance the regression line explains, and r^2 is just ss_reg / ss_total, which basically means "what fraction of the price movement is explained by the trend", oh thats cool, its literally a ratio of the relationship converted to a percentage, this stuff is neat to finally dig into, its such a shame that college classes feel like funeral processions, this sshit is actually cool when its applied to stuff outside of school, but college is just like "dot your t's and cross your i's and make sure you answer these problems which have no actual meaning", but thats a different tangent, and you arnt reading this for my opinions on how lacking alot of CS education actually is
 //======================================================================================================
-static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP32 *x_values, SST_FP32 *y_values, int count) {
-    LinearRegression3XResult result;
-    result.model.slope     = (SST_FP32){.raw_value = 0};
-    result.model.intercept = (SST_FP32){.raw_value = 0};
-    result.r_squared       = (SST_FP32){.raw_value = 0};
+template<unsigned F>
+inline LinearRegression3XResult<F> LinearRegression3X_Fit(SST_FPN<F> *x_values, SST_FPN<F> *y_values, int count) {
+    using FP = SST_FPN<F>;
+
+    LinearRegression3XResult<F> result;
+    result.model.slope     = SST_FPN_Zero<F>();
+    result.model.intercept = SST_FPN_Zero<F>();
+    result.r_squared       = SST_FPN_Zero<F>();
 
     // no early return for count < 2, if count is 0 or 1 the denominator ends up 0 and the branchless
     // zero-denom guard below handles it, the sums just naturally produce a degenerate case
 
-    SST_FP32 sum_x = {.raw_value = 0}, sum_y = {.raw_value = 0}, sum_xy = {.raw_value = 0}, sum_x2 = {.raw_value = 0}, sum_y2 = {.raw_value = 0};
+    FP sum_x = SST_FPN_Zero<F>(), sum_y = SST_FPN_Zero<F>(), sum_xy = SST_FPN_Zero<F>(),
+       sum_x2 = SST_FPN_Zero<F>(), sum_y2 = SST_FPN_Zero<F>();
     for (int i = 0; i < count; i++) {
-        sum_x  = SST_FP32_AddSat(sum_x, x_values[i]);
-        sum_y  = SST_FP32_AddSat(sum_y, y_values[i]);
-        sum_xy = SST_FP32_AddSat(sum_xy, SST_FP32_Mul(x_values[i], y_values[i]));
-        sum_x2 = SST_FP32_AddSat(sum_x2, SST_FP32_Mul(x_values[i], x_values[i]));
-        sum_y2 = SST_FP32_AddSat(sum_y2, SST_FP32_Mul(y_values[i], y_values[i]));
+        sum_x  = SST_FPN_AddSat(sum_x, x_values[i]);
+        sum_y  = SST_FPN_AddSat(sum_y, y_values[i]);
+        sum_xy = SST_FPN_AddSat(sum_xy, SST_FPN_Mul(x_values[i], y_values[i]));
+        sum_x2 = SST_FPN_AddSat(sum_x2, SST_FPN_Mul(x_values[i], x_values[i]));
+        sum_y2 = SST_FPN_AddSat(sum_y2, SST_FPN_Mul(y_values[i], y_values[i]));
     }
 
-    SST_FP32 n_fp        = (SST_FP32){.raw_value = (int64_t)count << SST_FP32_FRAC_BITS};
-    SST_FP32 numerator   = SST_FP32_SubSat(SST_FP32_Mul(n_fp, sum_xy), SST_FP32_Mul(sum_x, sum_y));
-    SST_FP32 denominator = SST_FP32_SubSat(SST_FP32_Mul(n_fp, sum_x2), SST_FP32_Mul(sum_x, sum_x));
+    FP n_fp        = SST_FPN_FromDouble<F>((double)count);
+    FP numerator   = SST_FPN_SubSat(SST_FPN_Mul(n_fp, sum_xy), SST_FPN_Mul(sum_x, sum_y));
+    FP denominator = SST_FPN_SubSat(SST_FPN_Mul(n_fp, sum_x2), SST_FPN_Mul(sum_x, sum_x));
 
-    // branchless division guard: -(x != 0) produces 0xFFFFFFFFFFFFFFFF when nonzero, 0x0000000000000000 when zero
-    // when denom is 0, we sub in 1 to avoid UB in the divide, then AND the result with the mask to
-    // zero it out, so the division always executes but the result is correct either
-    int64_t denom_mask = -(denominator.raw_value != 0);
-    SST_FP32 safe_denom  = {.raw_value = denominator.raw_value | (~denom_mask & 1)}; // 0 becomes 1, nonzero stays the same
+    // branchless division guard: if denom is zero, DivNoAssert saturates to max and we zero the
+    // result with a mask, so the division always executes but the result is correct either way
+    int denom_nonzero = !SST_FPN_IsZero(denominator);
+    FP safe_denom     = denom_nonzero ? denominator : SST_FPN_FromDouble<F>(1.0);
 
-    result.model.slope = (SST_FP32){.raw_value = SST_FP32_DivNoAssert(numerator, safe_denom).raw_value & denom_mask};
-    result.model.intercept =
-        (SST_FP32){.raw_value = SST_FP32_DivNoAssert(SST_FP32_SubSat(SST_FP32_Mul(sum_y, sum_x2), SST_FP32_Mul(sum_x, sum_xy)), safe_denom).raw_value & denom_mask};
+    FP raw_slope     = SST_FPN_DivNoAssert(numerator, safe_denom);
+    result.model.slope = denom_nonzero ? raw_slope : SST_FPN_Zero<F>();
+
+    FP raw_intercept = SST_FPN_DivNoAssert(
+        SST_FPN_SubSat(SST_FPN_Mul(sum_y, sum_x2), SST_FPN_Mul(sum_x, sum_xy)), safe_denom);
+    result.model.intercept = denom_nonzero ? raw_intercept : SST_FPN_Zero<F>();
 
     // r^2 = slope * (numerator / ss_total), reuses slope to avoid squaring large values
     // splits the fraction so both operands in the final mul are small, no overflow
-    SST_FP32 ss_total    = SST_FP32_SubSat(SST_FP32_Mul(n_fp, sum_y2), SST_FP32_Mul(sum_y, sum_y));
-    int64_t total_mask = -(ss_total.raw_value != 0) & denom_mask;
-    SST_FP32 safe_total  = {.raw_value = ss_total.raw_value | (~total_mask & 1)};
-    result.r_squared =
-        (SST_FP32){.raw_value = SST_FP32_Mul(result.model.slope, SST_FP32_DivNoAssert(numerator, safe_total)).raw_value & total_mask};
+    FP ss_total       = SST_FPN_SubSat(SST_FPN_Mul(n_fp, sum_y2), SST_FPN_Mul(sum_y, sum_y));
+    int total_nonzero = (!SST_FPN_IsZero(ss_total)) & denom_nonzero;
+    FP safe_total     = total_nonzero ? ss_total : SST_FPN_FromDouble<F>(1.0);
+    FP raw_r2         = SST_FPN_Mul(result.model.slope, SST_FPN_DivNoAssert(numerator, safe_total));
+    result.r_squared  = total_nonzero ? raw_r2 : SST_FPN_Zero<F>();
 
     return result;
 }
@@ -139,16 +151,17 @@ static inline LinearRegression3XResult LinearRegression3X_Fit(SST_FP32 *x_values
 //======================================================================================================
 // this is just run the regression on the ring buffer, it doesnt store it in chronological order, so you have to walk from the oldest to the newest and copy them into the linearized in the correct time order, then it just hands the arrays to the _Fit and computes, theres probably a better and faster way to do this but idk, im figuring this out as a go, because FUCK java(I C K Y)
 //======================================================================================================
-static inline LinearRegression3XResult RegressionFeederX_Compute(RegressionFeederX *feeder) {
+template<unsigned F>
+inline LinearRegression3XResult<F> RegressionFeederX_Compute(RegressionFeederX<F> *feeder) {
     // no early return needed, _Fit handles count < 2 branchlessly via the zero-denom guard
 
-    SST_FP32 linearized[MAX_WINDOW];
-    SST_FP32 time_index[MAX_WINDOW];
+    SST_FPN<F> linearized[MAX_WINDOW];
+    SST_FPN<F> time_index[MAX_WINDOW];
 
     for (int i = 0; i < feeder->count; i++) {
         int idx       = (feeder->head - feeder->count + i + MAX_WINDOW) & (MAX_WINDOW - 1); // branchless wrap
         linearized[i] = feeder->price_samples[idx];
-        time_index[i] = (SST_FP32){.raw_value = (int64_t)i << SST_FP32_FRAC_BITS};
+        time_index[i] = SST_FPN_FromDouble<F>((double)i);
     }
 
     return LinearRegression3X_Fit(time_index, linearized, feeder->count);
@@ -158,8 +171,9 @@ static inline LinearRegression3XResult RegressionFeederX_Compute(RegressionFeede
 //======================================================================================================
 // this is just given the line what is the y at the assocaited x, literally just y = mx + b, an oldie but a goodie
 //======================================================================================================
-static inline SST_FP32 LinearRegression3X_Predict(LinearRegression3XModel model, SST_FP32 x) {
-    return SST_FP32_AddSat(SST_FP32_Mul(model.slope, x), model.intercept);
+template<unsigned F>
+inline SST_FPN<F> LinearRegression3X_Predict(LinearRegression3XModel<F> model, SST_FPN<F> x) {
+    return SST_FPN_AddSat(SST_FPN_Mul(model.slope, x), model.intercept);
 }
 //======================================================================================================
 // [DATA FLOW]

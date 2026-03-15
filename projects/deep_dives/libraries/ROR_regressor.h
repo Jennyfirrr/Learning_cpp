@@ -18,24 +18,25 @@
 // regression you push the resulting slope into this buffer, once it fills up you can run regression
 // on the slopes themselves to get the trend of the trend
 //======================================================================================================
-typedef struct {
-    SST_FP32 slope_samples[MAX_WINDOW];
-    SST_FP32 r_squared_samples[MAX_WINDOW];
+template<unsigned F>
+struct RORRegressor {
+    SST_FPN<F> slope_samples[MAX_WINDOW];
+    SST_FPN<F> r_squared_samples[MAX_WINDOW];
     int head;
     int count;
-} RORRegressor;
-static_assert(sizeof(RORRegressor) == 136, "struct must be 136 bytes");
+};
 //======================================================================================================
 // [INIT FUNCTION]
 //======================================================================================================
 // zeroes everything out, call once at startup
 //======================================================================================================
-static inline RORRegressor RORRegressor_Init() {
-    RORRegressor reg;
+template<unsigned F>
+inline RORRegressor<F> RORRegressor_Init() {
+    RORRegressor<F> reg;
 
     for (int i = 0; i < MAX_WINDOW; i++) {
-        reg.slope_samples[i]     = (SST_FP32){.raw_value = 0};
-        reg.r_squared_samples[i] = (SST_FP32){.raw_value = 0};
+        reg.slope_samples[i]     = SST_FPN_Zero<F>();
+        reg.r_squared_samples[i] = SST_FPN_Zero<F>();
     }
 
     reg.head  = 0;
@@ -51,7 +52,8 @@ static inline RORRegressor RORRegressor_Init() {
 // like if the inner regression had an r^2 of 0.05 that slope is basically noise and maybe you
 // dont want it polluting the outer regression
 //======================================================================================================
-static inline void RORRegressor_Push(RORRegressor *reg, LinearRegression3XResult inner_result) {
+template<unsigned F>
+inline void RORRegressor_Push(RORRegressor<F> *reg, LinearRegression3XResult<F> inner_result) {
     reg->slope_samples[reg->head]     = inner_result.model.slope;
     reg->r_squared_samples[reg->head] = inner_result.r_squared;
     reg->head                         = (reg->head + 1) & (MAX_WINDOW - 1);
@@ -65,14 +67,15 @@ static inline void RORRegressor_Push(RORRegressor *reg, LinearRegression3XResult
 // slope tells you how fast the trend is changing - positive means the trend is getting steeper
 // (accelerating), negative means its flattening or reversing
 //======================================================================================================
-static inline LinearRegression3XResult RORRegressor_Compute(RORRegressor *reg) {
-    SST_FP32 linearized[MAX_WINDOW];
-    SST_FP32 time_index[MAX_WINDOW];
+template<unsigned F>
+inline LinearRegression3XResult<F> RORRegressor_Compute(RORRegressor<F> *reg) {
+    SST_FPN<F> linearized[MAX_WINDOW];
+    SST_FPN<F> time_index[MAX_WINDOW];
 
     for (int i = 0; i < reg->count; i++) {
         int idx       = (reg->head - reg->count + i + MAX_WINDOW) & (MAX_WINDOW - 1);
         linearized[i] = reg->slope_samples[idx];
-        time_index[i] = (SST_FP32){.raw_value = (int64_t)i << SST_FP32_FRAC_BITS};
+        time_index[i] = SST_FPN_FromDouble<F>((double)i);
     }
 
     return LinearRegression3X_Fit(time_index, linearized, reg->count);

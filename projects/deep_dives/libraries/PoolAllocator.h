@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "FixedPoint32.h"
+#include "FixedPointN.h"
 
 //======================================================================================================
 // [CURRENT ORDER STRUCTURE]
@@ -19,42 +19,50 @@
 //======================================================================================================
 // price and quantity are now SST_FP32 - deterministic fixed-point all the way through
 //======================================================================================================
-typedef struct {
+// [EDIT [14-03-26]]
+//======================================================================================================
+// templated on FP precision - engine code picks the width with e.g. CurrentOrder<64>
+//======================================================================================================
+template<unsigned F>
+struct CurrentOrder {
     uint64_t order_id;
-    SST_FP32 price;
-    SST_FP32 quantity;
-} CurrentOrder;
-static_assert(sizeof(CurrentOrder) == 24, "struct must be 24 bytes");
+    SST_FPN<F> price;
+    SST_FPN<F> quantity;
+};
 
-typedef struct {
-    CurrentOrder *slots;
+template<unsigned F>
+struct OrderPool {
+    CurrentOrder<F> *slots;
     uint64_t bitmap;
     uint32_t capacity;
-} OrderPool;
-static_assert(sizeof(OrderPool) == 24, "struct must be 36 bytes");
+};
 //======================================================================================================
 // [POOL ALLOCATOR FUNCTION PROTOTYPES]
 //======================================================================================================
 // current working code, subject to chaaanggggeeeee
 //======================================================================================================
-static inline void OrderPool_init(OrderPool *pool, uint32_t capacity) {
-    pool->slots    = (CurrentOrder *)calloc(capacity, sizeof(CurrentOrder));
+template<unsigned F>
+inline void OrderPool_init(OrderPool<F> *pool, uint32_t capacity) {
+    pool->slots    = (CurrentOrder<F> *)calloc(capacity, sizeof(CurrentOrder<F>));
     pool->bitmap   = 0;
     pool->capacity = capacity;
 }
 
-static inline CurrentOrder *OrderPool_Allocate(OrderPool *pool) {
+template<unsigned F>
+inline CurrentOrder<F> *OrderPool_Allocate(OrderPool<F> *pool) {
     uint32_t index = __builtin_ctzll(~pool->bitmap);
     pool->bitmap |= (1ULL << index);
     return &pool->slots[index];
 }
 
-static inline void OrderPool_Free(OrderPool *pool, CurrentOrder *slot_ptr) {
+template<unsigned F>
+inline void OrderPool_Free(OrderPool<F> *pool, CurrentOrder<F> *slot_ptr) {
     uint32_t index = (uint32_t)(slot_ptr - pool->slots);
     pool->bitmap &= ~(1ULL << index);
 }
 
-static inline uint32_t OrderPool_CountActive(const OrderPool *pool) {
+template<unsigned F>
+inline uint32_t OrderPool_CountActive(const OrderPool<F> *pool) {
     uint32_t popcount = __builtin_popcountll(pool->bitmap);
     return popcount;
 }

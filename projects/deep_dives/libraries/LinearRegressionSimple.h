@@ -6,60 +6,55 @@
 #ifndef LINEAR_REGRESSION_H
 #define LINEAR_REGRESSION_H
 
-#include "FixedPoint16.h"
+#include "FixedPointN.h"
 //======================================================================================================
 // [LINEAR REGRESSION STRUCTURES]
 //======================================================================================================
-typedef struct {
-    SST_FP slope;
-    SST_FP intercept;
-} LinearRegressionModel;
-static_assert(sizeof(LinearRegressionModel) == 8, "struct must be 8 bytes");
+template<unsigned F>
+struct LinearRegressionModel {
+    SST_FPN<F> slope;
+    SST_FPN<F> intercept;
+};
 //======================================================================================================
 // [LINEAR REGRESSION FUNCTION PROTOTYPES]
 //======================================================================================================
-static inline LinearRegressionModel LinearRegression_Fit(SST_FP *x_values, SST_FP *y_values, int count) {
-    LinearRegressionModel model;
+template<unsigned F>
+inline LinearRegressionModel<F> LinearRegression_Fit(SST_FPN<F> *x_values, SST_FPN<F> *y_values, int count) {
+    using FP = SST_FPN<F>;
+    LinearRegressionModel<F> model;
 
-    SST_FP sum_x = {0}, sum_y = {0};
+    FP sum_x = SST_FPN_Zero<F>(), sum_y = SST_FPN_Zero<F>();
     for (int i = 0; i < count; i++) {
-        sum_x = SST_FP_Add(sum_x, x_values[i]);
-        sum_y = SST_FP_Add(sum_y, y_values[i]);
+        sum_x = SST_FPN_Add(sum_x, x_values[i]);
+        sum_y = SST_FPN_Add(sum_y, y_values[i]);
     }
-    SST_FP mean_x = SST_FP_Div(sum_x, (SST_FP){count << SST_FP_FRAC_BITS});
-    SST_FP mean_y = SST_FP_Div(sum_y, (SST_FP){count << SST_FP_FRAC_BITS});
+    FP n_fp  = SST_FPN_FromDouble<F>((double)count);
+    FP mean_x = SST_FPN_DivNoAssert(sum_x, n_fp);
+    FP mean_y = SST_FPN_DivNoAssert(sum_y, n_fp);
 
-    SST_FP numerator = {0}, denominator = {0};
+    FP numerator = SST_FPN_Zero<F>(), denominator = SST_FPN_Zero<F>();
     for (int i = 0; i < count; i++) {
-        SST_FP x_diff = SST_FP_Sub(x_values[i], mean_x);
-        SST_FP y_diff = SST_FP_Sub(y_values[i], mean_y);
-        numerator     = SST_FP_Add(numerator, SST_FP_Mul(x_diff, y_diff));
-        denominator   = SST_FP_Add(denominator, SST_FP_Mul(x_diff, x_diff));
+        FP x_diff   = SST_FPN_Sub(x_values[i], mean_x);
+        FP y_diff   = SST_FPN_Sub(y_values[i], mean_y);
+        numerator   = SST_FPN_Add(numerator, SST_FPN_Mul(x_diff, y_diff));
+        denominator = SST_FPN_Add(denominator, SST_FPN_Mul(x_diff, x_diff));
     }
 
-    if (denominator.raw_value == 0) {
-        model.slope = (SST_FP){0};
-    } else {
-        model.slope = SST_FP_Div(numerator, denominator);
-    }
+    int denom_nonzero = !SST_FPN_IsZero(denominator);
+    FP safe_denom     = denom_nonzero ? denominator : SST_FPN_FromDouble<F>(1.0);
+    FP raw_slope      = SST_FPN_DivNoAssert(numerator, safe_denom);
+    model.slope       = denom_nonzero ? raw_slope : SST_FPN_Zero<F>();
 
-    model.intercept = SST_FP_Sub(mean_y, SST_FP_Mul(model.slope, mean_x));
+    model.intercept = SST_FPN_Sub(mean_y, SST_FPN_Mul(model.slope, mean_x));
 
     return model;
 }
 
-static inline SST_FP LinearRegression_Predict(LinearRegressionModel model, SST_FP x) {
-    return SST_FP_Add(SST_FP_Mul(model.slope, x), model.intercept);
+template<unsigned F>
+inline SST_FPN<F> LinearRegression_Predict(LinearRegressionModel<F> model, SST_FPN<F> x) {
+    return SST_FPN_Add(SST_FPN_Mul(model.slope, x), model.intercept);
 }
 
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
 //======================================================================================================
 //======================================================================================================
 #endif
